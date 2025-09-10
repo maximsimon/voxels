@@ -9,14 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-void fetchFront(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);	// gen fron square (2 triangles) of generic Voxel
-void fetchBack(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
-void fetchTop(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
-void fetchFloor(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
-void fetchRight(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
-void fetchLeft(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
+void fetchFront(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);	// gen fron square (2 triangles) of generic Voxel
+void fetchBack(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
+void fetchTop(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
+void fetchFloor(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
+void fetchRight(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
+void fetchLeft(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 
-void fetchFront(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
+void fetchFront(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
 	
 	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
@@ -53,34 +53,19 @@ void fetchFront(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors,
 	normals[10] = n_vectors[0].y;
 	normals[11] = n_vectors[0].z;
 
+	indices[0] = 0 + vertex_count;
+	indices[1] = 1 + vertex_count;
+	indices[2] = 2 + vertex_count;
 
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
-
-	indices[3] = 0;
-	indices[4] = 2;
-	indices[5] = 3;
+	indices[3] = 0 + vertex_count;
+	indices[4] = 2 + vertex_count;
+	indices[5] = 3 + vertex_count;
 	
 	*(voxel_t_count) += 2;
 	*(voxel_v_count) += 4;
-	
-	
-	// apply new stuff to mesh
-	for (int i = 0; i < 12; i++) {
-		mesh->vertices[i] = vertices[i];
-		mesh->normals[i] = normals[i];
-	}
-	for (int i = 0; i < 6; i++) {
-		mesh->indices[i] = indices[i];
-	}
-		
-	mesh->vertexCount = *(voxel_v_count);
-	mesh->triangleCount = *(voxel_t_count);
-
 }
 
-void fetchBack(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
+void fetchBack(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
 	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[12] = v_vectors[4].x;
@@ -117,51 +102,19 @@ void fetchBack(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, 
 	normals[23] = n_vectors[1].z;
 
 	
-	indices[6] = 4;
-	indices[7] = 5;
-	indices[8] = 6;
+	indices[6] = 4 + vertex_count;
+	indices[7] = 5 + vertex_count;
+	indices[8] = 6 + vertex_count;
 
-	indices[9] = 4;
-	indices[10] = 6;
-	indices[11] = 7;
+	indices[9] = 4 + vertex_count;
+	indices[10] = 6 + vertex_count;
+	indices[11] = 7 + vertex_count;
 	
 	*(voxel_t_count) += 2;
 	*(voxel_v_count) += 4;
-	
-	printf("back vertices:\n");
-	for (int i = 12; i < 24; i++) {
-		printf("%f %f\n", vertices[i], normals[i]);
-	}
-	for (int i = 6; i < 12; i++) {
-		printf("%d ", indices[i]);
-	}
-	printf("\n");	
-	// apply new stuff to mesh
-	for (int i = 12; i < 24; i++) {
-		mesh->vertices[i] = vertices[i];
-		mesh->normals[i] = normals[i];
-	}
-	for (int i = 6; i < 12; i++) {
-		mesh->indices[i] = indices[i];
-	}
-		
-	mesh->vertexCount = *(voxel_v_count);
-	mesh->triangleCount = *(voxel_t_count);
-	
-	printf("back mesh:\n");
-	for (int i = 12; i < 24; i++) {
-		printf("%f %f\n", mesh->vertices[i], mesh->normals[i]);
-	}
-	for (int i = 6; i < 12; i++) {
-		printf("%d ", mesh->indices[i]);
-	}
-	printf("\n");	
-	printf("vertex count: %d\n", mesh->vertexCount);
-	printf("triangle count: %d\n", mesh->triangleCount);
-
 }
 
-void fetchTop(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
+void fetchTop(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
 	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[24] = v_vectors[5].x;
@@ -198,51 +151,19 @@ void fetchTop(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, V
 	normals[35] = n_vectors[2].z;
 
 	
-	indices[12] = 8;
-	indices[13] = 9;
-	indices[14] = 10;
+	indices[12] = 8 + vertex_count;
+	indices[13] = 9 + vertex_count;
+	indices[14] = 10 + vertex_count;
 
-	indices[15] = 8;
-	indices[16] = 10;
-	indices[17] = 11;
+	indices[15] = 8 + vertex_count;
+	indices[16] = 10 + vertex_count;
+	indices[17] = 11 + vertex_count;
 	
 	*(voxel_t_count) += 2;
 	*(voxel_v_count) += 4;
-	
-	printf("ceiling vertices:\n");
-	for (int i = 24; i < 36; i++) {
-		printf("%f %f\n", vertices[i], normals[i]);
-	}
-	for (int i = 12; i < 18; i++) {
-		printf("%d ", indices[i]);
-	}
-	printf("\n");	
-	// apply new stuff to mesh
-	for (int i = 24; i < 36; i++) {
-		mesh->vertices[i] = vertices[i];
-		mesh->normals[i] = normals[i];
-	}
-	for (int i = 12; i < 18; i++) {
-		mesh->indices[i] = indices[i];
-	}
-		
-	mesh->vertexCount = *(voxel_v_count);
-	mesh->triangleCount = *(voxel_t_count);
-	
-	printf("ceiling mesh:\n");
-	for (int i = 24; i < 36; i++) {
-		printf("%f %f\n", mesh->vertices[i], mesh->normals[i]);
-	}
-	for (int i = 12; i < 18; i++) {
-		printf("%d ", mesh->indices[i]);
-	}
-	printf("\n");	
-	printf("vertex count: %d\n", mesh->vertexCount);
-	printf("triangle count: %d\n", mesh->triangleCount);
-
 }
 
-void fetchFloor(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
+void fetchFloor(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
 	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[36] = v_vectors[4].x;
@@ -279,32 +200,19 @@ void fetchFloor(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors,
 	normals[47] = n_vectors[3].z;
 
 	
-	indices[18] = 12;
-	indices[19] = 13;
-	indices[20] = 14;
+	indices[18] = 12 + vertex_count;
+	indices[19] = 13 + vertex_count;
+	indices[20] = 14 + vertex_count;
 
-	indices[21] = 12;
-	indices[22] = 14;
-	indices[23] = 15;
+	indices[21] = 12 + vertex_count;
+	indices[22] = 14 + vertex_count;
+	indices[23] = 15 + vertex_count;
 	
 	*(voxel_t_count) += 2;
 	*(voxel_v_count) += 4;
-	
-	// apply new stuff to mesh
-	for (int i = 36; i < 48; i++) {
-		mesh->vertices[i] = vertices[i];
-		mesh->normals[i] = normals[i];
-	}
-	for (int i = 18; i < 24; i++) {
-		mesh->indices[i] = indices[i];
-	}
-		
-	mesh->vertexCount = *(voxel_v_count);
-	mesh->triangleCount = *(voxel_t_count);
-
 }
 
-void fetchRight(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
+void fetchRight(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
 	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[48] = v_vectors[1].x;
@@ -341,32 +249,19 @@ void fetchRight(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors,
 	normals[59] = n_vectors[4].z;
 
 	
-	indices[24] = 16;
-	indices[25] = 17;
-	indices[26] = 18;
+	indices[24] = 16 + vertex_count;
+	indices[25] = 17 + vertex_count;
+	indices[26] = 18 + vertex_count;
 
-	indices[27] = 16;
-	indices[28] = 18;
-	indices[29] = 19;
+	indices[27] = 16 + vertex_count;
+	indices[28] = 18 + vertex_count;
+	indices[29] = 19 + vertex_count;
 	
 	*(voxel_t_count) += 2;
 	*(voxel_v_count) += 4;
-	
-	// apply new stuff to mesh
-	for (int i = 48; i < 60; i++) {
-		mesh->vertices[i] = vertices[i];
-		mesh->normals[i] = normals[i];
-	}
-	for (int i = 24; i < 30; i++) {
-		mesh->indices[i] = indices[i];
-	}
-		
-	mesh->vertexCount = *(voxel_v_count);
-	mesh->triangleCount = *(voxel_t_count);
-
 }
 
-void fetchLeft(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
+void fetchLeft(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
 	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[60] = v_vectors[4].x;
@@ -403,29 +298,22 @@ void fetchLeft(Mesh *mesh, float *vertices, float *normals, Vector3 *v_vectors, 
 	normals[71] = n_vectors[5].z;
 
 	
-	indices[30] = 20;
-	indices[31] = 21;
-	indices[32] = 22;
+	indices[30] = 20 + vertex_count;
+	indices[31] = 21 + vertex_count;
+	indices[32] = 22 + vertex_count;
 
-	indices[33] = 20;
-	indices[34] = 22;
-	indices[35] = 23;
+	indices[33] = 20 + vertex_count;
+	indices[34] = 22 + vertex_count;
+	indices[35] = 23 + vertex_count;
 	
 	*(voxel_t_count) += 2;
 	*(voxel_v_count) += 4;
-	
-	// apply new stuff to mesh
-	for (int i = 60; i < 72; i++) {
-		mesh->vertices[i] = vertices[i];
-		mesh->normals[i] = normals[i];
-	}
-	for (int i = 30; i < 36; i++) {
-		mesh->indices[i] = indices[i];
-	}
-		
-	mesh->vertexCount = *(voxel_v_count);
-	mesh->triangleCount = *(voxel_t_count);
 
+	printf("indices inside: \n");
+	for (int i = 0; i < 36; i++) {
+		printf("%d ", indices[i]);
+	}
+	printf("\n");
 }
 
 #endif
