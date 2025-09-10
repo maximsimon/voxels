@@ -308,12 +308,6 @@ void fetchLeft(int vertex_count, float *vertices, float *normals, Vector3 *v_vec
 	
 	*(voxel_t_count) += 2;
 	*(voxel_v_count) += 4;
-
-	printf("indices inside: \n");
-	for (int i = 0; i < 36; i++) {
-		printf("%d ", indices[i]);
-	}
-	printf("\n");
 }
 
 #endif

@@ -31,11 +31,10 @@ int main(void){
 	mesh.vertices = (float *)RL_MALLOC(0); 
 	mesh.normals = (float *)RL_MALLOC(0);
 	mesh.indices = (unsigned short *)RL_MALLOC(0);
+	
+	//chunkMap map = FetchChunkMap();				// fetch map of voxels in 16 x 16 chunk
 
-	MeshVoxel(&mesh, 1.0f, 1.0f, 1.0f, -5.0f, 2.0f, -4.0f, &voxel_count);
-	printf("voxel count %d\n", voxel_count);
-	MeshVoxel(&mesh, 1.0f, 1.0f, 1.0f, -3.0f, 1.0f, -4.0f, &voxel_count);
-	printf("voxel count %d\n", voxel_count);
+	//mainErection(&mesh);
 	
 	UploadMesh(&mesh, false);
 	
@@ -72,6 +71,8 @@ int main(void){
 
 	return 0;
 }
+	
+//MeshVoxel(&mesh, 1.0f, 1.0f, 1.0f, -5.0f, 2.0f, -4.0f, &voxel_count) {
 
 Mesh MeshVoxel(Mesh *mesh, float width, float height, float length, float pos_x, float pos_y, float pos_z, int *voxel_count) {
 
@@ -108,17 +109,9 @@ Mesh MeshVoxel(Mesh *mesh, float width, float height, float length, float pos_x,
 	float normals[72] = {0};
 	unsigned short indices[36] = {0};
 	
-	//printf("lists:\n");
-	//for (int i = 0; i < 36; i++) {
-	//	printf("%f %f\n", vertices[i], normals[i]);
-	//}
-	//for (int i = 0; i < 18; i++) {
-	//	printf("%d ", indices[i]);
-	//}
-	//printf("\n");
-	// gen generic voxel
-	// check if i should fetch front
-	// gen front square
+	// gen generic voxel	
+	// check if i should fetch front ..todo
+	// gen one square at a time
 	fetchFront(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
 	fetchBack(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
 	fetchTop(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
@@ -127,42 +120,24 @@ Mesh MeshVoxel(Mesh *mesh, float width, float height, float length, float pos_x,
 	fetchLeft(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
 
 	// translate voxel
-	for (int i = *(voxel_count) * 24; i < *(voxel_count) * 24 + 24; i++) {
+	for (int i = 0; i < 24; i++) {
 		vertices[i*3 + 0] += pos_x;
 		vertices[i*3 + 1] += pos_y;
 		vertices[i*3 + 2] += pos_z;
+		printf("%f ", vertices[i]);
 	}
 
+	// apply voxel to mesh
 	for (int i = 0; i < 72; i++) {
 		mesh->vertices[*(voxel_count) * 72 + i] = vertices[i];
 		mesh->normals[*(voxel_count) * 72 + i] = normals[i];
 	}
-	
 	for (int i = 0; i < 36; i++) {
 		mesh->indices[*(voxel_count) * 36 + i] = indices[i];
 	}
-	
 	mesh->vertexCount += voxel_v_count;
 	mesh->triangleCount += voxel_t_count;
 	*(voxel_count) += 1;
-
-
-	printf("mesh:\n");
-	for (int i = 0; i < 144; i++) {
-		printf("%f %f\n", mesh->vertices[i], mesh->normals[i]);
-	}
-	for (int i = 0; i < 72; i++) {
-		printf("%d ", mesh->indices[i]);
-	}
-	printf("\n");
-	printf("vertex count: %d\n", mesh->vertexCount);
-	printf("triangle count: %d\n", mesh->triangleCount);
-
-	//mesh.vertices = (float *)RL_MALLOC(24*3*sizeof(float));
-	//memcpy(mesh.vertices, vertices, 24*3*sizeof(float));
-
-	//mesh.normals = (float *)RL_MALLOC(24*3*sizeof(float));
-	//memcpy(mesh.normals, normals, 24*3*sizeof(float));
 
 }
 
