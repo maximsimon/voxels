@@ -1,4 +1,4 @@
-// CREATING MESHES OF EACH FACE OF A VOXEL
+// CREATING A VOXEL AT GIVEN POSITION - generates a mesh of a voxel (face by face), translates it to position and then add it to the current mesh
 
 #ifndef FACES_H
 #define FACES_H
@@ -9,17 +9,87 @@
 #include <stdlib.h>
 #include <string.h>
 
-void fetchFront(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);	// gen fron square (2 triangles) of generic Voxel
+// Generate a face of a voxel
+void fetchFront(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchBack(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchTop(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchFloor(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchRight(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchLeft(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
+Mesh MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, int *voxel_count);	// Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh
+
+// Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh
+Mesh MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, int *voxel_count) {
+
+	float width = 1.0f;
+	float height = 1.0f;
+	float length = 1.0f;
+
+	Vector3 v0 = { -width/2, -height/2,  length/2 };
+	Vector3 v1 = {  width/2, -height/2,  length/2 };
+	Vector3 v2 = {  width/2,  height/2,  length/2 };
+	Vector3 v3 = { -width/2,  height/2,  length/2 };
+	Vector3 v4 = { -width/2, -height/2, -length/2 };
+	Vector3 v5 = { -width/2,  height/2, -length/2 };
+	Vector3 v6 = {  width/2,  height/2, -length/2 };
+	Vector3 v7 = {  width/2, -height/2, -length/2 };
+
+	Vector3 n0 = { 1.0f, 0.0f, 0.0f };
+    	Vector3 n1 = { -1.0f, 0.0f, 0.0f };
+    	Vector3 n2 = { 0.0f, 1.0f, 0.0f };
+    	Vector3 n3 = { 0.0f, -1.0f, 0.0f };
+    	Vector3 n4 = { 0.0f, 0.0f, -1.0f };
+    	Vector3 n5 = { 0.0f, 0.0f, 1.0f };
+
+	Vector3 v_vectors[8] = { v0, v1, v2, v3, v4, v5, v6, v7 };
+	Vector3 n_vectors[6] = { n0, n1, n2, n3, n4, n5 };
+
+	int voxel_v_count = 0;
+	int voxel_t_count = 0;
+
+	// prepare mesh arrays for new vertices and faces
+	mesh->vertices = (float *)RL_REALLOC(mesh->vertices, mesh->vertexCount*3*sizeof(float) + 24*3*sizeof(float));
+	mesh->normals = (float *)RL_REALLOC(mesh->normals, mesh->vertexCount*3*sizeof(float) + 24*3*sizeof(float));
+	mesh->indices = (unsigned short *)RL_REALLOC(mesh->indices, mesh->triangleCount*3*sizeof(unsigned short) + 12*3*sizeof(unsigned short));
+
+	float vertices[72] = {0};
+	float normals[72] = {0};
+	unsigned short indices[36] = {0};
+	
+	// gen generic voxel	
+	fetchFront(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchBack(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchTop(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchFloor(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchRight(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchLeft(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+
+	// translate voxel
+	for (int i = 0; i < 24; i++) {
+		vertices[i*3 + 0] += pos_x;
+		vertices[i*3 + 1] += pos_y;
+		vertices[i*3 + 2] += pos_z;
+	}
+
+	// apply voxel to mesh
+	for (int i = 0; i < 72; i++) {
+		mesh->vertices[*(voxel_count) * 72 + i] = vertices[i];
+		mesh->normals[*(voxel_count) * 72 + i] = normals[i];
+	}
+	for (int i = 0; i < 36; i++) {
+		mesh->indices[*(voxel_count) * 36 + i] = indices[i];
+	}
+	mesh->vertexCount += voxel_v_count;
+	mesh->triangleCount += voxel_t_count;
+	*(voxel_count) += 1;
+
+}
+
+// Generate one face of a voxel - currently has to be called in order: front, back, ceiling, floor, right, left
+// for one face (side of a cube (voxel)) add 4 vertices (3D vectors so 12 floats), 4 normals (normalized, 12 floats), 2 indices (triangles, 3 ints) and increase voxel_v_count (vertex count) by 4 andvoxel_t_count by 2 (triangle count)
 
 void fetchFront(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
 	
-	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
-
 	vertices[0] = v_vectors[0].x;
 	vertices[1] = v_vectors[0].y;
 	vertices[2] = v_vectors[0].z;
@@ -66,7 +136,6 @@ void fetchFront(int vertex_count, float *vertices, float *normals, Vector3 *v_ve
 }
 
 void fetchBack(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
-	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[12] = v_vectors[4].x;
 	vertices[13] = v_vectors[4].y;
@@ -115,7 +184,6 @@ void fetchBack(int vertex_count, float *vertices, float *normals, Vector3 *v_vec
 }
 
 void fetchTop(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
-	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[24] = v_vectors[5].x;
 	vertices[25] = v_vectors[5].y;
@@ -164,7 +232,6 @@ void fetchTop(int vertex_count, float *vertices, float *normals, Vector3 *v_vect
 }
 
 void fetchFloor(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
-	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[36] = v_vectors[4].x;
 	vertices[37] = v_vectors[4].y;
@@ -213,7 +280,6 @@ void fetchFloor(int vertex_count, float *vertices, float *normals, Vector3 *v_ve
 }
 
 void fetchRight(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
-	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[48] = v_vectors[1].x;
 	vertices[49] = v_vectors[1].y;
@@ -262,7 +328,6 @@ void fetchRight(int vertex_count, float *vertices, float *normals, Vector3 *v_ve
 }
 
 void fetchLeft(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices) {
-	// add 4 vertices (12 floats), 4 normals and increase voxel_v_count by 4
 
 	vertices[60] = v_vectors[4].x;
 	vertices[61] = v_vectors[4].y;
@@ -311,4 +376,3 @@ void fetchLeft(int vertex_count, float *vertices, float *normals, Vector3 *v_vec
 }
 
 #endif
-

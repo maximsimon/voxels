@@ -1,12 +1,12 @@
 CC = gcc
-SCRIPT_NAME = voxels_main
+SCRIPT_NAME = voxel
 TARGET = $(SCRIPT_NAME).o
 SRC = $(SCRIPT_NAME).c
 
 INCLUDE_DIRS = -I$(HOME)/raylib/src
 LIB_DIRS = -L$(HOME)/raylib/build
 
-LIBS = -lraylib -lm -ldl -lpthread -lGL -lX11 
+LIBS = -lraylib -lm -ldl -lpthread -lGL -lX11 -g 
 
 all: rebuild
 

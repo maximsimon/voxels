@@ -1,1 +1,0 @@
-valgrind --leak-check=full --default-suppressions=yes ./voxel.o
