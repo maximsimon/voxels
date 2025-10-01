@@ -1,4 +1,4 @@
-// CAMERA MOVEMENT (translation, rotation)
+// CAMERA (edit mode) MOVEMENT (translation, rotation)
 
 #ifndef CAMERA_MOVEMENT_H
 #define CAMERA_MOVEMENT_H
@@ -8,24 +8,16 @@
 #include <stdio.h>
 #include "map.h"
 
-float SPEED = 0.1f;	
-float TURN_SPEED = 0.05f;
+float SPEED_EDIT = 0.1f;	
+float TURN_SPEED_EDIT = 0.05f;
 
-enum HEADING {
-	RIGHT,
-	LEFT,
-	UP,
-	DOWN
-};
-
-
-void CheckMovement(Camera *camera, chunkMap map);		// Check for keyboard keys that move player
-void CameraMove(Camera *camera, Vector3 direction);		// Translate camera
-void CameraRotate(Camera *camera, int HEADING);			// Rotate camera
-bool CheckCollision(Vector3 pose, chunkMap map);		// Check if player is colliding with any voxel
+void CheckMovementEdit(Camera *camera, Camera *player, chunkMap map);		// Check for keyboard keys that move player
+void CameraMoveEdit(Camera *camera, Vector3 direction);		// Translate camera
+void CameraMoveUpDownEdit(Camera *camera, Vector3 direction);		// Translate camera
+void CameraRotateEdit(Camera *camera, int HEADING);			// Rotate camera
 
 // Check for keyboard keys that move player
-void CheckMovement(Camera *camera, chunkMap map) {
+void CheckMovementEdit(Camera *camera, Camera *player, chunkMap map) {
 	
 	Vector3 forward = Vector3Subtract(camera->target, camera->position);
 	Vector3 right = Vector3CrossProduct(forward, camera->up);
@@ -34,72 +26,101 @@ void CheckMovement(Camera *camera, chunkMap map) {
 	
 	// move
 	if (IsKeyDown(KEY_UP)) {
-		CameraMove(camera, forward);
-		if (CheckCollision(camera->position, map)) {
-			*camera = camera_old;		// reset
-		} else {
-			camera_old = *camera;		// update (in case of collision in other direction)
-		}
+		CameraMoveEdit(camera, forward);
 	}
 	if (IsKeyDown(KEY_DOWN)) {
-		CameraMove(camera, Vector3Negate(forward));
+		CameraMoveEdit(camera, Vector3Negate(forward));
 	}
 	if (IsKeyDown(KEY_RIGHT)) {
-		CameraMove(camera, right);
+		CameraMoveEdit(camera, right);
 	}
 	if (IsKeyDown(KEY_LEFT)) {
-		CameraMove(camera, Vector3Negate(right));
+		CameraMoveEdit(camera, Vector3Negate(right));
+	}
+	if (IsKeyDown(KEY_PAGE_UP)) {
+		CameraMoveUpDownEdit(camera, camera->up);
+	}
+	if (IsKeyDown(KEY_PAGE_DOWN)) {
+		CameraMoveUpDownEdit(camera, Vector3Negate(camera->up));
 	}
 
 	// rotate
-	if (IsKeyDown(KEY_R)) {
-		CameraRotate(camera, RIGHT);
+	if (IsKeyDown(KEY_W)) {
+		CameraRotateEdit(camera, UP);
 	}
-	if (IsKeyDown(KEY_T)) {
-		CameraRotate(camera, LEFT);
+	if (IsKeyDown(KEY_S)) {
+		CameraRotateEdit(camera, DOWN);
+	}
+	if (IsKeyDown(KEY_A)) {
+		CameraRotateEdit(camera, RIGHT);
+	}
+	if (IsKeyDown(KEY_D)) {
+		CameraRotateEdit(camera, LEFT);
 	}
 
 
 }
 
 // Translate camera
-void CameraMove(Camera *camera, Vector3 direction) {
-	
+void CameraMoveEdit(Camera *camera, Vector3 direction) {
+
 	direction.y = 0;
+
 	direction = Vector3Normalize(direction);
 
-    	direction = Vector3Scale(direction, SPEED);
+    	direction = Vector3Scale(direction, SPEED_EDIT);
+	
+	camera->position = Vector3Add(camera->position, direction);
+	camera->target = Vector3Add(camera->target, direction);
+}
+
+// Translate camera
+void CameraMoveUpDownEdit(Camera *camera, Vector3 direction) {
+
+	direction.x = 0;
+	direction.z = 0;
+	
+	direction = Vector3Normalize(direction);
+
+    	direction = Vector3Scale(direction, SPEED_EDIT);
 	
 	camera->position = Vector3Add(camera->position, direction);
 	camera->target = Vector3Add(camera->target, direction);
 }
 
 // Rotate camera
-void CameraRotate(Camera *camera, int HEADING) {
+void CameraRotateEdit(Camera *camera, int HEADING) {
 	
 	int angle = 0;
-	if (HEADING == RIGHT) angle = 1;
-	if (HEADING == LEFT) angle = -1;
+	bool up_not_right = true;
+	if (HEADING == UP) {
+		angle = 1;
+		up_not_right = true;
+	}
+	if (HEADING == DOWN) {
+		angle = -1;
+		up_not_right = true;
+	}
+	if (HEADING == RIGHT) {
+		angle = 1;
+		up_not_right = false;
+	}
+	if (HEADING == LEFT) {
+		angle = -1;
+		up_not_right = false;
+	}
+	printf("up not right %d \n", up_not_right);		
 	Vector3 targetPosition = Vector3Subtract(camera->target, camera->position);
-	targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * TURN_SPEED);
-	
+	if (up_not_right == false) {				// up or down
+		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * TURN_SPEED_EDIT);
+	 
+	} else if (up_not_right == true) {				// right or left
+		Vector3 forward = Vector3Subtract(camera->target, camera->position);
+		Vector3 right = Vector3CrossProduct(forward, camera->up);
+		targetPosition = Vector3RotateByAxisAngle(targetPosition, right, angle * TURN_SPEED_EDIT);
+	}
+
 	camera->target = Vector3Add(camera->position, targetPosition);
-}
-
-// Check if player is colliding with any voxel
-bool CheckCollision(Vector3 pose, chunkMap map) {
-    bool collision = false;
-
-	// z pozice ziskat pozici v mape, je tam 1?
-	
-	// find in which voxel player is located
-	int map_x = (int)(pose.x + 0.5);
-	int map_y = (int)(pose.y + 0.5);
-	
-	// check if that voxel is air or matter
-	if (map.map[map_x + map_y * 16] == 1) collision = true;
-
-	return collision;
 }
 
 #endif
