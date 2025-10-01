@@ -21,20 +21,20 @@ int main(void){
 	SetTargetFPS(60);
 	
 	// setup camera
-	Camera camera = { 0 };
-	camera.position = (Vector3){ -10.0f, 40.0f, -10.0f };    // Camera position
-	camera.target = (Vector3){ -10.0f, 0.0f, 10.0f };    // Camera looking at point
-	camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-	camera.fovy = 45.0f;                                // Camera field-of-view Y
-	camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
+	Camera edit_camera = { 0 };
+	edit_camera.position = (Vector3){ -10.0f, 40.0f, -10.0f };    // Camera position
+	edit_camera.target = (Vector3){ -10.0f, 0.0f, 10.0f };    // Camera looking at point
+	edit_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+	edit_camera.fovy = 45.0f;                                // Camera field-of-view Y
+	edit_camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
 	// setup player
-	Camera player = { 0 };
-	player.position = (Vector3){ 0.0f, 0.0f, 0.0f };    // Camera position
-	player.target = (Vector3){ 0.0f, 1.0f, 1.0f };    // Camera looking at point
-	player.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-	player.fovy = 45.0f;                                // Camera field-of-view Y
-	player.projection = CAMERA_PERSPECTIVE;             // Camera projection type
+	Camera player_camera = { 0 };
+	player_camera.position = (Vector3){ -2.0f, 0.5f, -2.0f };    // Camera position
+	player_camera.target = (Vector3){ -2.0f, 0.5f, -1.0f };    // Camera looking at point
+	player_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+	player_camera.fovy = 45.0f;                                // Camera field-of-view Y
+	player_camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 	
 	// setup mesh
 	int voxel_count = 0;
@@ -47,11 +47,12 @@ int main(void){
 	// get map of voxel world (1 - voxel, 0 - no voxel)
 	chunkMap map = FetchChunkMap();				// chunk is 16 x 16 voxels
 
+	//MeshVoxel(&mesh, 1.0f, 0.0f, 1.0f, 0.0f, &voxel_count);
 	// build world based on map
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
 			if (map.map[j + i*16] == 1) {
-				MeshVoxel(&mesh, (float)j, 0.0f, (float)i, &voxel_count);
+				MeshVoxel(&mesh, (float)j, 0.0f, (float)i, 0.0f, &voxel_count);
 			}
 		}
 	}
@@ -71,48 +72,77 @@ int main(void){
 	
 	// build world based on map
 	int players_count = 0;
-	MeshVoxel(&player_mesh, 0.0f, 0.5f, 0.0f, &players_count);
+	float player_angle = 0.5f;
+	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
+	Vector3 scale = {1.0f, 1.0f, 1.0f};
+
+	MeshVoxel(&player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count);
 	UploadMesh(&player_mesh, false);
 	Model player_model = LoadModelFromMesh(player_mesh);                  // Load model from generated mesh
 	
 	char position_info[70];
 	char mode_info[70];
 
-	// variable for plaer or edit mode (1st person camera moves or 3rd person camera moves)
+	// mode variables
 	bool player_mode = false;	
+	bool player_view = false;
+	Camera current_camera = edit_camera;
 
 	while(!WindowShouldClose() && !IsKeyPressed(KEY_Q)) {
 		
 		if (IsKeyPressed(KEY_P)) {
 			player_mode = !player_mode;
 		}
-		if (player_mode) CheckMovement1person(&player, map);
-		else CheckMovementEdit(&camera, &player, map);
+		if (IsKeyPressed(KEY_V)) {
+			player_view = !player_view;
+			player_angle = getPlayerAngle(player_camera);
+		}
+
+		if (player_mode && player_view) {
+			CheckMovement1person(&player_camera, map);
+			current_camera = player_camera;
+			player_angle = getPlayerAngle(player_camera);
+			
+		} else if(player_mode) {
+			CheckMovement1person(&player_camera, map);
+			current_camera = edit_camera;
+			player_angle = getPlayerAngle(player_camera);
+		} else {
+			CheckMovementEdit(&edit_camera, map);
+			current_camera = edit_camera;
+		}
 		
 		BeginDrawing();	
 			
 			ClearBackground(RAYWHITE);
-
-			BeginMode3D(camera);
+			
+			BeginMode3D(current_camera);
+			
+				//MeshVoxel(&player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count);
+				//UploadMesh(&player_mesh, false);
+				
+				printf("player angle: %f \n", player_angle);	
+				DrawModelEx(player_model, player_camera.position, y_axis, player_angle, scale, RED);
 		
 				DrawModel(model, mazePosition, 1.0f, BLACK);
-				DrawModel(player_model, player.position, 1.0f, RED);
 				DrawGrid(1000, 1.0f);
 
 			EndMode3D();
 		        
-			Vector2 screenPos = GetWorldToScreen(camera.target, camera);
+			Vector2 screenPos = GetWorldToScreen(current_camera.target, current_camera);
 			
 			// draw title, current position, fps
 			DrawText("VOXELS", 10, 10, 30, BLACK);
 			
-			sprintf(position_info, "Current Player Position: x=%.2f, y=%.2f, z=%.2f", player.position.x, player.position.y, player.position.z);
+			sprintf(position_info, "Current Player Position: x=%.2f, y=%.2f, z=%.2f", player_camera.position.x, player_camera.position.y, player_camera.position.z);
         		DrawText(position_info, 10, 50, 20, GRAY);
 			
-			sprintf(mode_info, "Player Mode? %d", player_mode);
+			sprintf(mode_info, "Player Mode? %d Player View? %d", player_mode, player_view);
 			DrawText(mode_info, 10, 90, 20, GREEN);
 			
 			DrawFPS(10, 130);
+			
+			// changing variables
 
 		EndDrawing();
 

@@ -1,4 +1,4 @@
-// PLAYER (1st person camera) MOVEMENT (translation, rotation)
+// player (1st person camera) movement (translation, rotation)
 
 #ifndef PLAYER_MOVEMENT_H
 #define PLAYER_MOVEMENT_H
@@ -7,9 +7,11 @@
 #include "raymath.h"
 #include <stdio.h>
 #include "map.h"
+#include "collisions.h"
+#include "small_handy_stuff.h"
 
 float SPEED = 0.1f;	
-float TURN_SPEED = 0.05f;
+float TURN_SPEED = 0.08f;
 int SCREENSHOT_COUNTER = 0;
 
 enum HEADING {
@@ -23,35 +25,47 @@ enum HEADING {
 void CheckMovement1person(Camera *camera, chunkMap map);		// Check for keyboard keys that move player
 void CameraMove(Camera *camera, Vector3 direction);		// Translate camera
 void CameraRotate(Camera *camera, int HEADING);			// Rotate camera
-bool CheckCollision(Vector3 pose, Vector3 direction, chunkMap map);		// Check if player is colliding with any voxel
+float getPlayerAngle(Camera camera);			// gets angle of player's voxel to the x axis, angle is in degrees
+
+// fetch angle of player model for rendering
+float getPlayerAngle(Camera camera) {
+	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
+	Vector3 player_vec = Vector3Subtract(camera.target, camera.position);
+	
+	float angle = atan2f(player_vec.z, player_vec.x);  // angle from +X axis in radians
+	float angleDeg = - (angle * 180.0f / PI) - TURN_SPEED * 300;
+	return angleDeg;	
+}
 
 // Check for keyboard keys that move player
 void CheckMovement1person(Camera *camera, chunkMap map) {
-	
-	Vector3 forward = Vector3Subtract(camera->target, camera->position);
-	Vector3 right = Vector3CrossProduct(forward, camera->up);
+
+	Vector3 forward = getForwardDirection(*camera);
+	Vector3 right = getRightDirection(*camera);
+	Vector3 left = getLeftDirection(*camera);
+	Vector3 back = getBackDirection(*camera);
 	
 	Camera camera_old = *camera;
 	
 	// move
 	if (IsKeyDown(KEY_UP)) {
-		if (!CheckCollision(camera->position, forward, map)) {
+		if (!CheckCollision(camera, map, SPEED, forward)) {
 			CameraMove(camera, forward);
 		}
 	}
 	if (IsKeyDown(KEY_DOWN)) {
-		if (!CheckCollision(camera->position, Vector3Negate(forward), map)) {
-			CameraMove(camera, Vector3Negate(forward));
+		if (!CheckCollision(camera, map, SPEED, back)) {
+			CameraMove(camera, back);
 		}
 	}
 	if (IsKeyDown(KEY_RIGHT)) {
-		if (!CheckCollision(camera->position, right, map)) {
+		if (!CheckCollision(camera, map, SPEED, right)) {
 			CameraMove(camera, right);
 		}
 	}
 	if (IsKeyDown(KEY_LEFT)) {
-		if (!CheckCollision(camera->position, Vector3Negate(right), map)) {
-			CameraMove(camera, Vector3Negate(right));
+		if (!CheckCollision(camera, map, SPEED, left)) {
+			CameraMove(camera, left);
 		}
 	}
 
@@ -112,52 +126,19 @@ void CameraRotate(Camera *camera, int HEADING) {
 		angle = -1;
 		up_not_right = false;
 	}
-	printf("up not right %d \n", up_not_right);		
 	Vector3 targetPosition = Vector3Subtract(camera->target, camera->position);
 	if (up_not_right == false) {				// up or down
 		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * TURN_SPEED);
 	 
 	} else if (up_not_right == true) {				// right or left
-		Vector3 forward = Vector3Subtract(camera->target, camera->position);
-		Vector3 right = Vector3CrossProduct(forward, camera->up);
+		Vector3 forward = getForwardDirection(*camera);		//Vector3Subtract(camera->target, camera->position);
+		Vector3 right = getRightDirection(*camera);		//Vector3CrossProduct(forward, camera->up);
 		targetPosition = Vector3RotateByAxisAngle(targetPosition, right, angle * TURN_SPEED);
 	}
 
 	camera->target = Vector3Add(camera->position, targetPosition);
 }
 
-// NEXTSTEP nextstep todo TODO
-// Check if player is colliding with any voxel
-bool CheckCollision(Vector3 pose, Vector3 direction, chunkMap map) {
-	bool collision = false;
-	float padding = 1.0f;
-	// z pozice ziskat pozici v mape, je tam 1?
-
-	// find in which voxel player is going to be located
-	direction.y = 0;
-	direction = Vector3Normalize(direction);
-
-    	direction = Vector3Scale(direction, SPEED);
-	
-	Vector3 future_pose = Vector3Add(pose, direction);
-
-	int map_x = 0;
-	int map_z = 0; 
-	float body_padding_x[3] = {0.0, 0.5, -0.5};
-	// check if that voxel is air or matter
-	for (int i = 0; i < 3; i++) {	
-		for (int j = 0; j < 3; j++) {
-			map_x = (int)(future_pose.x + body_padding_x[i]);
-			map_z = (int)(future_pose.z + body_padding_x[3-j]);
-			if ((map_x < 16) && (map_z < 16)) {
-				if (map.map[map_x + map_z * 16] == 1) collision = true;
-				break;
-			}
-		}
-	}
-	return collision;
-
-}
 
 #endif
 

@@ -16,10 +16,10 @@ void fetchTop(int vertex_count, float *vertices, float *normals, Vector3 *v_vect
 void fetchFloor(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchRight(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchLeft(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
-Mesh MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, int *voxel_count);	// Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh
+Mesh MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count);	// Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh
 
-// Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh
-Mesh MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, int *voxel_count) {
+// Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh, angle is in radians around y axis
+Mesh MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count) {
 
 	float width = 1.0f;
 	float height = 1.0f;
@@ -69,6 +69,16 @@ Mesh MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, int *voxel_cou
 		vertices[i*3 + 0] += pos_x;
 		vertices[i*3 + 1] += pos_y;
 		vertices[i*3 + 2] += pos_z;
+	}
+
+	// rotate voxel
+	 for (int i = 0; i < 24; i++) {
+		Vector3 v = ((Vector3*)vertices)[i]; 			// get vertex
+		float x = v.x * cosf(angle) + v.z * sinf(angle);
+		float z = -v.x * sinf(angle) + v.z * cosf(angle);
+		((Vector3*)vertices)[i].x = x;
+		((Vector3*)vertices)[i].z = z;
+		// y stays the same
 	}
 
 	// apply voxel to mesh

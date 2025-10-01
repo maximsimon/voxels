@@ -11,17 +11,21 @@
 float SPEED_EDIT = 0.1f;	
 float TURN_SPEED_EDIT = 0.05f;
 
-void CheckMovementEdit(Camera *camera, Camera *player, chunkMap map);		// Check for keyboard keys that move player
+void CheckMovementEdit(Camera *camera, chunkMap map);		// Check for keyboard keys that move
 void CameraMoveEdit(Camera *camera, Vector3 direction);		// Translate camera
 void CameraMoveUpDownEdit(Camera *camera, Vector3 direction);		// Translate camera
 void CameraRotateEdit(Camera *camera, int HEADING);			// Rotate camera
 
-// Check for keyboard keys that move player
-void CheckMovementEdit(Camera *camera, Camera *player, chunkMap map) {
+// Check for keyboard keys that move
+void CheckMovementEdit(Camera *camera, chunkMap map) {
 	
-	Vector3 forward = Vector3Subtract(camera->target, camera->position);
-	Vector3 right = Vector3CrossProduct(forward, camera->up);
-	
+	Vector3 up = getUpDirection();
+	Vector3 down = getDownDirection();
+	Vector3 forward = getForwardDirection(*camera);
+	Vector3 right = getRightDirection(*camera);
+	Vector3 left = getLeftDirection(*camera);
+	Vector3 back = getBackDirection(*camera);
+
 	Camera camera_old = *camera;
 	
 	// move
@@ -29,19 +33,19 @@ void CheckMovementEdit(Camera *camera, Camera *player, chunkMap map) {
 		CameraMoveEdit(camera, forward);
 	}
 	if (IsKeyDown(KEY_DOWN)) {
-		CameraMoveEdit(camera, Vector3Negate(forward));
+		CameraMoveEdit(camera, back);
 	}
 	if (IsKeyDown(KEY_RIGHT)) {
 		CameraMoveEdit(camera, right);
 	}
 	if (IsKeyDown(KEY_LEFT)) {
-		CameraMoveEdit(camera, Vector3Negate(right));
+		CameraMoveEdit(camera, left);
 	}
 	if (IsKeyDown(KEY_PAGE_UP)) {
-		CameraMoveUpDownEdit(camera, camera->up);
+		CameraMoveUpDownEdit(camera, up);
 	}
 	if (IsKeyDown(KEY_PAGE_DOWN)) {
-		CameraMoveUpDownEdit(camera, Vector3Negate(camera->up));
+		CameraMoveUpDownEdit(camera, down);
 	}
 
 	// rotate
@@ -109,14 +113,13 @@ void CameraRotateEdit(Camera *camera, int HEADING) {
 		angle = -1;
 		up_not_right = false;
 	}
-	printf("up not right %d \n", up_not_right);		
 	Vector3 targetPosition = Vector3Subtract(camera->target, camera->position);
 	if (up_not_right == false) {				// up or down
 		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * TURN_SPEED_EDIT);
 	 
 	} else if (up_not_right == true) {				// right or left
-		Vector3 forward = Vector3Subtract(camera->target, camera->position);
-		Vector3 right = Vector3CrossProduct(forward, camera->up);
+		Vector3 forward = getForwardDirection(*camera);
+		Vector3 right = getRightDirection(*camera);
 		targetPosition = Vector3RotateByAxisAngle(targetPosition, right, angle * TURN_SPEED_EDIT);
 	}
 
