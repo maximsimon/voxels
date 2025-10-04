@@ -21,7 +21,7 @@ chunkMap FetchChunkMap() {
 	
 	chunkMap map = {0};
 
-	Image mazemap_img = LoadImage("mazemap_big_spaces.png");		// temporary, later for bigger worlds, map will be way higher up in software (above all chunks)
+	Image mazemap_img = LoadImage("mazemap3.png");		// temporary, later for bigger worlds, map will be way higher up in software (above all chunks)
 	Color *pixels = LoadImageColors(mazemap_img);
 	
 	if (mazemap_img.height != 16 || mazemap_img.width != 16) printf(" \n ERROR: mazemap_img is the wrong size \n");

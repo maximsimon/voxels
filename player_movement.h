@@ -22,7 +22,7 @@ enum HEADING {
 };
 
 
-void CheckMovement1person(Camera *camera, chunkMap map);		// Check for keyboard keys that move player
+void CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh);		// Check for keyboard keys that move player
 void CameraMove(Camera *camera, Vector3 direction);		// Translate camera
 void CameraRotate(Camera *camera, int HEADING);			// Rotate camera
 float getPlayerAngle(Camera camera);			// gets angle of player's voxel to the x axis, angle is in degrees
@@ -38,7 +38,7 @@ float getPlayerAngle(Camera camera) {
 }
 
 // Check for keyboard keys that move player
-void CheckMovement1person(Camera *camera, chunkMap map) {
+void CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh) {
 
 	Vector3 forward = getForwardDirection(*camera);
 	Vector3 right = getRightDirection(*camera);
@@ -49,22 +49,22 @@ void CheckMovement1person(Camera *camera, chunkMap map) {
 	
 	// move
 	if (IsKeyDown(KEY_UP)) {
-		if (!CheckCollision(camera, map, SPEED, forward)) {
+		if (!CheckCollision(camera, map, SPEED, forward, mesh)) {
 			CameraMove(camera, forward);
 		}
 	}
 	if (IsKeyDown(KEY_DOWN)) {
-		if (!CheckCollision(camera, map, SPEED, back)) {
+		if (!CheckCollision(camera, map, SPEED, back, mesh)) {
 			CameraMove(camera, back);
 		}
 	}
 	if (IsKeyDown(KEY_RIGHT)) {
-		if (!CheckCollision(camera, map, SPEED, right)) {
+		if (!CheckCollision(camera, map, SPEED, right, mesh)) {
 			CameraMove(camera, right);
 		}
 	}
 	if (IsKeyDown(KEY_LEFT)) {
-		if (!CheckCollision(camera, map, SPEED, left)) {
+		if (!CheckCollision(camera, map, SPEED, left, mesh)) {
 			CameraMove(camera, left);
 		}
 	}

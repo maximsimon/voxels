@@ -99,12 +99,12 @@ int main(void){
 		}
 
 		if (player_mode && player_view) {
-			CheckMovement1person(&player_camera, map);
+			CheckMovement1person(&player_camera, map, &mesh);
 			current_camera = player_camera;
 			player_angle = getPlayerAngle(player_camera);
 			
 		} else if(player_mode) {
-			CheckMovement1person(&player_camera, map);
+			CheckMovement1person(&player_camera, map, &mesh);
 			current_camera = edit_camera;
 			player_angle = getPlayerAngle(player_camera);
 		} else {
@@ -118,10 +118,6 @@ int main(void){
 			
 			BeginMode3D(current_camera);
 			
-				//MeshVoxel(&player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count);
-				//UploadMesh(&player_mesh, false);
-				
-				printf("player angle: %f \n", player_angle);	
 				DrawModelEx(player_model, player_camera.position, y_axis, player_angle, scale, RED);
 		
 				DrawModel(model, mazePosition, 1.0f, BLACK);
