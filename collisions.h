@@ -84,13 +84,11 @@ bool CheckCollision(Camera *camera, chunkMap map, const float speed, Vector3 dir
 
 	for (int pt_idx = 0; pt_idx < 40; pt_idx++) {
 		ray.position = boundry_points[pt_idx];
-		printf("ray position: %f %f %f \n ", ray.position.x, ray.position.y, ray.position.z);
 		ray_collision = GetRayCollisionMesh(ray, *mesh, MatrixIdentity());	
 		if (ray_collision.hit == true) break;
 	}
 	
 	collision = ray_collision.hit;
-	printf("collision: %d \n", collision);
 	
 	return collision;
 

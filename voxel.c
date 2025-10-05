@@ -45,14 +45,18 @@ int main(void){
 	mesh.indices = (unsigned short *)RL_MALLOC(0);
 	
 	// get map of voxel world (1 - voxel, 0 - no voxel)
-	chunkMap map = FetchChunkMap();				// chunk is 16 x 16 voxels
+	mainMap main_map = fetchMainMap();
 
 	//MeshVoxel(&mesh, 1.0f, 0.0f, 1.0f, 0.0f, &voxel_count);
 	// build world based on map
-	for (int i = 0; i < 16; i++) {
-		for (int j = 0; j < 16; j++) {
-			if (map.map[j + i*16] == 1) {
-				MeshVoxel(&mesh, (float)j, 0.0f, (float)i, 0.0f, &voxel_count);
+	for (int ch_z = 0; ch_z < main_map.height_chunks; ch_z++) {
+		for (int ch_x = 0; ch_x < main_map.width_chunks; ch_x++) {
+			for (int z = 0; z < main_map.chunk_side; z++) {
+				for (int x = 0; x < main_map.chunk_side; x++) {
+					if (main_map.chunks[ch_z * main_map.width_chunks + ch_x].map[z * main_map.chunk_side + x] == 1) {
+						MeshVoxel(&mesh, (float)(ch_x * main_map.chunk_side + x), 0.0f, (float)(ch_z * main_map.chunk_side + z), 0.0f, &voxel_count);
+					}
+				}
 			}
 		}
 	}
@@ -87,9 +91,12 @@ int main(void){
 	bool player_mode = false;	
 	bool player_view = false;
 	Camera current_camera = edit_camera;
+	
+	int curr_chunk = 0;
 
 	while(!WindowShouldClose() && !IsKeyPressed(KEY_Q)) {
-		
+	
+		curr_chunk = fetchCurrChunkId(main_map);
 		if (IsKeyPressed(KEY_P)) {
 			player_mode = !player_mode;
 		}
@@ -99,16 +106,16 @@ int main(void){
 		}
 
 		if (player_mode && player_view) {
-			CheckMovement1person(&player_camera, map, &mesh);
+			CheckMovement1person(&player_camera, main_map.chunks[curr_chunk], &mesh);
 			current_camera = player_camera;
 			player_angle = getPlayerAngle(player_camera);
 			
 		} else if(player_mode) {
-			CheckMovement1person(&player_camera, map, &mesh);
+			CheckMovement1person(&player_camera, main_map.chunks[curr_chunk], &mesh);
 			current_camera = edit_camera;
 			player_angle = getPlayerAngle(player_camera);
 		} else {
-			CheckMovementEdit(&edit_camera, map);
+			CheckMovementEdit(&edit_camera, main_map.chunks[curr_chunk]);
 			current_camera = edit_camera;
 		}
 		
@@ -144,7 +151,7 @@ int main(void){
 
 	}
 
-	// clean up
+	// clean up		//todo: should free(main_map)
 	UnloadModel(model);
 	CloseWindow();
 
