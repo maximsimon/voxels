@@ -44,15 +44,15 @@ int fetchCurrChunkId(mainMap main_map) {
 mainMap fetchMainMap() {
 	mainMap main_map = {0};
 	
-	Image mazemap_img = LoadImage("mazemap_large.png");		// temporary, later for bigger worlds, map will be way higher up in software (above all chunks)
+	Image mazemap_img = LoadImage("map_images/mazemap_64.png");		// temporary, later for bigger worlds, map will be way higher up in software (above all chunks)
 	Color *pixels = LoadImageColors(mazemap_img);
 
 	
 
 	main_map.width_px = mazemap_img.width;		// width of entire world in pixels
 	main_map.height_px = mazemap_img.height;		// height of entire world in pixels
-	main_map.width_chunks = (int)(main_map.width_px / 16);		// height in chunks
-	main_map.height_chunks = (int)(main_map.height_px / 16);		// width of entire world in chunks
+	main_map.width_chunks = (int)((main_map.width_px - 1) / 16 + 1);		// height in chunks
+	main_map.height_chunks = (int)((main_map.height_px - 1)/ 16 + 1);		// width of entire world in chunks
 	main_map.chunk_side = 16;		// TODO: magic number
 
 	printf("chunk w: %d, chunk-h: %d \n", main_map.width_chunks, main_map.height_chunks);
@@ -65,7 +65,6 @@ mainMap fetchMainMap() {
 		for (int chunk_x = 0; chunk_x < main_map.width_chunks; chunk_x++) {
 			main_map.chunks[chunk_x + chunk_z * main_map.width_chunks] = fetchChunkMap(pixels, chunk_x, chunk_z, main_map.height_px);
 		}
-		printf("\n");
 	}
 
 
@@ -88,9 +87,9 @@ chunkMap fetchChunkMap(Color *pixels, int ch_x, int ch_z, int height_px) {
 			if (GRAY_VALUE(pixels[position]) < 170) {
 				map.map[x + z * chunk_w] = 1;
 			}
-			printf("%d ", position);
+			//printf("%d ", position);
 		}
-		printf("\n");
+		//printf("\n");
 	}
 	
 
