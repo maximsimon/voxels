@@ -19,19 +19,45 @@ It is not working yet.
 ### QUICK START
 
 __You need to install raylib [(https://www.raylib.com/)]__
-If raylib is up and running, then create ROS2 workspace, clone this branch in `src/` and build with `colcon build`:
+If raylib is up and running, then create ROS2 workspace, clone this branch.
 ```
-mkdir -p voxel_world_ws/src
-cd voxel_world_ws/src
-git clone --branch ros_api --single-branch https://github.com/maximsimon/voxels.git
-cd ..
+mkdir -p voxel_world_ws
+cd voxel_world_ws
+git clone --branch ros_api git@github.com:maximsimon/voxels.git
+```
+Now it's sketchy (I really have to fix this later) - reaname this git (*voxels*) to src and then compile and source:
+```
+mv voxels src
 colcon build
-```
-Source and run:
-```
 source install/setup.bash
+```
+Run:
+```
 ros2 run ros_voxels ros_voxels_main_node
 ```
+
+*Note: If it throws `Segmentation error` and the simulation window crashes, it is most likely structural error in how you built it.*
+
+My file strcture where it's running looks like this:
+```
+voxel_world_ws/src/
+├── core_voxels
+│   ├── CMakeLists.txt
+│   ├── include
+│   ├── resources
+│   └── src
+├── documentation
+│   ├── DOCUMENTATION.md
+│   └── figures
+├── README.md
+└── ros_voxels
+    ├── CMakeLists.txt
+    ├── include
+    ├── LICENSE
+    ├── package.xml
+    └── src
+```
+and I run `colcon build` and `ros2 run` from `voxel_world_ws/`.
 
 If you want to run this with __bearnav__ then:
 Compile and run normally (with `colcon build` and `ros2 run`).
