@@ -1,31 +1,16 @@
 // player (1st person camera) movement (translation, rotation)
 
-#ifndef PLAYER_MOVEMENT_H
-#define PLAYER_MOVEMENT_H
-
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
 #include "map.h"
 #include "collisions.h"
 #include "small_handy_stuff.h"
+#include "player_movement.h"
 
 float SPEED = 0.1f;	
 float TURN_SPEED = 0.08f;
 int SCREENSHOT_COUNTER = 0;
-
-enum HEADING {
-	RIGHT,
-	LEFT,
-	UP,
-	DOWN
-};
-
-
-void CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh);		// Check for keyboard keys that move player
-void CameraMove(Camera *camera, Vector3 direction);		// Translate camera
-void CameraRotate(Camera *camera, int HEADING);			// Rotate camera
-float getPlayerAngle(Camera camera);			// gets angle of player's voxel to the x axis, angle is in degrees
 
 // fetch angle of player model for rendering
 float getPlayerAngle(Camera camera) {
@@ -139,6 +124,4 @@ void CameraRotate(Camera *camera, int HEADING) {
 	camera->target = Vector3Add(camera->position, targetPosition);
 }
 
-
-#endif
 

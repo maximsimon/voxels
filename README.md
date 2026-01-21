@@ -8,6 +8,20 @@ Player can be controlled by arrows.
 Additionaly "God" view (flight and no collisions) is availabe.
 Keys are used to switch between "Player" mode and "God mode".
 
+## ROS API
+This branch is Voxel World connected with ROS2.
+Obsevration space is published trough topics and such.
+Action space is available trough topics and action commands etc.
+
+observatin space contains: position, odometry, current camera view
+
+action space contains: velocity commands
+
+If you want to run this with __bearnav__ then:
+compil in ros workspace with `colcon build` then `source install/setup.bash` then run with `ros2 run node_voxels node_voxels_exe`
+
+Now simulation is running independently and ROS2 is active -> you can launch bearnav in completly different workspace and treat the topics and action services provided by this simulation as yoou would if they were coming from robot (Note: this stateent is the goal, however I have not tested it yet).
+
 __Compile by `make` then run `voxel.o` executable.__
 
 Currently can generate voxel at given location and it can load a pixel map (.png image) and place a voxel at each pixel - mazebuilding from image.

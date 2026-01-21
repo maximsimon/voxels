@@ -1,20 +1,15 @@
 // CAMERA (edit mode) MOVEMENT (translation, rotation)
 
-#ifndef CAMERA_MOVEMENT_H
-#define CAMERA_MOVEMENT_H
-
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
 #include "map.h"
+#include "camera_movement.h"
+#include "player_movement.h"
+#include "small_handy_stuff.h"
 
 float SPEED_EDIT = 0.1f;	
 float TURN_SPEED_EDIT = 0.05f;
-
-void CheckMovementEdit(Camera *camera, chunkMap map);		// Check for keyboard keys that move
-void CameraMoveEdit(Camera *camera, Vector3 direction);		// Translate camera
-void CameraMoveUpDownEdit(Camera *camera, Vector3 direction);		// Translate camera
-void CameraRotateEdit(Camera *camera, int HEADING);			// Rotate camera
 
 // Check for keyboard keys that move
 void CheckMovementEdit(Camera *camera, chunkMap map) {
@@ -125,6 +120,4 @@ void CameraRotateEdit(Camera *camera, int HEADING) {
 
 	camera->target = Vector3Add(camera->position, targetPosition);
 }
-
-#endif
 

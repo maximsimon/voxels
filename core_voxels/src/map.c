@@ -1,50 +1,27 @@
 // CREATE A MAP FROM 16 X 16 PIXEL IMAGE WITH BLACK = WALL, WHITE = NOTHING
 
-#ifndef MAP_H
-#define MAP_H
-
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "map.h"
 
 #define GRAY_VALUE(c) ((float)(c.r + c.g + c.b)/3.0f)
 
-typedef struct {
-    int map[16 * 16];
-} chunkMap;
-
-typedef struct {
-	chunkMap *chunks;
-	int width_px;		// width of entire world in pixels
-	int height_px;		// height of entire world in pixels
-	int width_chunks; 		// height in chunks
-	int height_chunks;		// width of entire world in chunks
-	int chunk_side;			// size one side of chunk in pixels (chunks are squares)
-} mainMap;
-
 const int chunk_w = 16;
 const int chunk_h = 16;
-
-mainMap fetchMainMap();
-int fetchCurrChunkId(mainMap main_map);			// fetches index of the chunk where player is currently located
-chunkMap fetchChunkMap(Color *piels, int ch_x, int ch_z, int height_px);	// map one chunk
 
 // fetches index of the chunk where player is currently located
 int fetchCurrChunkId(mainMap main_map) {
 	int curr_chunk_id = 0;
 
-	
-
 	return curr_chunk_id;
-
 }
 
 //create entire map consisting of chunks
-mainMap fetchMainMap() {
+mainMap fetchMainMap(Image mazemap_img) {
 	mainMap main_map = {0};
 	
-	Image mazemap_img = LoadImage("map_images/mazemap_64.png");		// temporary, later for bigger worlds, map will be way higher up in software (above all chunks)
 	Color *pixels = LoadImageColors(mazemap_img);
 
 	
@@ -98,4 +75,3 @@ chunkMap fetchChunkMap(Color *pixels, int ch_x, int ch_z, int height_px) {
 	return map;
 }
 
-#endif
