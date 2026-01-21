@@ -2,6 +2,7 @@
 // VOXELS: PROGRAMMING MY RENDERING OF VOXEL WORLD, starting with a MAZE FROM PICTURE AND MY KEYBINDINGS FOR MOVEMENT, then connecting to ROS and more
 
 #include "raylib.h"
+#include "rlgl.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,27 +11,16 @@
 #include "map.h"
 #include "faces.h"
 #include "master_voxel.h"
+#include "support_for_master.h"
+#include "data_types.h"
 
-struct VoxelWorld {
-	bool player_view;		// controls if player or edit POV is viewed
-	bool player_mode;		// controls if arrow keys control player voxel or flying edit camera
-	Camera3D edit_camera;		// flying "god mode" camera
-	Camera3D player_camera;		// player (robot) camera
-	Camera3D current_camera;	// player or edit camera - it is the one that is currently being rendered
-	mainMap main_map;		// array map of the world
-	Model maze_model;		// model of the world
-	Mesh maze_mesh;			// mesh of the world;
-	Model player_model;		// 1 red voxel - model of the player (robot)
-	float player_angle;
-};
+#include <GL/glew.h>
+#include <GL/gl.h>          // OpenGL core functions
+#include <GL/glext.h>       // OpenGL extensions (for PBO)
 
-struct Observation{
-	int odom;
-};
-
-struct Action{
-	Vector3 movement_direction;
-};
+//window size
+const int screen_width = 1600;
+const int screen_height = 850;
 
 VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_direction, int step_size) {
 	
@@ -126,44 +116,30 @@ Observation *step_sim(VoxelWorld *vw, Action *action) {
 	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
 	Vector3 scale = {1.0f, 1.0f, 1.0f};
     	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
-	
-	if (IsKeyPressed(KEY_P)) {
-		vw->player_mode = !vw->player_mode;
-	}
-	if (IsKeyPressed(KEY_V)) {
-		vw->player_view = !vw->player_view;
-		vw->player_angle = getPlayerAngle(vw->player_camera);
-	}
 
-	// control player_camera and Movement1person
-	if (vw->player_mode && vw->player_view) {
-		CheckMovement1person(&vw->player_camera, vw->main_map.chunks[curr_chunk], &vw->maze_mesh);
-		vw->current_camera = vw->player_camera;
-		vw->player_angle = getPlayerAngle(vw->player_camera);
-		
-	// control edit_camera but Movement1person
-	} else if(vw->player_mode) {
-		CheckMovement1person(&vw->player_camera, vw->main_map.chunks[curr_chunk], &vw->maze_mesh);
-		vw->current_camera = vw->edit_camera;
-		vw->player_angle = getPlayerAngle(vw->player_camera);
-	// control edit_camera and MovementEdit
-	} else {
-		CheckMovementEdit(&vw->edit_camera, vw->main_map.chunks[curr_chunk]);
-		vw->current_camera = vw->edit_camera;
-	}
+	// handle all keys pressed
+	checkControls(vw, curr_chunk);	
+	
+	RenderTexture2D camera_view_tex = LoadRenderTexture(screen_width, screen_height);
+	BeginTextureMode(camera_view_tex);
+		ClearBackground(RAYWHITE);
+		BeginMode3D(vw->player_camera);
+			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
+			DrawModel(vw->maze_model, mazePosition, 1.0f, BLACK);
+			DrawGrid(1000, 1.0f);
+		EndMode3D();
+    	EndTextureMode();
 	
 	BeginDrawing();	
 		
 		ClearBackground(RAYWHITE);
 		
-		BeginMode3D(vw->current_camera);
-		
-			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
-	
-			DrawModel(vw->maze_model, mazePosition, 1.0f, BLACK);
-			DrawGrid(1000, 1.0f);
-
-		EndMode3D();
+		DrawTextureRec(
+			camera_view_tex.texture,
+			(Rectangle){ 0, 0, camera_view_tex.texture.width, -camera_view_tex.texture.height },
+			(Vector2){ 0, 0 },
+			WHITE
+		);
 		
 		Vector2 screenPos = GetWorldToScreen(vw->current_camera.target, vw->current_camera);
 		
@@ -182,12 +158,56 @@ Observation *step_sim(VoxelWorld *vw, Action *action) {
 
 	EndDrawing();
 
+	// to easily view camera_view_tex for debugging
+	//Image img = LoadImageFromTexture(camera_view_tex.texture);	
+	//ExportImage(img, "img.png");
+
+	glewInit();
+	
+	rlBindFramebuffer(RL_DRAW_FRAMEBUFFER, camera_view_tex.id); // target.framebuffer is the GPU FBO
+	rlViewport(0, 0, screen_width, screen_height);
+	
+	GLuint pbo;
+	glGenBuffers(1, &pbo);
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+	glBufferData(GL_PIXEL_PACK_BUFFER, screen_width*screen_height*4, NULL, GL_STREAM_READ); // allocate GPU buffer
+
+	glReadPixels(0, 0, screen_width, screen_height, GL_RGBA, GL_UNSIGNED_BYTE, 0); // async copy to PBO
+
+	// later map buffer to CPU pointer
+	GLubyte* img_ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+	// fill ROS Image.msg from ptr
+	glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+	Observation* obs = (Observation*)malloc(sizeof(Observation));
+	obs->camera_img = img_ptr;
+	return obs;
+	
+	
+	//rlBindFramebuffer(RL_DRAW_FRAMEBUFFER, camera_view_tex.id); // target.framebuffer is the GPU FBO
+	//Color *camera_view_pixels = (Color *)malloc(screen_width * screen_height * sizeof(Color));
+	//rlLoadFramebuffer();	//screen_width, screen_height, camera_view_pixels);
+	//
+	//Image img = {0};
+	//img = LoadImage
+	//img.data = camera_view_pixels;
+	//img.width = screen_width;
+	//img.height = screen_height;
+	//img.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+	//img.mipmaps = 1;
+	//ImageFlipVertical(&img);
+	//ExportImage(img, "camera_rlgl.png");
+	//UnloadImage(img);	
 }
 
 void end_sim(void) {
 
 	// clean up		//todo: should free(main_map)
 	//UnloadModel(model);
+	//rlBindFramebuffer(0); // bind default framebuffer
+	//free(color_view_pixels) or something
 	CloseWindow();
 }
 

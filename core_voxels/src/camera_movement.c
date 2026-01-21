@@ -7,6 +7,7 @@
 #include "camera_movement.h"
 #include "player_movement.h"
 #include "small_handy_stuff.h"
+#include "data_types.h"
 
 float SPEED_EDIT = 0.1f;	
 float TURN_SPEED_EDIT = 0.05f;

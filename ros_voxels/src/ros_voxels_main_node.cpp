@@ -6,8 +6,13 @@
 #include "raylib.h"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "sensor_msgs/msg/image.hpp"
 
 #include "master_voxel.h"
+
+#include <GL/glew.h>
+#include <GL/gl.h>          // OpenGL core functions
+#include <GL/glext.h>       // OpenGL extensions (for PBO)
 
 using namespace std::chrono_literals;
 
@@ -21,9 +26,7 @@ public:
 	MinimalPublisher()
 	: Node("minimal_publisher")
 	{
-		publisher_ = this->create_publisher<std_msgs::msg::String>("chatter", 10);
-		auto message = std_msgs::msg::String();
-		message.data = "Hello, world! "; 
+		publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front", 10);
 		
 		//TODO temp params here to get it running -> then move to yaml file
 		Image mazemap_image = LoadImage("src/core_voxels/resources/map_images/mazemap_64.png");	//TODO: add some error handling and printing if file does not load
@@ -41,24 +44,30 @@ public:
 
 private:
 	rclcpp::TimerBase::SharedPtr timer_;
-	rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
 		
 	VoxelWorld* vw_main_;
 	Observation* observation_;
 	Action* action_;// = (Action*)malloc(sizeof(Action));
 
 	void publish_every_spin() {
-		// Publish "Hello World"
-		auto message = std_msgs::msg::String();
-		message.data = "Hello World";
-		publisher_->publish(message);
-
 		
 		if (!IsKeyPressed(KEY_Q)) observation_ = step_sim(vw_main_, action_);	
 		else {
 			CloseWindow();	//TODO: cleaner and move closing of simulation and cleanup to core_voxels
 			rclcpp::shutdown();
 		}
+
+		// build and publish camera view from Voxel World simulation	
+		auto image_msg = sensor_msgs::msg::Image();
+		image_msg.height = screen_height;
+		image_msg.width = screen_width;
+		image_msg.encoding = "rgba8"; // matches GL_RGBA
+		image_msg.is_bigendian = 0;
+		image_msg.step = screen_width * 4;
+		image_msg.data.assign(observation_->camera_img, observation_->camera_img + screen_width*screen_height*4); // fill data from GPU
+		
+		publisher_->publish(image_msg);
 	}
 };
 

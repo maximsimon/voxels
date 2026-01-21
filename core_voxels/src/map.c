@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "map.h"
-
-#define GRAY_VALUE(c) ((float)(c.r + c.g + c.b)/3.0f)
+#include "data_types.h"
 
 const int chunk_w = 16;
 const int chunk_h = 16;

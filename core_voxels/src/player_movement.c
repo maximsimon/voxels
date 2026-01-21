@@ -7,6 +7,7 @@
 #include "collisions.h"
 #include "small_handy_stuff.h"
 #include "player_movement.h"
+#include "data_types.h"
 
 float SPEED = 0.1f;	
 float TURN_SPEED = 0.08f;

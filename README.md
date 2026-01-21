@@ -12,6 +12,8 @@ We are in the proccess of making this both ROS2 testbed and python API environme
 
 For ROS2 testbed (e.g. for __bearnavs__) switch to `ros_api` branch.
 
+Pres 'P' to switch to player mode (to control player movement with arrow keys) and 'V' to player view (currently does nothing).
+
 ## ROS API
 This branch is Voxel World connected with ROS2.
 It is not working yet.

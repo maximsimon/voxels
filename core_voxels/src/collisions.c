@@ -6,6 +6,7 @@
 #include "map.h"
 #include "small_handy_stuff.h"
 #include "collisions.h"
+#include "data_types.h"
 
 // calculate position 4 vertices of voxel (top square) 
 void getVoxelBoundryPoints(Vector3 *boundry_points, Vector3 pose, chunkMap map) {

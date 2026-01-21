@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "map.h"
+#include "data_types.h"
 
 #ifdef __cplusplus
 extern "C" {

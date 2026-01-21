@@ -10,6 +10,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 # Include your own library headers
 include_directories(
@@ -31,6 +32,7 @@ target_link_libraries(${PROJECT_NAME}_main_node
 ament_target_dependencies(${PROJECT_NAME}_main_node
   rclcpp
   std_msgs
+  sensor_msgs
 )
 
 install(TARGETS
