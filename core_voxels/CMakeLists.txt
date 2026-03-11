@@ -2,23 +2,27 @@ cmake_minimum_required(VERSION 3.5)
 project(core_voxels)
 
 # Compile as C++14
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 14)
 
 # Include headers
-include_directories(include)
+include_directories(
+  include
+  ${OpenCV_INCLUDE_DIRS}
+)
 
 find_package(OpenGL REQUIRED)
+find_package(OpenCV REQUIRED)
 
 # Library
 add_library(${PROJECT_NAME} STATIC
-  src/master_voxel.c
-  src/camera_movement.c
-  src/collisions.c
-  src/faces.c
-  src/map.c
-  src/player_movement.c
-  src/small_handy_stuff.c
-  src/support_for_master.c
+  src/master_voxel.cpp
+  src/camera_movement.cpp
+  src/collisions.cpp
+  src/faces.cpp
+  src/map.cpp
+  src/player_movement.cpp
+  src/small_handy_stuff.cpp
+  src/support_for_master.cpp
 )
 # Link raylib (if core uses it)
 target_link_libraries(core_voxels
@@ -26,6 +30,7 @@ target_link_libraries(core_voxels
     OpenGL::GL GLEW	
     m
     pthread
+    ${OpenCV_LIBS}  # link OpenCV    
 )
 
 # Install (optional)

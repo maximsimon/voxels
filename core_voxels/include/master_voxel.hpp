@@ -5,18 +5,10 @@
 #define MASTER_VOXEL_H
 
 #include "raylib.h"
-#include "faces.h"
-#include "data_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "faces.hpp"
+#include "data_types.hpp"
 
 VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_direction, int step_fq);
 Observation *step_sim(VoxelWorld *vw, Action *action);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

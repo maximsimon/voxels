@@ -4,8 +4,8 @@
 #include "raymath.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "map.h"
-#include "data_types.h"
+#include "map.hpp"
+#include "data_types.hpp"
 
 const int chunk_w = 16;
 const int chunk_h = 16;

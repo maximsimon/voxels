@@ -5,8 +5,8 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include "master_voxel.h"
-#include "data_types.h"
+#include "master_voxel.hpp"
+#include "data_types.hpp"
 
 void checkControls(VoxelWorld *vw, int curr_chunk);
 

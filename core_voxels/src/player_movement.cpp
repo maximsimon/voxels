@@ -3,11 +3,11 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
-#include "map.h"
-#include "collisions.h"
-#include "small_handy_stuff.h"
-#include "player_movement.h"
-#include "data_types.h"
+#include "map.hpp"
+#include "collisions.hpp"
+#include "small_handy_stuff.hpp"
+#include "player_movement.hpp"
+#include "data_types.hpp"
 
 float SPEED = 0.1f;	
 float TURN_SPEED = 0.08f;

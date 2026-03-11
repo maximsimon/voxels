@@ -6,20 +6,11 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 Vector3 getUpDirection();
 Vector3 getDownDirection();
 Vector3 getRightDirection(Camera camera);
 Vector3 getLeftDirection(Camera camera);
 Vector3 getBackDirection(Camera camera);
 Vector3 getForwardDirection(Camera camera);
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif

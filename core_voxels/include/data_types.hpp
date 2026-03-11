@@ -6,13 +6,11 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include <opencv2/opencv.hpp>
+
 #include <GL/glew.h>
 #include <GL/gl.h>          // OpenGL core functions
 #include <GL/glext.h>       // OpenGL extensions (for PBO)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define GRAY_VALUE(c) ((float)(c.r + c.g + c.b)/3.0f)
 
@@ -39,6 +37,15 @@ typedef struct {
 	int chunk_side;			// size one side of chunk in pixels (chunks are squares)
 } mainMap;
 
+typedef struct {
+	cv::Mat camera_front;		// lamst POV view of front camera of the robot in simulation
+	//Image* camera_img;
+} Observation;
+
+typedef struct {
+	Vector3 movement_direction;
+} Action;
+
 typedef struct VoxelWorld {
 	bool player_view;		// controls if player or edit POV is viewed
 	bool player_mode;		// controls if arrow keys control player voxel or flying edit camera
@@ -50,18 +57,8 @@ typedef struct VoxelWorld {
 	Mesh maze_mesh;			// mesh of the world;
 	Model player_model;		// 1 red voxel - model of the player (robot)
 	float player_angle;
+	RenderTexture2D camera_view_tex;
 } VoxelWorld;
 
-typedef struct {
-	GLubyte* camera_img;
-} Observation;
-
-typedef struct {
-	Vector3 movement_direction;
-} Action;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -11,33 +11,43 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
 
 # Include your own library headers
 include_directories(
   include
-  ../core_voxels/include   # Path to sim_core headers
+  ../core_voxels/include
+  ../master_main/include
+  ${OpenCV_INCLUDE_DIRS}
 )
 
-# Link your library
-add_executable(${PROJECT_NAME}_main_node src/ros_voxels_main_node.cpp)
-
-# Add dependency library
-add_subdirectory(../core_voxels core_voxels_build)  # Build sim_core from workspace
-
-target_link_libraries(${PROJECT_NAME}_main_node
-  core_voxels            # Link the library
+# Library
+add_library(${PROJECT_NAME} STATIC
+  src/ros_voxels.cpp
 )
 
 # Link ROS2
-ament_target_dependencies(${PROJECT_NAME}_main_node
+ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   std_msgs
   sensor_msgs
+  cv_bridge
 )
 
 install(TARGETS
-  ${PROJECT_NAME}_main_node
+  ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
+
+target_link_libraries(${PROJECT_NAME}
+  ${OpenCV_LIBS}  # link OpenCV    
+)
+
+# Export include dirs if needed
+#target_include_directories(ros_voxels PUBLIC
+#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#    $<INSTALL_INTERFACE:include>
+#)
 
 ament_package()

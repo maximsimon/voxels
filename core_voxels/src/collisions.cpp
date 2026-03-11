@@ -3,10 +3,10 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
-#include "map.h"
-#include "small_handy_stuff.h"
-#include "collisions.h"
-#include "data_types.h"
+#include "map.hpp"
+#include "small_handy_stuff.hpp"
+#include "collisions.hpp"
+#include "data_types.hpp"
 
 // calculate position 4 vertices of voxel (top square) 
 void getVoxelBoundryPoints(Vector3 *boundry_points, Vector3 pose, chunkMap map) {

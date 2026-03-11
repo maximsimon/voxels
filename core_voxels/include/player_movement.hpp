@@ -5,12 +5,8 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include "map.h"
-#include "data_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "map.hpp"
+#include "data_types.hpp"
 
 enum HEADING {
 	RIGHT,
@@ -24,10 +20,6 @@ void CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh);		// Check f
 void CameraMove(Camera *camera, Vector3 direction);		// Translate camera
 void CameraRotate(Camera *camera, int HEADING);			// Rotate camera
 float getPlayerAngle(Camera camera);			// gets angle of player's voxel to the x axis, angle is in degrees
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 

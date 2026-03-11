@@ -4,11 +4,11 @@
 #include "raymath.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "player_movement.h"
-#include "camera_movement.h"
-#include "master_voxel.h"
-#include "support_for_master.h"
-#include "data_types.h"
+#include "player_movement.hpp"
+#include "camera_movement.hpp"
+#include "master_voxel.hpp"
+#include "support_for_master.hpp"
+#include "data_types.hpp"
 
 void checkControls(VoxelWorld *vw, int curr_chunk) {
 	if (IsKeyPressed(KEY_P)) {

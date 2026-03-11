@@ -6,13 +6,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "player_movement.h"
-#include "camera_movement.h"
-#include "map.h"
-#include "faces.h"
-#include "master_voxel.h"
-#include "support_for_master.h"
-#include "data_types.h"
+#include "player_movement.hpp"
+#include "camera_movement.hpp"
+#include "map.hpp"
+#include "faces.hpp"
+#include "master_voxel.hpp"
+#include "support_for_master.hpp"
+#include "data_types.hpp"
 
 #include <GL/glew.h>
 #include <GL/gl.h>          // OpenGL core functions
@@ -105,6 +105,8 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	vw->player_view = player_view;
 	vw->current_camera = current_camera;	
 	
+	vw->camera_view_tex = LoadRenderTexture(screen_width, screen_height);
+	//vw->obs = new Observation();
 	return vw;
 }
 
@@ -120,8 +122,7 @@ Observation *step_sim(VoxelWorld *vw, Action *action) {
 	// handle all keys pressed
 	checkControls(vw, curr_chunk);	
 	
-	RenderTexture2D camera_view_tex = LoadRenderTexture(screen_width, screen_height);
-	BeginTextureMode(camera_view_tex);
+	BeginTextureMode(vw->camera_view_tex);
 		ClearBackground(RAYWHITE);
 		BeginMode3D(vw->player_camera);
 			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
@@ -133,13 +134,17 @@ Observation *step_sim(VoxelWorld *vw, Action *action) {
 	BeginDrawing();	
 		
 		ClearBackground(RAYWHITE);
+		Image pov_view_img = LoadImageFromTexture(vw->camera_view_tex.texture);	
+		ImageFlipVertical(&pov_view_img);  // Raylib function	
 		
-		DrawTextureRec(
-			camera_view_tex.texture,
-			(Rectangle){ 0, 0, camera_view_tex.texture.width, -camera_view_tex.texture.height },
-			(Vector2){ 0, 0 },
-			WHITE
-		);
+		BeginMode3D(vw->current_camera);
+		
+			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
+	
+			DrawModel(vw->maze_model, mazePosition, 1.0f, BLACK);
+			DrawGrid(1000, 1.0f);
+
+		EndMode3D();
 		
 		Vector2 screenPos = GetWorldToScreen(vw->current_camera.target, vw->current_camera);
 		
@@ -154,52 +159,35 @@ Observation *step_sim(VoxelWorld *vw, Action *action) {
 		
 		DrawFPS(10, 130);
 		
+		//TODO: you can draw camera front POV in a little window at bottom right like this (only need to scale down the texture):	
+		/*DrawTextureRec(
+			vw->camera_view_tex.texture,
+			(Rectangle){ 0, 0, vw->camera_view_tex.texture.width, -vw->camera_view_tex.texture.height },
+			(Vector2){ 500, 400 },
+			WHITE
+		);*/
+		
 		// changing variables
 
 	EndDrawing();
 
+        // Capture the whole screen after drawing
+        //Image screenshot = LoadImageFromScreen();
+	
 	// to easily view camera_view_tex for debugging
 	//Image img = LoadImageFromTexture(camera_view_tex.texture);	
 	//ExportImage(img, "img.png");
 
-	glewInit();
+	// Convert current robot POV view (front camera) from type raylib Image to cv2::Mat
+	cv::Mat mat_temp(pov_view_img.height, pov_view_img.width, CV_8UC4, pov_view_img.data); // RGBA
+	cv::Mat pov_view_cvimg;
+	cv::cvtColor(mat_temp, pov_view_cvimg, cv::COLOR_RGBA2BGR);	
+	Observation *obs = new Observation();
+	obs->camera_front = pov_view_cvimg;
 	
-	rlBindFramebuffer(RL_DRAW_FRAMEBUFFER, camera_view_tex.id); // target.framebuffer is the GPU FBO
-	rlViewport(0, 0, screen_width, screen_height);
+	//UnloadImage(pov_view_img);		// TODO: if i unload the image, the cv points to empty thing, check if not unloading the image doesnt cause some ugly leaks that slow down stuff or something
 	
-	GLuint pbo;
-	glGenBuffers(1, &pbo);
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
-	glBufferData(GL_PIXEL_PACK_BUFFER, screen_width*screen_height*4, NULL, GL_STREAM_READ); // allocate GPU buffer
-
-	glReadPixels(0, 0, screen_width, screen_height, GL_RGBA, GL_UNSIGNED_BYTE, 0); // async copy to PBO
-
-	// later map buffer to CPU pointer
-	GLubyte* img_ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-	// fill ROS Image.msg from ptr
-	glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-	Observation* obs = (Observation*)malloc(sizeof(Observation));
-	obs->camera_img = img_ptr;
 	return obs;
-	
-	
-	//rlBindFramebuffer(RL_DRAW_FRAMEBUFFER, camera_view_tex.id); // target.framebuffer is the GPU FBO
-	//Color *camera_view_pixels = (Color *)malloc(screen_width * screen_height * sizeof(Color));
-	//rlLoadFramebuffer();	//screen_width, screen_height, camera_view_pixels);
-	//
-	//Image img = {0};
-	//img = LoadImage
-	//img.data = camera_view_pixels;
-	//img.width = screen_width;
-	//img.height = screen_height;
-	//img.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
-	//img.mipmaps = 1;
-	//ImageFlipVertical(&img);
-	//ExportImage(img, "camera_rlgl.png");
-	//UnloadImage(img);	
 }
 
 void end_sim(void) {

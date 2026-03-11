@@ -3,7 +3,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
-#include "small_handy_stuff.h"
+#include "small_handy_stuff.hpp"
 
 Vector3 getUpDirection() {
 	Vector3 up = {0.0f, 1.0f, 0.0f};

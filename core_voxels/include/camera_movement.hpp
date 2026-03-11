@@ -5,21 +5,13 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include "map.h"
-#include "data_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "map.hpp"
+#include "data_types.hpp"
 
 void CheckMovementEdit(Camera *camera, chunkMap map);		// Check for keyboard keys that move
 void CameraMoveEdit(Camera *camera, Vector3 direction);		// Translate camera
 void CameraMoveUpDownEdit(Camera *camera, Vector3 direction);		// Translate camera
 void CameraRotateEdit(Camera *camera, int HEADING);			// Rotate camera
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 
