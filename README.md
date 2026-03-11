@@ -35,7 +35,7 @@ source install/setup.bash
 ```
 Run:
 ```
-ros2 run ros_voxels ros_voxels_main_node
+./install/master_main/lib/master_main/master_main
 ```
 Now a window with the simulation (see bottom of this README) should display and the simulation should be running.
 
