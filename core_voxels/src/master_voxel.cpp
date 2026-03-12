@@ -14,10 +14,6 @@
 #include "support_for_master.hpp"
 #include "data_types.hpp"
 
-#include <GL/glew.h>
-#include <GL/gl.h>          // OpenGL core functions
-#include <GL/glext.h>       // OpenGL extensions (for PBO)
-
 //window size
 const int screen_width = 1600;
 const int screen_height = 850;
@@ -110,7 +106,8 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	return vw;
 }
 
-Observation *step_sim(VoxelWorld *vw, Action *action) {
+//Observation *step_sim(VoxelWorld *vw, Action *action) {
+void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	// TODO: move these somewhere a bit cleaner
 	char position_info[70];
 	char mode_info[70];
@@ -120,7 +117,9 @@ Observation *step_sim(VoxelWorld *vw, Action *action) {
     	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
 
 	// handle all keys pressed
+	movePlayer(vw, curr_chunk, action);	// for now it moves it based on action, if keys also pressed than both action and keys apply, later TODO: make keys controling player overide action
 	checkControls(vw, curr_chunk);	
+	
 	
 	BeginTextureMode(vw->camera_view_tex);
 		ClearBackground(RAYWHITE);
@@ -131,11 +130,12 @@ Observation *step_sim(VoxelWorld *vw, Action *action) {
 		EndMode3D();
     	EndTextureMode();
 	
+
 	BeginDrawing();	
 		
 		ClearBackground(RAYWHITE);
 		Image pov_view_img = LoadImageFromTexture(vw->camera_view_tex.texture);	
-		ImageFlipVertical(&pov_view_img);  // Raylib function	
+		ImageFlipVertical(&pov_view_img); 	
 		
 		BeginMode3D(vw->current_camera);
 		
@@ -179,15 +179,18 @@ Observation *step_sim(VoxelWorld *vw, Action *action) {
 	//ExportImage(img, "img.png");
 
 	// Convert current robot POV view (front camera) from type raylib Image to cv2::Mat
+	
 	cv::Mat mat_temp(pov_view_img.height, pov_view_img.width, CV_8UC4, pov_view_img.data); // RGBA
 	cv::Mat pov_view_cvimg;
-	cv::cvtColor(mat_temp, pov_view_cvimg, cv::COLOR_RGBA2BGR);	
-	Observation *obs = new Observation();
-	obs->camera_front = pov_view_cvimg;
+	mat_temp.copyTo(pov_view_cvimg);   // <-- deep copy - so that i can Unload image
+	cv::cvtColor(pov_view_cvimg, pov_view_cvimg, cv::COLOR_RGBA2BGR);	
+	observation->camera_front = pov_view_cvimg;
+		
+
+	UnloadImage(pov_view_img);		// TODO: if i unload the image, the cv points to empty thing, check if not unloading the image doesnt cause some ugly leaks that slow down stuff or something
 	
-	//UnloadImage(pov_view_img);		// TODO: if i unload the image, the cv points to empty thing, check if not unloading the image doesnt cause some ugly leaks that slow down stuff or something
-	
-	return obs;
+	//Observation *obs = new Observation();
+	//return obs;
 }
 
 void end_sim(void) {

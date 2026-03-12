@@ -11,6 +11,7 @@
 void master_step_sim();
 
 //funkce co ma action v argumentu a vraci observation (ros vola tuhle funkci)
-Observation *master_ros_bridge(Action *ros_action);
+//Observation *master_ros_bridge(Action *ros_action);
+void master_ros_bridge(Action *ros_action, Observation *ros_observation);
 
 #endif

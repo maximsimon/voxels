@@ -39,11 +39,11 @@ typedef struct {
 
 typedef struct {
 	cv::Mat camera_front;		// lamst POV view of front camera of the robot in simulation
-	//Image* camera_img;
 } Observation;
 
 typedef struct {
-	Vector3 movement_direction;
+	Vector3 linear_vel;
+	Vector3 angular_vel;
 } Action;
 
 typedef struct VoxelWorld {

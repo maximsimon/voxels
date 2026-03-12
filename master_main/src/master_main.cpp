@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <thread>
 
-Observation *master_observation;
-Action *master_action;
+Observation master_observation;
+Action master_action;
 std::mutex mutex_observation;
 std::mutex mutex_action;
 
@@ -18,8 +18,8 @@ std::mutex mutex_action;
 void master_step_sim() {
 	
 	VoxelWorld* vw_instance;
-	Observation* vw_observation;
-	Action* vw_action;// = (Action*)malloc(sizeof(Action));
+	Observation* vw_observation = new Observation();
+	Action* vw_action = new Action();// = (Action*)malloc(sizeof(Action));
 	
 	//TODO temp params here to get it running -> then move to yaml file
 	Image mazemap_image = LoadImage("src/core_voxels/resources/map_images/mazemap_64.png");	//TODO: add some error handling and printing if file does not load
@@ -31,13 +31,15 @@ void master_step_sim() {
 	
 	while (!WindowShouldClose() && !IsKeyPressed(KEY_Q)) { //observation_ = step_sim(vw_main_, action_);	
 		mutex_action.lock();
-		vw_action = master_action;
+		*vw_action = master_action;
 		mutex_action.unlock();
-
-		vw_observation = step_sim(vw_instance, vw_action);
+		//printf("\n\n action 0: %f \n\n", master_action.linear_vel.x);
+		//vw_observation = step_sim(vw_instance, vw_action);
+		step_sim(vw_instance, vw_action, vw_observation);
 		
 		mutex_observation.lock();
-		master_observation = vw_observation;
+		//master_observation = vw_observation;
+		vw_observation->camera_front.copyTo(master_observation.camera_front);
 		mutex_observation.unlock();
 	}
 	
@@ -46,18 +48,21 @@ void master_step_sim() {
 
 
 //funkce co ma action v argumentu a vraci observation (ros vola tuhle funkci)
-Observation *master_ros_bridge(Action *ros_action) {
-	Observation *ros_observation;
+void master_ros_bridge(Action *ros_action, Observation *ros_observation) {
+	//Observation *ros_observation;
 	
 	mutex_action.lock();
-	master_action = ros_action;
+	master_action = *ros_action;
 	mutex_action.unlock();
+	
+	//if (ros_action != NULL) printf("action is not NULL yaaay \n\n\n\n\n\n\n");
 
 	mutex_observation.lock();
-	ros_observation = master_observation;
+	//ros_observation = master_observation;
+	master_observation.camera_front.copyTo(ros_observation->camera_front);
 	mutex_observation.unlock();
 
-	return ros_observation;
+	//return ros_observation;
 }
 
 int main(int argc, char * argv[]) {

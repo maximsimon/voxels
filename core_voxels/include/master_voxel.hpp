@@ -9,6 +9,7 @@
 #include "data_types.hpp"
 
 VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_direction, int step_fq);
-Observation *step_sim(VoxelWorld *vw, Action *action);
+//Observation *step_sim(VoxelWorld *vw, Action *action);
+void step_sim(VoxelWorld *vw, Action *action, Observation *observation);
 
 #endif

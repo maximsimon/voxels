@@ -10,7 +10,6 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
 )
 
-find_package(OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
 
 # Library
@@ -27,7 +26,6 @@ add_library(${PROJECT_NAME} STATIC
 # Link raylib (if core uses it)
 target_link_libraries(core_voxels
     raylib
-    OpenGL::GL GLEW	
     m
     pthread
     ${OpenCV_LIBS}  # link OpenCV    
