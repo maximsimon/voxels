@@ -16,9 +16,9 @@ enum HEADING {
 };
 
 
-void CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh);		// Check for keyboard keys that move player
-void CameraMove(Camera *camera, Vector3 direction);		// Translate camera
-void CameraRotate(Camera *camera, int HEADING);			// Rotate camera
+bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh);		// Check for keyboard keys that move player
+void CameraMove(Camera *camera, Vector3 direction, float speed);		// Translate camera
+void CameraRotate(Camera *camera, int HEADING, float turn_speed);			// Rotate camera
 float getPlayerAngle(Camera camera);			// gets angle of player's voxel to the x axis, angle is in degrees
 
 #endif

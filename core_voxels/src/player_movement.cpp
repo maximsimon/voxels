@@ -24,8 +24,8 @@ float getPlayerAngle(Camera camera) {
 }
 
 // Check for keyboard keys that move player
-void CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh) {
-
+bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh) {
+	bool player_moved_by_keys = false;
 	Vector3 forward = getForwardDirection(*camera);
 	Vector3 right = getRightDirection(*camera);
 	Vector3 left = getLeftDirection(*camera);
@@ -36,37 +36,45 @@ void CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh) {
 	// move
 	if (IsKeyDown(KEY_UP)) {
 		if (!CheckCollision(camera, map, SPEED, forward, mesh)) {
-			CameraMove(camera, forward);
+			CameraMove(camera, forward, SPEED);
+			player_moved_by_keys = true;
 		}
 	}
 	if (IsKeyDown(KEY_DOWN)) {
 		if (!CheckCollision(camera, map, SPEED, back, mesh)) {
-			CameraMove(camera, back);
+			CameraMove(camera, back, SPEED);
+			player_moved_by_keys = true;
 		}
 	}
 	if (IsKeyDown(KEY_RIGHT)) {
 		if (!CheckCollision(camera, map, SPEED, right, mesh)) {
-			CameraMove(camera, right);
+			CameraMove(camera, right, SPEED);
+			player_moved_by_keys = true;
 		}
 	}
 	if (IsKeyDown(KEY_LEFT)) {
 		if (!CheckCollision(camera, map, SPEED, left, mesh)) {
-			CameraMove(camera, left);
+			CameraMove(camera, left, SPEED);
+			player_moved_by_keys = true;
 		}
 	}
 
 	// rotate
 	if (IsKeyDown(KEY_W)) {
-		CameraRotate(camera, UP);
+		CameraRotate(camera, UP, TURN_SPEED);
+		player_moved_by_keys = true;
 	}
 	if (IsKeyDown(KEY_S)) {
-		CameraRotate(camera, DOWN);
+		CameraRotate(camera, DOWN, TURN_SPEED);
+		player_moved_by_keys = true;
 	}
 	if (IsKeyDown(KEY_A)) {
-		CameraRotate(camera, RIGHT);
+		CameraRotate(camera, RIGHT, TURN_SPEED);
+		player_moved_by_keys = true;
 	}
 	if (IsKeyDown(KEY_D)) {
-		CameraRotate(camera, LEFT);
+		CameraRotate(camera, LEFT, TURN_SPEED);
+		player_moved_by_keys = true;
 	}
 
 	// take pick
@@ -76,23 +84,24 @@ void CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh) {
 		TakeScreenshot(img_fname); 	
 	}
 
+	return player_moved_by_keys;
 
 }
 
 // Translate camera
-void CameraMove(Camera *camera, Vector3 direction) {
+void CameraMove(Camera *camera, Vector3 direction, float speed) {
 	
 	direction.y = 0;
 	direction = Vector3Normalize(direction);
 
-    	direction = Vector3Scale(direction, SPEED);
+    	direction = Vector3Scale(direction, speed);
 	
 	camera->position = Vector3Add(camera->position, direction);
 	camera->target = Vector3Add(camera->target, direction);
 }
 
 // Rotate camera
-void CameraRotate(Camera *camera, int HEADING) {
+void CameraRotate(Camera *camera, int HEADING, float turn_speed) {
 	
 	int angle = 0;
 	bool up_not_right = true;
@@ -114,12 +123,12 @@ void CameraRotate(Camera *camera, int HEADING) {
 	}
 	Vector3 targetPosition = Vector3Subtract(camera->target, camera->position);
 	if (up_not_right == false) {				// up or down
-		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * TURN_SPEED);
+		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * turn_speed);
 	 
 	} else if (up_not_right == true) {				// right or left
 		Vector3 forward = getForwardDirection(*camera);		//Vector3Subtract(camera->target, camera->position);
 		Vector3 right = getRightDirection(*camera);		//Vector3CrossProduct(forward, camera->up);
-		targetPosition = Vector3RotateByAxisAngle(targetPosition, right, angle * TURN_SPEED);
+		targetPosition = Vector3RotateByAxisAngle(targetPosition, right, angle * turn_speed);
 	}
 
 	camera->target = Vector3Add(camera->position, targetPosition);

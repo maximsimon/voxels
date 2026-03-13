@@ -117,8 +117,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
     	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
 
 	// handle all keys pressed
-	movePlayer(vw, curr_chunk, action);	// for now it moves it based on action, if keys also pressed than both action and keys apply, later TODO: make keys controling player overide action
-	checkControls(vw, curr_chunk);	
+	handleActionsAndKeys(vw, curr_chunk, action);	// for now it moves it based on action, if keys also pressed than both action and keys apply, later TODO: make keys controling player overide action
 	
 	
 	BeginTextureMode(vw->camera_view_tex);
