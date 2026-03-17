@@ -51,6 +51,15 @@ typedef struct {
 	Vector3 angular_vel;
 } Action;
 
+// teleport input box (activated by T key)
+typedef struct {
+	bool text_active;
+	int letter_count;
+	Rectangle text_box;
+	int MAX_INPUT_CHARS;
+	char text[];
+} teleportText;
+
 typedef struct VoxelWorld {
 	bool player_view;		// controls if player or edit POV is viewed
 	bool player_mode;		// controls if arrow keys control player voxel or flying edit camera
@@ -63,6 +72,7 @@ typedef struct VoxelWorld {
 	Model player_model;		// 1 red voxel - model of the player (robot)
 	float player_angle;
 	RenderTexture2D camera_view_tex;
+	teleportText teleport_text;
 } VoxelWorld;
 
 

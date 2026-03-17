@@ -20,6 +20,8 @@ bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh);		// Check f
 void CameraMove(Camera *camera, Vector3 direction, float speed);		// Translate camera
 void CameraRotate(Camera *camera, int HEADING, float turn_speed);			// Rotate camera
 float getPlayerAngle(Camera camera);			// gets angle of player's voxel to the x axis, angle is in degrees
+void teleport(Camera *camera, Vector3 goal_pose);		// teleport whatever camera (player or god) to goal_pose, without changing orientation
+void teleportGUIinput(VoxelWorld *vw);			// teleport camera based on in simulation input (press T and enter goal pose into textboxt)
 
 #endif
 

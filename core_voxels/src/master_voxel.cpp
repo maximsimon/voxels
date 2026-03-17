@@ -102,7 +102,14 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	vw->player_view = player_view;
 	vw->current_camera = current_camera;	
 	
+	// initilize rest of VoxelWorld vw	
 	vw->camera_view_tex = LoadRenderTexture(screen_width, screen_height);
+	//vw->teleport_text = new teleportText();
+	vw->teleport_text.text_active = false;
+	vw->teleport_text.letter_count = 0;
+	vw->teleport_text.text_box = { screen_width - 400, 100, 200, 50 };
+	vw->teleport_text.MAX_INPUT_CHARS = 30;		// TODO: magic number
+	vw->teleport_text.text[vw->teleport_text.MAX_INPUT_CHARS] = { 0 };      // NOTE: One extra space required for null terminator char '\0'	
 	return vw;
 }
 
@@ -157,6 +164,15 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		
 		DrawFPS(10, 130);
 		
+		// draw teleport input box if T was pressed
+		if (vw->teleport_text.text_active == true) {
+			DrawRectangleRec(vw->teleport_text.text_box, (Color){0, 0, 0, 0});
+			DrawRectangleLines((int)vw->teleport_text.text_box.x, (int)vw->teleport_text.text_box.y, (int)vw->teleport_text.text_box.width, (int)vw->teleport_text.text_box.height, DARKGRAY);
+			DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, DARKGREEN);
+			DrawText(TextFormat("teleport"), (int)vw->teleport_text.text_box.x + 20, vw->teleport_text.text_box.y + 40, 15, DARKGRAY);
+		}
+		// TODO: put this into help window: "enter goal pose for teleportation, seperate number by spaces \n y will be ovewriten to 0.5, default goal pose is 0, 0.5, 0")
+	
 		//TODO: you can draw camera front POV in a little window at bottom right like this (only need to scale down the texture):	
 		/*DrawTextureRec(
 			vw->camera_view_tex.texture,

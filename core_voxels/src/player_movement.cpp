@@ -13,6 +13,36 @@ float SPEED = 0.1f;
 float TURN_SPEED = 0.08f;
 int SCREENSHOT_COUNTER = 0;
 
+// teleport whatever camera (player or god) to goal_pose, without changing orientation
+void teleport(Camera *camera, Vector3 goal_pose) {
+	goal_pose.y = 0.5;		// force y coord to stay the same to keep the simulation 2D for now
+	Vector3 camera_direction = Vector3Subtract(camera->target, camera->position);
+	camera->position = goal_pose;	
+	camera->target = Vector3Add(camera->position, camera_direction);
+}
+
+// teleport camera based on in simulation input (press T and enter goal pose into textboxt)
+void teleportGUIinput(VoxelWorld *vw) {
+	 // Get char pressed (unicode character) on the queue
+	int key = GetCharPressed();
+	
+	// Check if more characters have been pressed on the same frame
+	while (key > 0) {
+		// NOTE: Only allow keys for number (48 - 57), decimal point (46), space bar (32), minus sign (45)
+		if ( ( ((key >= 48) && (key <= 57)) || (key == 32) || (key == 46) || (key == 45)) && (vw->teleport_text.letter_count < vw->teleport_text.MAX_INPUT_CHARS)) {
+			vw->teleport_text.text[vw->teleport_text.letter_count] = (char)key;
+			vw->teleport_text.letter_count++;
+		}
+		key = GetCharPressed();  // Check next character in the queue
+	}
+
+	if (IsKeyPressed(KEY_BACKSPACE)) {
+		vw->teleport_text.letter_count--;
+		if (vw->teleport_text.letter_count < 0) vw->teleport_text.letter_count = 0;
+		vw->teleport_text.text[vw->teleport_text.letter_count] = '\0';
+	}
+}
+
 // fetch angle of player model for rendering
 float getPlayerAngle(Camera camera) {
 	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
