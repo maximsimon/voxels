@@ -13,6 +13,7 @@
 #include "master_voxel.hpp"
 #include "support_for_master.hpp"
 #include "data_types.hpp"
+#include "odometry.hpp"
 
 //window size
 const int screen_width = 1600;
@@ -102,7 +103,6 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	vw->current_camera = current_camera;	
 	
 	vw->camera_view_tex = LoadRenderTexture(screen_width, screen_height);
-	//vw->obs = new Observation();
 	return vw;
 }
 
@@ -117,9 +117,8 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
     	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
 
 	// handle all keys pressed
-	handleActionsAndKeys(vw, curr_chunk, action);	// for now it moves it based on action, if keys also pressed than both action and keys apply, later TODO: make keys controling player overide action
-	
-	
+	handleActionsAndKeys(vw, curr_chunk, action);	// movement based on keys stop movement on action until keys are released
+	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action -> TODO: actually caluclate player movemetn in the simulaiton	
 	BeginTextureMode(vw->camera_view_tex);
 		ClearBackground(RAYWHITE);
 		BeginMode3D(vw->player_camera);
@@ -184,7 +183,6 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	mat_temp.copyTo(pov_view_cvimg);   // <-- deep copy - so that i can Unload image
 	cv::cvtColor(pov_view_cvimg, pov_view_cvimg, cv::COLOR_RGBA2BGR);	
 	observation->camera_front = pov_view_cvimg;
-		
 
 	UnloadImage(pov_view_img);		// TODO: if i unload the image, the cv points to empty thing, check if not unloading the image doesnt cause some ugly leaks that slow down stuff or something
 	

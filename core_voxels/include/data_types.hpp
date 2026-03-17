@@ -38,7 +38,12 @@ typedef struct {
 } mainMap;
 
 typedef struct {
-	cv::Mat camera_front;		// lamst POV view of front camera of the robot in simulation
+	cv::Mat camera_front;		// last POV view of front camera of the robot in simulation
+	// odometry msg
+	Vector3 position;
+	Quaternion orientation;
+	Vector3 linear_vel;
+	Vector3 angular_vel;
 } Observation;
 
 typedef struct {

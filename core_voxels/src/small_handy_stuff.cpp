@@ -16,7 +16,7 @@ Vector3 getDownDirection() {
 }
 
 Vector3 getRightDirection(Camera camera) {
-	Vector3 right = Vector3CrossProduct(getForwardDirection(camera), getUpDirection());
+	Vector3 right = Vector3Normalize(Vector3CrossProduct(getForwardDirection(camera), getUpDirection()));
 	return right;
 }
 

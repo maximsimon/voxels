@@ -8,7 +8,10 @@
 #include "std_msgs/msg/string.hpp"
 #include "std_msgs/msg/int32.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.hpp>
@@ -33,7 +36,8 @@ public:
 	ObsActNode()
 	: Node("obs_act_node")
 	{
-		obs_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
+		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
+		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
 		act_subscriber_ = this->create_subscription<geometry_msgs::msg::Twist>(
 		    "action_subscriber",
 		    10,
@@ -51,7 +55,8 @@ public:
 
 private:
 	rclcpp::TimerBase::SharedPtr timer_;
-	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr obs_publisher_;
+	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr camera_publisher_;
+	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_publisher_;
 	rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr act_subscriber_;
 	sensor_msgs::msg::Image::SharedPtr image_msg;
 	Observation* observation_ = new Observation();
@@ -72,8 +77,56 @@ private:
 	void publish_every_spin() {
 		master_ros_bridge(action_, observation_);
 		if (observation_ != NULL) {
+			// image
 			image_msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", observation_->camera_front).toImageMsg();
-			obs_publisher_->publish(*image_msg);
+			camera_publisher_->publish(*image_msg);
+			
+			// odom
+			// NEXT_STEP: this does not woooork, why? throws segmentation fault, also TODO: orientation needs to be in quaternions so figure it out (probably in simulation, not here - not sure yet where ,decide
+			
+			// odom msg created every publish with should be fine, using msg shared_ptr like image worked badly with threads (segmentation fault)
+			nav_msgs::msg::Odometry odom_msg;
+			
+			odom_msg.header.stamp = this->now();	
+			
+			odom_msg.header.frame_id = "odom";
+			odom_msg.child_frame_id = "base_link"; // robot frame
+			
+			odom_msg.pose.pose.position.x = -observation_->position.z;
+			odom_msg.pose.pose.position.y = -observation_->position.x;
+			odom_msg.pose.pose.position.z = observation_->position.y;
+
+			odom_msg.pose.pose.orientation.w = observation_->orientation.w;
+			odom_msg.pose.pose.orientation.x = observation_->orientation.x;
+			odom_msg.pose.pose.orientation.y = observation_->orientation.y;
+			odom_msg.pose.pose.orientation.z = observation_->orientation.z;
+
+			odom_msg.twist.twist.linear.x = -action_->linear_vel.z;
+			odom_msg.twist.twist.linear.y = -action_->linear_vel.x;
+			odom_msg.twist.twist.linear.z = action_->linear_vel.y;
+			
+			odom_msg.twist.twist.angular.x = action_->angular_vel.x;
+			odom_msg.twist.twist.angular.y = action_->angular_vel.y;
+			odom_msg.twist.twist.angular.z = action_->angular_vel.z;
+			
+			odom_publisher_->publish(odom_msg);
+
+			//experiment with TF2
+			tf2_ros::TransformBroadcaster tf_broadcaster_(this);
+
+			geometry_msgs::msg::TransformStamped t;
+			t.header.stamp = this->now();           // current ROS2 time
+			t.header.frame_id = "odom";             // world frame
+			t.child_frame_id = "base_link";         // robot frame
+			t.transform.translation.x = -observation_->position.z;
+			t.transform.translation.y = -observation_->position.x;
+			t.transform.translation.z = observation_->position.y;
+			t.transform.rotation.w = observation_->orientation.w; 
+			t.transform.rotation.x = observation_->orientation.x; 
+			t.transform.rotation.y = observation_->orientation.y; 
+			t.transform.rotation.z = observation_->orientation.z; 
+
+			tf_broadcaster_.sendTransform(t);
 		}
 	}
 };

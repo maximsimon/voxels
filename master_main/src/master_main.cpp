@@ -40,6 +40,21 @@ void master_step_sim() {
 		mutex_observation.lock();
 		//master_observation = vw_observation;
 		vw_observation->camera_front.copyTo(master_observation.camera_front);
+
+		master_observation.position.x = vw_observation->position.x;
+		master_observation.position.y = vw_observation->position.y;
+		master_observation.position.z = vw_observation->position.z;
+		
+		master_observation.orientation.w = vw_observation->orientation.w;
+		master_observation.orientation.x = vw_observation->orientation.x;
+		master_observation.orientation.y = vw_observation->orientation.y;
+		master_observation.orientation.z = vw_observation->orientation.z;
+		
+
+		//printf("orient x: %f \n", observation->orientation.x);
+		//printf("orient y: %f \n", observation->orientation.y);
+		//printf("orient z: %f \n", observation->orientation.z);
+		//printf("orient w: %f \n", observation->orientation.w);
 		mutex_observation.unlock();
 	}
 	
@@ -58,8 +73,17 @@ void master_ros_bridge(Action *ros_action, Observation *ros_observation) {
 	//if (ros_action != NULL) printf("action is not NULL yaaay \n\n\n\n\n\n\n");
 
 	mutex_observation.lock();
-	//ros_observation = master_observation;
+
 	master_observation.camera_front.copyTo(ros_observation->camera_front);
+	ros_observation->position.x = master_observation.position.x;
+	ros_observation->position.y = master_observation.position.y;
+	ros_observation->position.z = master_observation.position.z;
+	
+	ros_observation->orientation.w = master_observation.orientation.w;
+	ros_observation->orientation.x = master_observation.orientation.x;
+	ros_observation->orientation.y = master_observation.orientation.y;
+	ros_observation->orientation.z = master_observation.orientation.z;
+	
 	mutex_observation.unlock();
 
 	//return ros_observation;

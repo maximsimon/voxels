@@ -22,6 +22,7 @@ add_library(${PROJECT_NAME} STATIC
   src/player_movement.cpp
   src/small_handy_stuff.cpp
   src/support_for_master.cpp
+  src/odometry.cpp
 )
 # Link raylib (if core uses it)
 target_link_libraries(core_voxels
