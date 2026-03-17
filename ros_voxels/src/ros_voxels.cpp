@@ -91,13 +91,14 @@ private:
 			
 			odom_msg.header.frame_id = "odom";
 			odom_msg.child_frame_id = "base_link"; // robot frame
-			
+		
+			// mismateched x,y,z and w,x because raylib uses different axis convention than ROS	
 			odom_msg.pose.pose.position.x = -observation_->position.z;
 			odom_msg.pose.pose.position.y = -observation_->position.x;
 			odom_msg.pose.pose.position.z = observation_->position.y;
 
-			odom_msg.pose.pose.orientation.w = observation_->orientation.w;
-			odom_msg.pose.pose.orientation.x = observation_->orientation.x;
+			odom_msg.pose.pose.orientation.w = observation_->orientation.x;
+			odom_msg.pose.pose.orientation.x = observation_->orientation.w;
 			odom_msg.pose.pose.orientation.y = observation_->orientation.y;
 			odom_msg.pose.pose.orientation.z = observation_->orientation.z;
 
@@ -121,8 +122,8 @@ private:
 			t.transform.translation.x = -observation_->position.z;
 			t.transform.translation.y = -observation_->position.x;
 			t.transform.translation.z = observation_->position.y;
-			t.transform.rotation.w = observation_->orientation.w; 
-			t.transform.rotation.x = observation_->orientation.x; 
+			t.transform.rotation.w = observation_->orientation.x; 
+			t.transform.rotation.x = observation_->orientation.w; 
 			t.transform.rotation.y = observation_->orientation.y; 
 			t.transform.rotation.z = observation_->orientation.z; 
 
