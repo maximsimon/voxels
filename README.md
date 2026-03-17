@@ -26,6 +26,12 @@ For ROS2 testbed (e.g. for __bearnavs__) switch to `ros_api` branch.
 
 `space bar` takes screenshot
 
+`t` opens input box for goal position where robot (player) will be teleported after confirming by `enter`.
+Input ints, floats, negative numbers, whatever...
+Sepearate numbers by spaces; 1st number is x, 2nd y, 3rd z, y coord will be internally overwriten to 0.5 so that robot does not move up or down and stays in 2D space.
+If you enter nothing and press `enter` robot teleports to (0, 0.5 0).
+__Warning:__ if you teleport the robot into a wall, you won't be able to move it by arrow keys and will need to teleport out of it.
+
 ## ROS API
 This branch is Voxel World connected with ROS2.
 It is not working yet.
