@@ -12,7 +12,19 @@ We are in the proccess of making this both ROS2 testbed and python API environme
 
 For ROS2 testbed (e.g. for __bearnavs__) switch to `ros_api` branch.
 
-Pres 'P' to switch to player mode (to control player movement with arrow keys) and 'V' to player view (currently does nothing).
+
+### Controls
+`arrow keys` for movement (translation)
+
+`w s a d` for rotation
+
+`p` toggles player mode - if on move with player voxel, if off move with god view (flying)
+
+`v` toggles view mode - if on see from player perspective, if off see from god perspective (but not possible to move in god mode but view from player perspective)
+
+`pg_up pg_down` fly up and down if you are in god mode (player mode off)
+
+`space bar` takes screenshot
 
 ## ROS API
 This branch is Voxel World connected with ROS2.
