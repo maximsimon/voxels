@@ -51,10 +51,13 @@ Note: I'm using both raylib libraries and my own `.h` files I've created so far.
 
 __`getUpDireciton`, `getForwardDirection` etc (`get...Direction`)__ - it is in 'small\_handy\_stuff.h':
 *returns vector (warning: the vector is not neccasrly normalized) with start at the origin of the world grid and pointing in direction as follows:*
+
 __Up__ - normalized vector pointing UP with respect to the world grid
+
 __Down__ - normalized vector pointing DOWN with respect to the world grid
 
 __Forward, Back__ - points in direction in front of or behind, respectively, of the robot. So forward or back with respect to the robot's orientation.
+
 __Left, Right__ - points in direction to the left or right, respectively, of the robot. So left or right with respect to the robot's orientation.
 
 
