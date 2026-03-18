@@ -10,6 +10,8 @@ Keys are used to switch between "Player" mode and "God mode".
 
 __Compile by `make` then run `voxel.o` executable.__
 
+__Fow ROS2 testbed (e.g. for *Bearnav*) switch to `ros_api` branch.__
+
 Currently can generate voxel at given location and it can load a pixel map (.png image) and place a voxel at each pixel - mazebuilding from image.
 Can only handle about 32x32 map - generating beyond that does not yet work.
 
