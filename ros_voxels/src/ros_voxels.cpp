@@ -20,15 +20,7 @@
 #include "data_types.hpp"
 #include "master_main.hpp"
 
-#include <GL/glew.h>
-#include <GL/gl.h>          // OpenGL core functions
-#include <GL/glext.h>       // OpenGL extensions (for PBO)
-
 using namespace std::chrono_literals;
-
-/* This example creates a subclass of Node and uses a fancy C++11 lambda
-* function to shorten the callback syntax, at the expense of making the
-* code somewhat more difficult to understand at first glance. */
 
 class ObsActNode : public rclcpp::Node
 {
@@ -63,7 +55,6 @@ private:
 	Action* action_ = new Action();
 
 	void action_callback(const geometry_msgs::msg::Twist::SharedPtr action_msg) {
-		//NEXT_STEP: why doesnt this work? it throws segmentation fault
 		action_->linear_vel = {(float)action_msg->linear.x, (float)action_msg->linear.y, (float)action_msg->linear.z};
 		action_->angular_vel = {(float)action_msg->angular.x, (float)action_msg->angular.y, (float)action_msg->angular.z};
 	
