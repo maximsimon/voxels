@@ -54,8 +54,9 @@ float getPlayerAngle(Camera camera) {
 }
 
 // Check for keyboard keys that move player
-bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh) {
+bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh, Observation *observation) {
 	bool player_moved_by_keys = false;
+
 	Vector3 forward = getForwardDirection(*camera);
 	Vector3 right = getRightDirection(*camera);
 	Vector3 left = getLeftDirection(*camera);
@@ -68,42 +69,48 @@ bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh) {
 		if (!CheckCollision(camera, map, SPEED, forward, mesh)) {
 			CameraMove(camera, forward, SPEED);
 			player_moved_by_keys = true;
+			observation->linear_vel.x += SPEED;
 		}
 	}
 	if (IsKeyDown(KEY_DOWN)) {
 		if (!CheckCollision(camera, map, SPEED, back, mesh)) {
 			CameraMove(camera, back, SPEED);
 			player_moved_by_keys = true;
+			observation->linear_vel.x -= SPEED;
 		}
 	}
 	if (IsKeyDown(KEY_RIGHT)) {
 		if (!CheckCollision(camera, map, SPEED, right, mesh)) {
 			CameraMove(camera, right, SPEED);
 			player_moved_by_keys = true;
+			observation->linear_vel.z += SPEED;
 		}
 	}
 	if (IsKeyDown(KEY_LEFT)) {
 		if (!CheckCollision(camera, map, SPEED, left, mesh)) {
 			CameraMove(camera, left, SPEED);
 			player_moved_by_keys = true;
+			observation->linear_vel.z -= SPEED;
 		}
 	}
 
-	// rotate
+	// rotate - note: observation angular vel is only updated for rotation in 2D (so around y axis) ... the simulation is kept in 2D for now
 	if (IsKeyDown(KEY_W)) {
-		CameraRotate(camera, UP, TURN_SPEED);
+		CameraRotate(camera, UP, TURN_SPEED, observation);
 		player_moved_by_keys = true;
+		observation->angular_vel.y += TURN_SPEED;
 	}
 	if (IsKeyDown(KEY_S)) {
-		CameraRotate(camera, DOWN, TURN_SPEED);
+		CameraRotate(camera, DOWN, TURN_SPEED, observation);
 		player_moved_by_keys = true;
+		observation->angular_vel.y -= TURN_SPEED;
 	}
 	if (IsKeyDown(KEY_A)) {
-		CameraRotate(camera, RIGHT, TURN_SPEED);
+		CameraRotate(camera, RIGHT, TURN_SPEED, observation);
 		player_moved_by_keys = true;
 	}
 	if (IsKeyDown(KEY_D)) {
-		CameraRotate(camera, LEFT, TURN_SPEED);
+		CameraRotate(camera, LEFT, TURN_SPEED, observation);
 		player_moved_by_keys = true;
 	}
 
@@ -131,7 +138,7 @@ void CameraMove(Camera *camera, Vector3 direction, float speed) {
 }
 
 // Rotate camera
-void CameraRotate(Camera *camera, int HEADING, float turn_speed) {
+void CameraRotate(Camera *camera, int HEADING, float turn_speed, Observation *observation) {
 	
 	int angle = 0;
 	bool up_not_right = true;
@@ -154,7 +161,7 @@ void CameraRotate(Camera *camera, int HEADING, float turn_speed) {
 	Vector3 targetPosition = Vector3Subtract(camera->target, camera->position);
 	if (up_not_right == false) {				// up or down
 		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * turn_speed);
-	 
+		observation->angular_vel.y += angle * turn_speed;
 	} else if (up_not_right == true) {				// right or left
 		Vector3 forward = getForwardDirection(*camera);		//Vector3Subtract(camera->target, camera->position);
 		Vector3 right = getRightDirection(*camera);		//Vector3CrossProduct(forward, camera->up);

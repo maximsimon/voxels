@@ -63,13 +63,8 @@ chunkMap fetchChunkMap(Color *pixels, int ch_x, int ch_z, int height_px) {
 			if (GRAY_VALUE(pixels[position]) < 170) {
 				map.map[x + z * chunk_w] = 1;
 			}
-			//printf("%d ", position);
 		}
-		//printf("\n");
 	}
-	
-
-	
 
 	return map;
 }

@@ -104,7 +104,6 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	
 	// initilize rest of VoxelWorld vw	
 	vw->camera_view_tex = LoadRenderTexture(screen_width, screen_height);
-	//vw->teleport_text = new teleportText();
 	vw->teleport_text.text_active = false;
 	vw->teleport_text.letter_count = 0;
 	vw->teleport_text.text_box = { screen_width - 400, 100, 200, 50 };
@@ -124,7 +123,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
     	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
 
 	// handle all keys pressed
-	handleActionsAndKeys(vw, curr_chunk, action);	// movement based on keys stop movement on action until keys are released
+	handleActionsAndKeys(vw, curr_chunk, action, observation);	// movement based on keys stop movement on action until keys are released
 	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action -> TODO: actually caluclate player movemetn in the simulaiton	
 	BeginTextureMode(vw->camera_view_tex);
 		ClearBackground(RAYWHITE);

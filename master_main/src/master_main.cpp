@@ -31,14 +31,22 @@ void master_step_sim() {
 	
 	while (!WindowShouldClose() && !IsKeyPressed(KEY_Q)) { //observation_ = step_sim(vw_main_, action_);	
 		mutex_action.lock();
-		*vw_action = master_action;
+		
+		vw_action->linear_vel.x = master_action.linear_vel.x;
+		vw_action->linear_vel.y = master_action.linear_vel.y;
+		vw_action->linear_vel.z = master_action.linear_vel.z;
+		
+		vw_action->angular_vel.x = master_action.angular_vel.x;
+		vw_action->angular_vel.y = master_action.angular_vel.y;
+		vw_action->angular_vel.z = master_action.angular_vel.z;
+		
 		mutex_action.unlock();
-		//printf("\n\n action 0: %f \n\n", master_action.linear_vel.x);
-		//vw_observation = step_sim(vw_instance, vw_action);
-		step_sim(vw_instance, vw_action, vw_observation);
+		
+	
+		step_sim(vw_instance, vw_action, vw_observation);	// SIMULATION STEP - this is where all calculations of what happens in simulation (i.e. in core_voxels) happens		
 		
 		mutex_observation.lock();
-		//master_observation = vw_observation;
+		
 		vw_observation->camera_front.copyTo(master_observation.camera_front);
 
 		master_observation.position.x = vw_observation->position.x;
@@ -49,12 +57,15 @@ void master_step_sim() {
 		master_observation.orientation.x = vw_observation->orientation.x;
 		master_observation.orientation.y = vw_observation->orientation.y;
 		master_observation.orientation.z = vw_observation->orientation.z;
+	
+		master_observation.linear_vel.x = vw_observation->linear_vel.x;
+		master_observation.linear_vel.y = vw_observation->linear_vel.y;
+		master_observation.linear_vel.z = vw_observation->linear_vel.z;
 		
-
-		//printf("orient x: %f \n", observation->orientation.x);
-		//printf("orient y: %f \n", observation->orientation.y);
-		//printf("orient z: %f \n", observation->orientation.z);
-		//printf("orient w: %f \n", observation->orientation.w);
+		master_observation.angular_vel.x = vw_observation->angular_vel.x;
+		master_observation.angular_vel.y = vw_observation->angular_vel.y;
+		master_observation.angular_vel.z = vw_observation->angular_vel.z;	
+		
 		mutex_observation.unlock();
 	}
 	
@@ -67,11 +78,17 @@ void master_ros_bridge(Action *ros_action, Observation *ros_observation) {
 	//Observation *ros_observation;
 	
 	mutex_action.lock();
-	master_action = *ros_action;
+
+	master_action.linear_vel.x = ros_action->linear_vel.x;
+	master_action.linear_vel.y = ros_action->linear_vel.y;
+	master_action.linear_vel.z = ros_action->linear_vel.z;
+	
+	master_action.angular_vel.x = ros_action->angular_vel.x;
+	master_action.angular_vel.y = ros_action->angular_vel.y;
+	master_action.angular_vel.z = ros_action->angular_vel.z;
+	
 	mutex_action.unlock();
 	
-	//if (ros_action != NULL) printf("action is not NULL yaaay \n\n\n\n\n\n\n");
-
 	mutex_observation.lock();
 
 	master_observation.camera_front.copyTo(ros_observation->camera_front);
@@ -83,10 +100,17 @@ void master_ros_bridge(Action *ros_action, Observation *ros_observation) {
 	ros_observation->orientation.x = master_observation.orientation.x;
 	ros_observation->orientation.y = master_observation.orientation.y;
 	ros_observation->orientation.z = master_observation.orientation.z;
+
+	ros_observation->linear_vel.x = master_observation.linear_vel.x;
+	ros_observation->linear_vel.y = master_observation.linear_vel.y;
+	ros_observation->linear_vel.z = master_observation.linear_vel.z;
 	
+	ros_observation->angular_vel.x = master_observation.angular_vel.x;
+	ros_observation->angular_vel.y = master_observation.angular_vel.y;
+	ros_observation->angular_vel.z = master_observation.angular_vel.z;
+		
 	mutex_observation.unlock();
 
-	//return ros_observation;
 }
 
 int main(int argc, char * argv[]) {
@@ -97,8 +121,6 @@ int main(int argc, char * argv[]) {
 	std::thread ros_thread(master_ros);		// start ros in thread
 	vw_step_thread.join();		// close voxel world thread
 	ros_thread.join();		// close ros thread
-	
-	// NEXT STEP: then camera view return
 	
 	printf("MASTER MAIN ENDED \n");
 

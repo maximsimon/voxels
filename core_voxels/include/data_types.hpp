@@ -8,10 +8,6 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <GL/glew.h>
-#include <GL/gl.h>          // OpenGL core functions
-#include <GL/glext.h>       // OpenGL extensions (for PBO)
-
 #define GRAY_VALUE(c) ((float)(c.r + c.g + c.b)/3.0f)
 
 // window size
