@@ -20,8 +20,8 @@ find_package(cv_bridge REQUIRED)
 # Include your own library headers
 include_directories(
   include
-  ../core_voxels/include
-  ../master_main/include
+  ./core_voxels/include
+  ./master_main/include
   ${OpenCV_INCLUDE_DIRS}
 )
 
