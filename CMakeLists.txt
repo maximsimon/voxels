@@ -16,22 +16,47 @@ find_package(sensor_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
-# Include your own library headers
+# Find raylib
+find_library(RAYLIB_LIBRARY raylib REQUIRED)
+find_path(RAYLIB_INCLUDE_DIR raylib.h REQUIRED)
+
+# Include directories
 include_directories(
   include
-  ./core_voxels/include
-  ./master_main/include
+  core_voxels/include
+  master_main/include
   ${OpenCV_INCLUDE_DIRS}
+  ${RAYLIB_INCLUDE_DIR}
 )
 
-# Library
-add_library(${PROJECT_NAME} STATIC
+# Core voxels library (static)
+add_library(core_voxels STATIC
+  core_voxels/src/master_voxel.cpp
+  core_voxels/src/camera_movement.cpp
+  core_voxels/src/collisions.cpp
+  core_voxels/src/faces.cpp
+  core_voxels/src/map.cpp
+  core_voxels/src/player_movement.cpp
+  core_voxels/src/small_handy_stuff.cpp
+  core_voxels/src/support_for_master.cpp
+  core_voxels/src/odometry.cpp
+)
+
+target_link_libraries(core_voxels
+  ${RAYLIB_LIBRARY}
+  m
+  pthread
+  ${OpenCV_LIBS}
+)
+
+# ROS voxels library
+add_library(ros_voxels STATIC
   src/ros_voxels.cpp
 )
 
-# Link ROS2
-ament_target_dependencies(${PROJECT_NAME}
+ament_target_dependencies(ros_voxels
   rclcpp
   std_msgs
   sensor_msgs
@@ -41,19 +66,63 @@ ament_target_dependencies(${PROJECT_NAME}
   tf2_ros
 )
 
+target_link_libraries(ros_voxels
+  ${OpenCV_LIBS}
+)
+
+# Master main executable
+add_executable(master_main
+  master_main/src/master_main.cpp
+)
+
+target_link_libraries(master_main
+  core_voxels
+  ros_voxels
+  ${RAYLIB_LIBRARY}
+  m
+  pthread
+  ${OpenCV_LIBS}
+)
+
+ament_target_dependencies(master_main
+  rclcpp
+  std_msgs
+  geometry_msgs
+  nav_msgs
+  sensor_msgs
+  tf2_ros
+  cv_bridge
+  ament_index_cpp
+)
+
+# Install targets
 install(TARGETS
-  ${PROJECT_NAME}
+  core_voxels
+  ros_voxels
   DESTINATION lib/${PROJECT_NAME}
 )
 
-target_link_libraries(${PROJECT_NAME}
-  ${OpenCV_LIBS}  # link OpenCV    
+install(TARGETS
+  master_main
+  DESTINATION lib/${PROJECT_NAME}
 )
 
-# Export include dirs if needed
-#target_include_directories(ros_voxels PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#    $<INSTALL_INTERFACE:include>
-#)
+# Install headers
+install(DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+install(DIRECTORY core_voxels/include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+install(DIRECTORY master_main/include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+# Install resources
+install(DIRECTORY core_voxels/resources/
+  DESTINATION share/${PROJECT_NAME}/resources
+)
 
 ament_package()

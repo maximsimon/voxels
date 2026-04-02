@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <thread>
+#include <string>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 Observation master_observation;
 Action master_action;
@@ -21,15 +23,39 @@ void master_step_sim() {
 	Observation* vw_observation = new Observation();
 	Action* vw_action = new Action();// = (Action*)malloc(sizeof(Action));
 	
+	// Get package share directory and construct path to map image
+	std::string map_path;
+	try {
+		map_path = ament_index_cpp::get_package_share_directory("ros_voxels") + "/resources/map_images/mazemap_64.png";
+	} catch (const std::exception& e) {
+		// Fallback to original path for development
+		map_path = "src/ros_voxels/core_voxels/resources/map_images/mazemap_64.png";
+	}
+	
+	printf("Loading map from: %s\n", map_path.c_str());
+	
 	//TODO temp params here to get it running -> then move to yaml file
-	Image mazemap_image = LoadImage("src/core_voxels/resources/map_images/mazemap_64.png");	//TODO: add some error handling and printing if file does not load
+	Image mazemap_image = LoadImage(map_path.c_str());	//TODO: add some error handling and printing if file does not load
+	
+	// Check if image loaded successfully
+	if (mazemap_image.data == NULL) {
+		printf("ERROR: Failed to load map image from: %s\n", map_path.c_str());
+		printf("Trying fallback path...\n");
+		map_path = "src/ros_voxels/core_voxels/resources/map_images/mazemap_64.png";
+		mazemap_image = LoadImage(map_path.c_str());
+		if (mazemap_image.data == NULL) {
+			printf("ERROR: Failed to load map image from fallback path: %s\n", map_path.c_str());
+			return;
+		}
+	}
+	
 	Vector3 player_pose = { -2.0f, 0.5f, -2.0f };
 	Vector3 player_direction = { -2.0f, 0.5f, -1.0f };
 	int step_size = 2;		// in milliseconds
 	
 	vw_instance = init_sim(mazemap_image, player_pose, player_direction, step_size);	// init voxel world simulation
 	
-	while (!WindowShouldClose() && !IsKeyPressed(KEY_Q)) { //observation_ = step_sim(vw_main_, action_);	
+	while (!WindowShouldClose() && !IsKeyPressed(KEY_Q)) {
 		mutex_action.lock();
 		
 		vw_action->linear_vel.x = master_action.linear_vel.x;
@@ -43,7 +69,7 @@ void master_step_sim() {
 		mutex_action.unlock();
 		
 	
-		step_sim(vw_instance, vw_action, vw_observation);	// SIMULATION STEP - this is where all calculations of what happens in simulation (i.e. in core_voxels) happens		
+		step_sim(vw_instance, vw_action, vw_observation);	// SIMULATION STEP
 		
 		mutex_observation.lock();
 		
@@ -69,13 +95,12 @@ void master_step_sim() {
 		mutex_observation.unlock();
 	}
 	
-	CloseWindow();	//TODO: cleaner and move closing of simulation and cleanup to core_voxels + end the program, not just window (in future make simulation restartable from window or code as well)
+	CloseWindow();
 }
 
 
 //funkce co ma action v argumentu a vraci observation (ros vola tuhle funkci)
 void master_ros_bridge(Action *ros_action, Observation *ros_observation) {
-	//Observation *ros_observation;
 	
 	mutex_action.lock();
 
@@ -110,7 +135,6 @@ void master_ros_bridge(Action *ros_action, Observation *ros_observation) {
 	ros_observation->angular_vel.z = master_observation.angular_vel.z;
 		
 	mutex_observation.unlock();
-
 }
 
 int main(int argc, char * argv[]) {
