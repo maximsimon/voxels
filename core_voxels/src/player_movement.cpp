@@ -3,7 +3,6 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
-#include "map.hpp"
 #include "collisions.hpp"
 #include "small_handy_stuff.hpp"
 #include "player_movement.hpp"
@@ -54,7 +53,7 @@ float getPlayerAngle(Camera camera) {
 }
 
 // Check for keyboard keys that move player
-bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh, Observation *observation) {
+bool CheckMovement1person(VoxelWorld *vw, Camera *camera, Mesh *mesh, Observation *observation) {
 	bool player_moved_by_keys = false;
 
 	Vector3 forward = getForwardDirection(*camera);
@@ -66,28 +65,28 @@ bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh, Observation 
 	
 	// move
 	if (IsKeyDown(KEY_UP)) {
-		if (!CheckCollision(camera, map, SPEED, forward, mesh)) {
+		if (!CheckCollision(vw, camera, SPEED, forward, mesh)) {
 			CameraMove(camera, forward, SPEED);
 			player_moved_by_keys = true;
 			observation->linear_vel.x += SPEED;
 		}
 	}
 	if (IsKeyDown(KEY_DOWN)) {
-		if (!CheckCollision(camera, map, SPEED, back, mesh)) {
+		if (!CheckCollision(vw, camera, SPEED, back, mesh)) {
 			CameraMove(camera, back, SPEED);
 			player_moved_by_keys = true;
 			observation->linear_vel.x -= SPEED;
 		}
 	}
 	if (IsKeyDown(KEY_RIGHT)) {
-		if (!CheckCollision(camera, map, SPEED, right, mesh)) {
+		if (!CheckCollision(vw, camera, SPEED, right, mesh)) {
 			CameraMove(camera, right, SPEED);
 			player_moved_by_keys = true;
 			observation->linear_vel.z += SPEED;
 		}
 	}
 	if (IsKeyDown(KEY_LEFT)) {
-		if (!CheckCollision(camera, map, SPEED, left, mesh)) {
+		if (!CheckCollision(vw, camera, SPEED, left, mesh)) {
 			CameraMove(camera, left, SPEED);
 			player_moved_by_keys = true;
 			observation->linear_vel.z -= SPEED;

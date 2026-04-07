@@ -5,6 +5,7 @@
 
 #include "raylib.h"
 #include "raymath.h"
+#include "data_types.hpp"
 
 Vector3 getUpDirection();
 Vector3 getDownDirection();
@@ -12,5 +13,6 @@ Vector3 getRightDirection(Camera camera);
 Vector3 getLeftDirection(Camera camera);
 Vector3 getBackDirection(Camera camera);
 Vector3 getForwardDirection(Camera camera);
+void printMap(mainMap main_map);	// helper debugging function for printing map
 
 #endif

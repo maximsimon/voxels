@@ -8,9 +8,9 @@
 #include "master_voxel.hpp"
 #include "data_types.hpp"
 
-void movePlayerWithAction(VoxelWorld *vw, int curr_chunk, Action *action, Observation *observation);
-void handleActionsAndKeys(VoxelWorld *vw, int curr_chunk, Action *action, Observation *observation);
-bool checkControls(VoxelWorld *vw, int curr_chunk, Action *action, Observation *observation);
+void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observation);
+void handleActionsAndKeys(VoxelWorld *vw, Action *action, Observation *observation);
+bool checkControls(VoxelWorld *vw, Action *action, Observation *observation);
 
 #endif
 

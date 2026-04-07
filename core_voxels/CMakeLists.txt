@@ -15,7 +15,7 @@ find_package(OpenCV REQUIRED)
 # Library
 add_library(${PROJECT_NAME} STATIC
   src/master_voxel.cpp
-  src/camera_movement.cpp
+  src/god_movement.cpp
   src/collisions.cpp
   src/faces.cpp
   src/map.cpp

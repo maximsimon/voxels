@@ -3,14 +3,13 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
-#include "map.hpp"
 #include "small_handy_stuff.hpp"
 #include "collisions.hpp"
 #include "data_types.hpp"
+#include "map.hpp"
 
 // calculate position 4 vertices of voxel (top square) 
-void getVoxelBoundryPoints(Vector3 *boundry_points, Vector3 pose, chunkMap map) {
-
+void getVoxelBoundryPoints(Vector3 *boundry_points, Vector3 pose) {
 
 	double value = -0.5;
 	for (int i = 0; i < 10; i++) { 
@@ -32,18 +31,16 @@ void getVoxelBoundryPoints(Vector3 *boundry_points, Vector3 pose, chunkMap map) 
 		value += 0.1;
 	}
 
-
 }
 
 // Check if player is colliding with any voxel
-bool CheckCollision(Camera *camera, chunkMap map, const float speed, Vector3 direction, Mesh *mesh) {
+bool CheckCollision(VoxelWorld *vw, Camera *camera, const float speed, Vector3 direction, Mesh *mesh) {
 
 	bool collision = false;
 	float buffer = 1.0f;
 
 	// find in which voxel player is going to be located
 	
-
 	Vector3 forward = getForwardDirection(*camera);
 	Vector3 right = getRightDirection(*camera);
 	
@@ -51,26 +48,11 @@ bool CheckCollision(Camera *camera, chunkMap map, const float speed, Vector3 dir
 	future_pose = Vector3Scale(future_pose, buffer);
 	
 	Vector3 boundry_points[40];
-	getVoxelBoundryPoints(boundry_points, future_pose, map);
+	getVoxelBoundryPoints(boundry_points, future_pose);
 	for (int i = 0; i < 40; i++) {
 		boundry_points[i] = Vector3Add(future_pose, boundry_points[i]);
 	}
 	
-	
-	// Check collision by looking at the map. doesn't really work well.
-	//int map_x = 0;
-	//int map_z = 0; 
-	////check if that voxel is air or matter
-	//for (int pt_idx = 0; pt_idx < 40; pt_idx++) {
-	//	map_x = round(boundry_points[pt_idx].x);
-	//	map_z = round(boundry_points[pt_idx].z);
-	//	if ((0 < map_x) && (16 > map_x) && (0 < map_z) && (16 > map_z) && (map.map[map_x + map_z * 16] == 1)) {
-	//		collision = true;
-	//		printf("happened, map_x, map_z: %d %d", map_x, map_z);
-	//		break;
-	//	}
-	//}
-
 	// Check collision by shooting ray up and checking if it collides with mesh
 	Ray ray = { 0 };
 	ray.position = (Vector3){0.0f, 0.0f, 0.0f};
@@ -78,9 +60,11 @@ bool CheckCollision(Camera *camera, chunkMap map, const float speed, Vector3 dir
 
 	RayCollision ray_collision = { 0 };
 
+	int chunk_coord = 0;
 	for (int pt_idx = 0; pt_idx < 40; pt_idx++) {
 		ray.position = boundry_points[pt_idx];
-		ray_collision = GetRayCollisionMesh(ray, *mesh, MatrixIdentity());	
+		chunk_coord = fetchCurrChunkIdx(vw->main_map, boundry_points[pt_idx]);
+		ray_collision = GetRayCollisionMesh(ray, mesh[chunk_coord], MatrixIdentity());	
 		if (ray_collision.hit == true) break;
 	}
 	
