@@ -5,7 +5,6 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include "map.hpp"
 #include "data_types.hpp"
 
 enum HEADING {
@@ -16,7 +15,7 @@ enum HEADING {
 };
 
 
-bool CheckMovement1person(Camera *camera, chunkMap map, Mesh *mesh, Observation *observation);		// Check for keyboard keys that move player
+bool CheckMovement1person(VoxelWorld *vw, Camera *camera, Mesh *mesh, Observation *observation);		// Check for keyboard keys that move player
 void CameraMove(Camera *camera, Vector3 direction, float speed);		// Translate camera
 void CameraRotate(Camera *camera, int HEADING, float turn_speed, Observation *observation);			// Rotate camera
 float getPlayerAngle(Camera camera);			// gets angle of player's voxel to the x axis, angle is in degrees

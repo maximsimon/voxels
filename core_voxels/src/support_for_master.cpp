@@ -7,26 +7,25 @@
 #include <sstream>
 #include <cstring>
 #include "player_movement.hpp"
-#include "camera_movement.hpp"
+#include "god_movement.hpp"
 #include "collisions.hpp"
 #include "small_handy_stuff.hpp"
-#include "map.hpp"
 #include "master_voxel.hpp"
 #include "support_for_master.hpp"
 #include "data_types.hpp"
 
-void movePlayerWithAction(VoxelWorld *vw, int curr_chunk, Action *action, Observation *observation) {
+void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observation) {
 	Vector3 forward = getForwardDirection(vw->player_camera);
 	Vector3 right = getRightDirection(vw->player_camera);
 	Vector3 left = getLeftDirection(vw->player_camera);
 	Vector3 back = getBackDirection(vw->player_camera);
 	
 	// move
-	if (!CheckCollision(&vw->player_camera, vw->main_map.chunks[curr_chunk], 0.1f, forward, &vw->maze_mesh)) {
+	if (!CheckCollision(vw, &vw->player_camera, 0.1f, forward, vw->maze_mesh)) {
 		CameraMove(&vw->player_camera, forward, action->linear_vel.x);
 		observation->linear_vel.x += action->linear_vel.x;
 	}
-	if (!CheckCollision(&vw->player_camera, vw->main_map.chunks[curr_chunk], 0.1f, right, &vw->maze_mesh)) {
+	if (!CheckCollision(vw, &vw->player_camera, 0.1f, right, vw->maze_mesh)) {
 		CameraMove(&vw->player_camera, right, action->linear_vel.z);
 		observation->linear_vel.z += action->linear_vel.z;
 	}
@@ -35,7 +34,7 @@ void movePlayerWithAction(VoxelWorld *vw, int curr_chunk, Action *action, Observ
 	vw->player_angle = getPlayerAngle(vw->player_camera);
 }
 
-void handleActionsAndKeys(VoxelWorld *vw, int curr_chunk, Action *action, Observation *observation) {
+void handleActionsAndKeys(VoxelWorld *vw, Action *action, Observation *observation) {
 	Camera camera_old = vw->player_camera;
 
 	Vector3 forward = getForwardDirection(vw->player_camera);
@@ -47,15 +46,15 @@ void handleActionsAndKeys(VoxelWorld *vw, int curr_chunk, Action *action, Observ
 	observation->linear_vel = {0.0, 0.0, 0.0};
 	observation->angular_vel = {0.0, 0.0, 0.0};
 
-	player_moved_by_keys = checkControls(vw, curr_chunk, action, observation);	
+	player_moved_by_keys = checkControls(vw, action, observation);	
 	
 	if (player_moved_by_keys == false) {
-		movePlayerWithAction(vw, curr_chunk, action, observation);
+		movePlayerWithAction(vw, action, observation);
 	}
 
 }
 
-bool checkControls(VoxelWorld *vw, int curr_chunk, Action *action, Observation *observation) {
+bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 	bool player_moved_by_keys = false;
 	
 	if (IsKeyPressed(KEY_P)) {
@@ -90,18 +89,18 @@ bool checkControls(VoxelWorld *vw, int curr_chunk, Action *action, Observation *
 	}	
 	// control player_camera and Movement1person
 	if (vw->player_mode && vw->player_view) {
-		player_moved_by_keys = CheckMovement1person(&vw->player_camera, vw->main_map.chunks[curr_chunk], &vw->maze_mesh, observation);
+		player_moved_by_keys = CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
 		vw->current_camera = vw->player_camera;
 		vw->player_angle = getPlayerAngle(vw->player_camera);
 		
 	// control edit_camera but Movement1person
 	} else if(vw->player_mode) {
-		player_moved_by_keys = CheckMovement1person(&vw->player_camera, vw->main_map.chunks[curr_chunk], &vw->maze_mesh, observation);
+		player_moved_by_keys = CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
 		vw->current_camera = vw->edit_camera;
 		vw->player_angle = getPlayerAngle(vw->player_camera);
 	// control edit_camera and MovementEdit
 	} else {
-		CheckMovementEdit(&vw->edit_camera, vw->main_map.chunks[curr_chunk]);
+		CheckMovementEdit(&vw->edit_camera);
 		vw->current_camera = vw->edit_camera;
 	}
 	

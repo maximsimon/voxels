@@ -3,17 +3,16 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
-#include "map.hpp"
-#include "camera_movement.hpp"
+#include "god_movement.hpp"
 #include "player_movement.hpp"
 #include "small_handy_stuff.hpp"
 #include "data_types.hpp"
 
-float SPEED_EDIT = 0.1f;	
+float SPEED_EDIT = 0.5f;	
 float TURN_SPEED_EDIT = 0.05f;
 
 // Check for keyboard keys that move
-void CheckMovementEdit(Camera *camera, chunkMap map) {
+void CheckMovementEdit(Camera *camera) {
 	
 	Vector3 up = getUpDirection();
 	Vector3 down = getDownDirection();

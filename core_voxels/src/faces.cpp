@@ -8,7 +8,7 @@
 #include "faces.hpp"
 
 // Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh, angle is in radians around y axis
-void MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count) {
+void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count) {
 
 	float width = 1.0f;
 	float height = 1.0f;
@@ -37,21 +37,21 @@ void MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, float angle, i
 	int voxel_t_count = 0;
 
 	// prepare mesh arrays for new vertices and faces
-	mesh->vertices = (float *)RL_REALLOC(mesh->vertices, mesh->vertexCount*3*sizeof(float) + 24*3*sizeof(float));
-	mesh->normals = (float *)RL_REALLOC(mesh->normals, mesh->vertexCount*3*sizeof(float) + 24*3*sizeof(float));
-	mesh->indices = (unsigned short *)RL_REALLOC(mesh->indices, mesh->triangleCount*3*sizeof(unsigned short) + 12*3*sizeof(unsigned short));
+	mesh.vertices = (float *)RL_REALLOC(mesh.vertices, mesh.vertexCount*3*sizeof(float) + 24*3*sizeof(float));
+	mesh.normals = (float *)RL_REALLOC(mesh.normals, mesh.vertexCount*3*sizeof(float) + 24*3*sizeof(float));
+	mesh.indices = (unsigned short *)RL_REALLOC(mesh.indices, mesh.triangleCount*3*sizeof(unsigned short) + 12*3*sizeof(unsigned short));
 
 	float vertices[72] = {0};
 	float normals[72] = {0};
 	unsigned short indices[36] = {0};
 	
 	// gen generic voxel	
-	fetchFront(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
-	fetchBack(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
-	fetchTop(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
-	fetchFloor(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
-	fetchRight(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
-	fetchLeft(mesh->vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchFront(mesh.vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchBack(mesh.vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchTop(mesh.vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchFloor(mesh.vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchRight(mesh.vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
+	fetchLeft(mesh.vertexCount, vertices, normals, v_vectors, n_vectors, &voxel_v_count, &voxel_t_count, indices);
 
 	// translate voxel
 	for (int i = 0; i < 24; i++) {
@@ -72,14 +72,14 @@ void MeshVoxel(Mesh *mesh, float pos_x, float pos_y, float pos_z, float angle, i
 
 	// apply voxel to mesh
 	for (int i = 0; i < 72; i++) {
-		mesh->vertices[*(voxel_count) * 72 + i] = vertices[i];
-		mesh->normals[*(voxel_count) * 72 + i] = normals[i];
+		mesh.vertices[*(voxel_count) * 72 + i] = vertices[i];
+		mesh.normals[*(voxel_count) * 72 + i] = normals[i];
 	}
 	for (int i = 0; i < 36; i++) {
-		mesh->indices[*(voxel_count) * 36 + i] = indices[i];
+		mesh.indices[*(voxel_count) * 36 + i] = indices[i];
 	}
-	mesh->vertexCount += voxel_v_count;
-	mesh->triangleCount += voxel_t_count;
+	mesh.vertexCount += voxel_v_count;
+	mesh.triangleCount += voxel_t_count;
 	*(voxel_count) += 1;
 
 }

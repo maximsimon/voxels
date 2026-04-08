@@ -7,11 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "player_movement.hpp"
-#include "camera_movement.hpp"
+#include "god_movement.hpp"
 #include "map.hpp"
 #include "faces.hpp"
 #include "master_voxel.hpp"
 #include "support_for_master.hpp"
+#include "small_handy_stuff.hpp"
 #include "data_types.hpp"
 #include "odometry.hpp"
 
@@ -44,37 +45,28 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	player_camera.fovy = 45.0f;                                // Camera field-of-view Y
 	player_camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 	vw->player_camera = player_camera;
-	// setup mesh
-	int voxel_count = 0;
-	
-	Mesh mesh = { 0 };
-	mesh.vertices = (float *)RL_MALLOC(0); 
-	mesh.normals = (float *)RL_MALLOC(0);
-	mesh.indices = (unsigned short *)RL_MALLOC(0);
-	
-	// get map of voxel world (1 - voxel, 0 - no voxel)
-	mainMap main_map = fetchMainMap(mazemap_image);
-	vw->main_map = main_map;
-	//MeshVoxel(&mesh, 1.0f, 0.0f, 1.0f, 0.0f, &voxel_count);
-	// build world based on map
-	for (int ch_z = 0; ch_z < main_map.height_chunks; ch_z++) {
-		for (int ch_x = 0; ch_x < main_map.width_chunks; ch_x++) {
-			for (int z = 0; z < main_map.chunk_side; z++) {
-				for (int x = 0; x < main_map.chunk_side; x++) {
-					if (main_map.chunks[ch_z * main_map.width_chunks + ch_x].map[z * main_map.chunk_side + x] == 1) {
-						MeshVoxel(&mesh, (float)(ch_x * main_map.chunk_side + x), 0.0f, (float)(ch_z * main_map.chunk_side + z), 0.0f, &voxel_count);
-					}
-				}
-			}
-		}
-	}
 
-	vw->maze_mesh = mesh;
-	// upload world
-	UploadMesh(&mesh, false);
+	// build map and Voxel World	
+	mainMap main_map = fetchMainMap(mazemap_image);		// get map of voxel world (1 - voxel, 0 - no voxel)
+	printf("map built succesffully\n");
 	
-	// model of the world
-	Model model = LoadModelFromMesh(mesh);                  // Load model from generated mesh
+	printf("initilizing mesh\n");
+	Mesh *maze_mesh = new Mesh[main_map.width_chunks * main_map.height_chunks]();
+	printf("mesh initilized\n");
+
+	printf("maze mesh built successfully\n");
+	buildVoxelWorldMesh(&main_map, maze_mesh);	// build world based on map
+	printf("maze mesh built successfully\n");
+	printf("mesh uploaded succesffully\n");
+	
+	Model *model = new Model[main_map.width_chunks * main_map.height_chunks]();
+	for (int i = 0; i < main_map.width_chunks * main_map.height_chunks; i++) {
+		UploadMesh(&maze_mesh[i], false);				// upload world
+		model[i] = LoadModelFromMesh(maze_mesh[i]);                  // Load model from generated mesh
+	}
+	
+	vw->main_map = main_map;
+	vw->maze_mesh = maze_mesh;
 	vw->maze_model = model;
 
 	// mesh and model of the player
@@ -89,7 +81,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
 	Vector3 scale = {1.0f, 1.0f, 1.0f};
 
-	MeshVoxel(&player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count);
+	MeshVoxel(player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count);
 	UploadMesh(&player_mesh, false);
 	Model player_model = LoadModelFromMesh(player_mesh);                  // Load model from generated mesh
 	vw->player_model = player_model;	
@@ -109,6 +101,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	vw->teleport_text.text_box = { screen_width - 400, 100, 200, 50 };
 	vw->teleport_text.MAX_INPUT_CHARS = 30;		// TODO: magic number
 	vw->teleport_text.text[vw->teleport_text.MAX_INPUT_CHARS] = { 0 };      // NOTE: One extra space required for null terminator char '\0'	
+	printf("init succesfull\n");
 	return vw;
 }
 
@@ -117,19 +110,23 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	// TODO: move these somewhere a bit cleaner
 	char position_info[70];
 	char mode_info[70];
-	int curr_chunk = fetchCurrChunkId(vw->main_map);
+	//int curr_chunk = fetchCurrChunkId(vw->main_map);
 	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
 	Vector3 scale = {1.0f, 1.0f, 1.0f};
     	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
 
 	// handle all keys pressed
-	handleActionsAndKeys(vw, curr_chunk, action, observation);	// movement based on keys stop movement on action until keys are released
+	handleActionsAndKeys(vw, action, observation);	// movement based on keys stop movement on action until keys are released
 	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action -> TODO: actually caluclate player movemetn in the simulaiton	
 	BeginTextureMode(vw->camera_view_tex);
 		ClearBackground(RAYWHITE);
 		BeginMode3D(vw->player_camera);
 			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
-			DrawModel(vw->maze_model, mazePosition, 1.0f, BLACK);
+			
+			// TODO get chunk_position of the ones surroundin the player and draw only them
+			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
+				DrawModel(vw->maze_model[i], mazePosition, 1.0f, BLACK);
+			}
 			DrawGrid(1000, 1.0f);
 		EndMode3D();
     	EndTextureMode();
@@ -144,8 +141,9 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		BeginMode3D(vw->current_camera);
 		
 			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
-	
-			DrawModel(vw->maze_model, mazePosition, 1.0f, BLACK);
+			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
+				DrawModel(vw->maze_model[i], mazePosition, 1.0f, BLACK);
+			}
 			DrawGrid(1000, 1.0f);
 
 		EndMode3D();

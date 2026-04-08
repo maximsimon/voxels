@@ -21,6 +21,8 @@ extern const int chunk_h;
 // actual core map of the Voxel World (1 is voxel 0 is nothing)
 typedef struct {
     int map[16 * 16];
+    int voxel_count;
+    Vector3 chunk_position;
 } chunkMap;
 
 // entire map
@@ -63,11 +65,11 @@ typedef struct VoxelWorld {
 	Camera3D player_camera;		// player (robot) camera
 	Camera3D current_camera;	// player or edit camera - it is the one that is currently being rendered
 	mainMap main_map;		// array map of the world
-	Model maze_model;		// model of the world
-	Mesh maze_mesh;			// mesh of the world;
 	Model player_model;		// 1 red voxel - model of the player (robot)
 	float player_angle;
 	RenderTexture2D camera_view_tex;
+	Model *maze_model;		// model of the world
+	Mesh *maze_mesh;			// mesh of the world;
 	teleportText teleport_text;
 } VoxelWorld;
 

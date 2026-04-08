@@ -10,6 +10,7 @@
 #include "sensor_msgs/msg/image.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 
@@ -30,7 +31,7 @@ public:
 	{
 		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
 		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
-		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel_publisher", 10);		// publisher of robots movement (twist msg - linear and angular velocitie), yes that info is already in odom_publsher, but cmd_vel is traiditionally on robots and bearnav needs this topic for creating a map
+		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_publisher", 10);		// publisher of robots movement (twist msg - linear and angular velocitie), yes that info is already in odom_publsher, but cmd_vel is traiditionally on robots and bearnav needs this topic for creating a map
 		cmd_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::Twist>(
 		    "cmd_vel_subscriber",
 		    10,
@@ -50,7 +51,7 @@ private:
 	rclcpp::TimerBase::SharedPtr timer_;
 	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr camera_publisher_;
 	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_publisher_;
-	rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
+	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_publisher_;
 	rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscriber_;
 	sensor_msgs::msg::Image::SharedPtr image_msg;
 	Observation* observation_ = new Observation();
@@ -75,6 +76,8 @@ private:
 		if (observation_ != NULL) {
 			// image
 			image_msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", observation_->camera_front).toImageMsg();
+			image_msg->header.stamp = this->now();	
+			image_msg->header.frame_id = "camera_front_publish";	
 			camera_publisher_->publish(*image_msg);
 			
 			// odom
@@ -107,15 +110,18 @@ private:
 			odom_publisher_->publish(odom_msg);
 
 			// twist publish for bearnav mapmaker	
-			geometry_msgs::msg::Twist cmd_vel_out_msg;
+			geometry_msgs::msg::TwistStamped cmd_vel_out_msg;
 
-			cmd_vel_out_msg.linear.x = observation_->linear_vel.x;
-			cmd_vel_out_msg.linear.y = observation_->linear_vel.y;
-			cmd_vel_out_msg.linear.z = observation_->linear_vel.z;
+			cmd_vel_out_msg.header.stamp = this->now();	
+			cmd_vel_out_msg.header.frame_id = "cmd_vel_out";
+			
+			cmd_vel_out_msg.twist.linear.x = observation_->linear_vel.x;
+			cmd_vel_out_msg.twist.linear.y = observation_->linear_vel.y;
+			cmd_vel_out_msg.twist.linear.z = observation_->linear_vel.z;
 
-			cmd_vel_out_msg.angular.x = observation_->angular_vel.x;
-			cmd_vel_out_msg.angular.y = observation_->angular_vel.y;
-			cmd_vel_out_msg.angular.z = observation_->angular_vel.z;
+			cmd_vel_out_msg.twist.angular.x = observation_->angular_vel.x;
+			cmd_vel_out_msg.twist.angular.y = observation_->angular_vel.y;
+			cmd_vel_out_msg.twist.angular.z = observation_->angular_vel.z;
             
 			cmd_vel_publisher_->publish(cmd_vel_out_msg);
 		

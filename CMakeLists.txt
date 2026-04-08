@@ -34,7 +34,7 @@ include_directories(
 # Core voxels library (static)
 add_library(core_voxels STATIC
   core_voxels/src/master_voxel.cpp
-  core_voxels/src/camera_movement.cpp
+  core_voxels/src/god_movement.cpp
   core_voxels/src/collisions.cpp
   core_voxels/src/faces.cpp
   core_voxels/src/map.cpp
