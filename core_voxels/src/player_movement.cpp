@@ -93,24 +93,26 @@ bool CheckMovement1person(VoxelWorld *vw, Camera *camera, Mesh *mesh, Observatio
 		}
 	}
 
-	// rotate - note: observation angular vel is only updated for rotation in 2D (so around y axis) ... the simulation is kept in 2D for now
+	// rotate - note: observation angular vel is only updated for rotation in 2D (so around z axis) ... the simulation is kept in 2D for now
 	if (IsKeyDown(KEY_W)) {
 		CameraRotate(camera, UP, TURN_SPEED, observation);
 		player_moved_by_keys = true;
-		observation->angular_vel.y += TURN_SPEED;
+		observation->angular_vel.z += TURN_SPEED;
 	}
 	if (IsKeyDown(KEY_S)) {
 		CameraRotate(camera, DOWN, TURN_SPEED, observation);
 		player_moved_by_keys = true;
-		observation->angular_vel.y -= TURN_SPEED;
+		observation->angular_vel.z -= TURN_SPEED;
 	}
 	if (IsKeyDown(KEY_A)) {
 		CameraRotate(camera, RIGHT, TURN_SPEED, observation);
 		player_moved_by_keys = true;
+		observation->angular_vel.z += TURN_SPEED;
 	}
 	if (IsKeyDown(KEY_D)) {
 		CameraRotate(camera, LEFT, TURN_SPEED, observation);
 		player_moved_by_keys = true;
+		observation->angular_vel.z -= TURN_SPEED;
 	}
 
 	// take pick
@@ -160,7 +162,7 @@ void CameraRotate(Camera *camera, int HEADING, float turn_speed, Observation *ob
 	Vector3 targetPosition = Vector3Subtract(camera->target, camera->position);
 	if (up_not_right == false) {				// up or down
 		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * turn_speed);
-		observation->angular_vel.y += angle * turn_speed;
+		observation->angular_vel.z += angle * turn_speed;
 	} else if (up_not_right == true) {				// right or left
 		Vector3 forward = getForwardDirection(*camera);		//Vector3Subtract(camera->target, camera->position);
 		Vector3 right = getRightDirection(*camera);		//Vector3CrossProduct(forward, camera->up);

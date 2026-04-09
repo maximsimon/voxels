@@ -30,7 +30,7 @@ void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observati
 		observation->linear_vel.z += action->linear_vel.z;
 	}
 	//rotate
-	CameraRotate(&vw->player_camera, RIGHT, action->angular_vel.y, observation);
+	CameraRotate(&vw->player_camera, RIGHT, action->angular_vel.z, observation);
 	vw->player_angle = getPlayerAngle(vw->player_camera);
 }
 
