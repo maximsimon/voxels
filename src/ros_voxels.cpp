@@ -39,9 +39,9 @@ public:
 		);	// subscriber that gets action from outside and passes it to voxel world simulation, for outside programs to control an agent in the simulation trough ROS
 	
 		int step_size = 2;
-		// Timer to call publish_every_spin() every 100ms
+		// Timer to call publish_every_spin() every 50ms (20Hz)
 		timer_ = this->create_wall_timer(
-			std::chrono::milliseconds(100),
+			std::chrono::milliseconds(50),
 			std::bind(&ObsActNode::publish_every_spin, this)
         	);
 
