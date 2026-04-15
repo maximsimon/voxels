@@ -78,22 +78,18 @@ private:
 	void publish_every_spin() {
 		master_ros_bridge(action_, observation_);
 		if (observation_ != NULL) {
-			// image
+			rclcpp::Time now = this->now();
+			
 			image_msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", observation_->camera_front).toImageMsg();
-			image_msg->header.stamp = this->now();	
+			image_msg->header.stamp = now;	
 			image_msg->header.frame_id = "camera_front_publish";	
 			camera_publisher_->publish(*image_msg);
 			
-			// odom
-			// odom msg created every publish with should be fine, using msg shared_ptr like image worked badly with threads (segmentation fault)
 			nav_msgs::msg::Odometry odom_msg;
-			
-			odom_msg.header.stamp = this->now();	
-			
+			odom_msg.header.stamp = now;	
 			odom_msg.header.frame_id = "odom";
-			odom_msg.child_frame_id = "base_link"; // robot frame
+			odom_msg.child_frame_id = "base_link";
 		
-			// possiblly mismateched x,y,z and w,x when displayed in rvix or something, because raylib uses different axis convention than ROS	
 			odom_msg.pose.pose.position.x = observation_->position.x;
 			odom_msg.pose.pose.position.y = observation_->position.y;
 			odom_msg.pose.pose.position.z = observation_->position.z;
@@ -113,10 +109,8 @@ private:
 			
 			odom_publisher_->publish(odom_msg);
 
-			// twist publish for bearnav mapmaker	
 			geometry_msgs::msg::TwistStamped cmd_vel_out_msg;
-
-			cmd_vel_out_msg.header.stamp = this->now();	
+			cmd_vel_out_msg.header.stamp = now;	
 			cmd_vel_out_msg.header.frame_id = "cmd_vel_out";
 			
 			cmd_vel_out_msg.twist.linear.x = observation_->linear_vel.x;
@@ -129,11 +123,10 @@ private:
             
 			cmd_vel_publisher_->publish(cmd_vel_out_msg);
 		
-			// tf2 for visualisations in rviz and such
 			tf2_ros::TransformBroadcaster tf_broadcaster_(this);
 
 			geometry_msgs::msg::TransformStamped t;
-			t.header.stamp = this->now();           // current ROS2 time
+			t.header.stamp = now;
 			t.header.frame_id = "odom";             // world frame
 			t.child_frame_id = "base_link";         // robot frame
 			t.transform.translation.x = observation_->position.x;
