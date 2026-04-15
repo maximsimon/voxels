@@ -29,14 +29,18 @@ public:
 	ObsActNode()
 	: Node("obs_act_node")
 	{
-		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
-		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
-		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_publisher", 10);		// publisher of robots movement (twist msg - linear and angular velocitie), yes that info is already in odom_publsher, but cmd_vel is traiditionally on robots and bearnav needs this topic for creating a map
+		rclcpp::QoS best_effort_qos(1);
+		best_effort_qos.reliability(rclcpp::ReliabilityPolicy::BestEffort);
+		best_effort_qos.durability(rclcpp::DurabilityPolicy::Volatile);
+
+		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", best_effort_qos);
+		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", best_effort_qos);
+		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_publisher", best_effort_qos);
 		cmd_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::Twist>(
 		    "cmd_vel_subscriber",
-		    10,
+		    best_effort_qos,
 		    std::bind(&ObsActNode::action_callback, this, std::placeholders::_1)
-		);	// subscriber that gets action from outside and passes it to voxel world simulation, for outside programs to control an agent in the simulation trough ROS
+		);
 	
 		int step_size = 2;
 		// Timer to call publish_every_spin() every 50ms (20Hz)
