@@ -55,7 +55,7 @@ typedef struct {
 	int letter_count;
 	Rectangle text_box;
 	int MAX_INPUT_CHARS;
-	char text[];
+	char text[256];
 } teleportText;
 
 typedef struct VoxelWorld {

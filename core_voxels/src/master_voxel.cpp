@@ -99,8 +99,8 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	vw->teleport_text.text_active = false;
 	vw->teleport_text.letter_count = 0;
 	vw->teleport_text.text_box = { screen_width - 400, 100, 200, 50 };
-	vw->teleport_text.MAX_INPUT_CHARS = 30;		// TODO: magic number
-	vw->teleport_text.text[vw->teleport_text.MAX_INPUT_CHARS] = { 0 };      // NOTE: One extra space required for null terminator char '\0'	
+	vw->teleport_text.MAX_INPUT_CHARS = 30;
+	vw->teleport_text.text[vw->teleport_text.MAX_INPUT_CHARS] = '\0';	
 	printf("init succesfull\n");
 	return vw;
 }
