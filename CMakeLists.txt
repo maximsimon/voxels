@@ -17,6 +17,7 @@ find_package(tf2_ros REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(ament_index_cpp REQUIRED)
+find_package(X11 REQUIRED)
 
 # Find raylib
 find_library(RAYLIB_LIBRARY raylib REQUIRED)
@@ -46,6 +47,7 @@ add_library(core_voxels STATIC
 
 target_link_libraries(core_voxels
   ${RAYLIB_LIBRARY}
+  ${X11_LIBRARIES}
   m
   pthread
   ${OpenCV_LIBS}
@@ -79,6 +81,7 @@ target_link_libraries(master_main
   core_voxels
   ros_voxels
   ${RAYLIB_LIBRARY}
+  ${X11_LIBRARIES}
   m
   pthread
   ${OpenCV_LIBS}
