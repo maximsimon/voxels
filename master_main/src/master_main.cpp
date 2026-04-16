@@ -22,7 +22,7 @@ void master_step_sim() {
 	Action* vw_action = new Action();// = (Action*)malloc(sizeof(Action));
 	
 	//TODO temp params here to get it running -> then move to yaml file
-	Image mazemap_image = LoadImage("src/core_voxels/resources/map_images/mazemap_64.png");	//TODO: add some error handling and printing if file does not load
+	Image mazemap_image = LoadImage("src/core_voxels/resources/map_images/map_color.png");	//TODO: add some error handling and printing if file does not load
 	Vector3 player_pose = { -2.0f, 0.5f, -2.0f };
 	Vector3 player_direction = { -2.0f, 0.5f, -1.0f };
 	int step_size = 2;		// in milliseconds

@@ -70,8 +70,14 @@ chunkMap fetchChunkMap(Color *pixels, int ch_x, int ch_z, int height_px) {
 	for (int z = 0; z < chunk_h; z++) {
 		for (int x = 0; x < chunk_w; x++) {
 			position = (ch_z * height_px * chunk_h + z * height_px) + (ch_x * chunk_w + x);
-			if (GRAY_VALUE(pixels[position]) < 170) {
+			if (GRAY_VALUE(pixels[position]) < 50) {
 				map.map[x + z * chunk_w] = 1;
+			} else if (GRAY_VALUE(pixels[position]) < 100) {
+				map.map[x + z * chunk_w] = 2;
+			} else if (GRAY_VALUE(pixels[position]) < 200) {
+				map.map[x + z * chunk_w] = 3;
+			} else {
+				map.map[x + z * chunk_w] = 0;
 			}
 		}
 	}
@@ -89,8 +95,8 @@ void buildChunkMesh(mainMap *map, Mesh& mesh, int chunk_x, int chunk_z, int chun
 		for (int x = 0; x < chunk_w; x++) {
 			single_bool_coord = x + z * map->chunk_side;
 			absolute_voxel_world_x = chunk_x * map->chunk_side + x;
-			if (map->chunks[chunk_coord].map[single_bool_coord] == 1) { 
-				MeshVoxel(mesh, (float)(absolute_voxel_world_x), 0.0f, (float)(absolute_voxel_world_z), 0.0f, &map->chunks[chunk_coord].voxel_count);
+			if (map->chunks[chunk_coord].map[single_bool_coord] != 0) { 
+				MeshVoxel(mesh, (float)(absolute_voxel_world_x), 0.0f, (float)(absolute_voxel_world_z), 0.0f, &map->chunks[chunk_coord].voxel_count, map->chunks[chunk_coord].map[single_bool_coord]);
 			}
 		}
 	}

@@ -54,16 +54,18 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	Mesh *maze_mesh = new Mesh[main_map.width_chunks * main_map.height_chunks]();
 	printf("mesh initilized\n");
 
-	printf("maze mesh built successfully\n");
+	printf("attempting to build maze mesh\n");
 	buildVoxelWorldMesh(&main_map, maze_mesh);	// build world based on map
 	printf("maze mesh built successfully\n");
-	printf("mesh uploaded succesffully\n");
 	
 	Model *model = new Model[main_map.width_chunks * main_map.height_chunks]();
+	Texture2D texture = LoadTexture("src/core_voxels/resources/textures/texture_atlas.png");    // Load map texture
 	for (int i = 0; i < main_map.width_chunks * main_map.height_chunks; i++) {
 		UploadMesh(&maze_mesh[i], false);				// upload world
 		model[i] = LoadModelFromMesh(maze_mesh[i]);                  // Load model from generated mesh
+		model[i].materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;    // Set map diffuse texture
 	}
+	
 	
 	vw->main_map = main_map;
 	vw->maze_mesh = maze_mesh;
@@ -81,9 +83,10 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
 	Vector3 scale = {1.0f, 1.0f, 1.0f};
 
-	MeshVoxel(player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count);
+	MeshVoxel(player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count, 0);
 	UploadMesh(&player_mesh, false);
 	Model player_model = LoadModelFromMesh(player_mesh);                  // Load model from generated mesh
+
 	vw->player_model = player_model;	
 
 	// mode variables
@@ -125,7 +128,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 			
 			// TODO get chunk_position of the ones surroundin the player and draw only them
 			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
-				DrawModel(vw->maze_model[i], mazePosition, 1.0f, BLACK);
+				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
 			}
 			DrawGrid(1000, 1.0f);
 		EndMode3D();
@@ -142,7 +145,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		
 			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
 			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
-				DrawModel(vw->maze_model[i], mazePosition, 1.0f, BLACK);
+				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
 			}
 			DrawGrid(1000, 1.0f);
 
