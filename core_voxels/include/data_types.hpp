@@ -70,6 +70,8 @@ typedef struct VoxelWorld {
 	RenderTexture2D camera_view_tex;
 	Model *maze_model;		// model of the world
 	Mesh *maze_mesh;			// mesh of the world;
+	Model ground_model;		// model for texturing the ground visually
+	Model sky_model;
 	teleportText teleport_text;
 } VoxelWorld;
 

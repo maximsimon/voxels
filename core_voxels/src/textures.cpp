@@ -6,15 +6,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "map.hpp"
+
 
 void fetchTextureCoords(int texture_type, float *texcoords) {
-	if (texture_type == 1) for (int i = 0; i < 48; i++) texcoords[i] = steel[i];
-	if (texture_type == 2) for (int i = 0; i < 48; i++) texcoords[i] = bark[i];
-	if (texture_type == 3) for (int i = 0; i < 48; i++) texcoords[i] = orange[i];
-	if (texture_type == 4) for (int i = 0; i < 48; i++) texcoords[i] = blue[i];
+	if (texture_type == red) for (int i = 0; i < 48; i++) texcoords[i] = brick[i];
+	if (texture_type == green) for (int i = 0; i < 48; i++) texcoords[i] = bush[i];
+	if (texture_type == pink) for (int i = 0; i < 48; i++) texcoords[i] = tree[i];
+	if (texture_type == blue) for (int i = 0; i < 48; i++) texcoords[i] = building[i];
 }
 
-const float steel[48] = {
+const float tree[48] = {
 	0.0f, 0.0f,
 	0.5f, 0.0f,
 	0.5f, 0.5f,
@@ -41,34 +43,34 @@ const float steel[48] = {
 	0.0f, 0.5f
 };
 
-const float bark[48] = {
+const float brick[48] = {
 	0.5f, 0.0f,
 	1.0f, 0.0f,
 	1.0f, 0.5f,
 	0.5f, 0.5f,
-	0.5f, 0.0f,
 	1.0f, 0.0f,
 	1.0f, 0.5f,
 	0.5f, 0.5f,
 	0.5f, 0.0f,
-	1.0f, 0.0f,
-	1.0f, 0.5f,
 	0.5f, 0.5f,
 	0.5f, 0.0f,
 	1.0f, 0.0f,
 	1.0f, 0.5f,
+	1.0f, 0.5f,
 	0.5f, 0.5f,
 	0.5f, 0.0f,
 	1.0f, 0.0f,
+	1.0f, 0.0f,
 	1.0f, 0.5f,
 	0.5f, 0.5f,
+	0.5f, 0.0f,
 	0.5f, 0.0f,
 	1.0f, 0.0f,
 	1.0f, 0.5f,
 	0.5f, 0.5f,
 };
 
-const float orange[48] = {
+const float building[48] = {
 	0.0f, 0.5f,
 	0.5f, 0.5f,
 	0.5f, 1.0f,
@@ -95,7 +97,7 @@ const float orange[48] = {
 	0.0f, 1.0f,
 };
 
-const float blue[48] = {
+const float bush[48] = {
 	0.5f, 0.5f,
 	1.0f, 0.5f,
 	1.0f, 1.0f,

@@ -9,11 +9,7 @@
 #include "textures.hpp"
 
 // Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh, angle is in radians around y axis
-void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count, int texture_type) {
-
-	float width = 1.0f;
-	float height = 1.0f;
-	float length = 1.0f;
+void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count, int texture_type, float width, float height, float length) {
 
 	Vector3 v0 = { -width/2, -height/2,  length/2 };
 	Vector3 v1 = {  width/2, -height/2,  length/2 };

@@ -11,6 +11,7 @@
 const int chunk_w = 16;
 const int chunk_h = 16;
 
+
 // fetches index of the chunk where point: is currently located
 int fetchCurrChunkIdx(mainMap main_map, Vector3 point) {
 	int curr_chunk_idx = 0;
@@ -57,6 +58,8 @@ mainMap fetchMainMap(Image mazemap_img) {
 	UnloadImage(mazemap_img);
 
 
+	
+
 	return main_map;
 }
 
@@ -66,23 +69,41 @@ chunkMap fetchChunkMap(Color *pixels, int ch_x, int ch_z, int height_px) {
 	chunkMap map = {0};
 
 	int position = 0;
-	
+	HUE_TYPE hue_type;	
 	for (int z = 0; z < chunk_h; z++) {
 		for (int x = 0; x < chunk_w; x++) {
+			
+			// get pixels hue
 			position = (ch_z * height_px * chunk_h + z * height_px) + (ch_x * chunk_w + x);
-			if (GRAY_VALUE(pixels[position]) < 50) {
-				map.map[x + z * chunk_w] = 1;
-			} else if (GRAY_VALUE(pixels[position]) < 100) {
-				map.map[x + z * chunk_w] = 2;
-			} else if (GRAY_VALUE(pixels[position]) < 200) {
-				map.map[x + z * chunk_w] = 3;
-			} else {
-				map.map[x + z * chunk_w] = 0;
-			}
+			map.map[x + z * chunk_w] = getPixelHue(pixels[position]);	
 		}
 	}
 	map.voxel_count = 0;
 	return map;
+}
+
+HUE_TYPE getPixelHue(Color pixel_color) {
+	float hue = ColorToHSV(pixel_color).x;
+	
+	HUE_TYPE hue_type;
+			
+	// TODO: magic numbers
+	printf("gray value: %f\n", GRAY_VALUE(pixel_color));
+	if (GRAY_VALUE(pixel_color) > 150) {
+		hue_type = white;
+		printf("hue_type: %d\n", hue_type);
+	} else if (hue < 25 || hue > 350) {
+		hue_type = red;
+	} else if (hue > 290 && hue < 350 ) {
+		hue_type = pink;
+	} else if (hue > 25 && hue < 160 ) {
+		hue_type = green;
+	} else if (hue > 160 && hue < 290 ) {
+		hue_type = blue;
+	} else {
+		hue_type = unknown;
+	}
+	return hue_type;
 }
 
 // build mesh of one chunk 16x16 voxels
@@ -95,12 +116,36 @@ void buildChunkMesh(mainMap *map, Mesh& mesh, int chunk_x, int chunk_z, int chun
 		for (int x = 0; x < chunk_w; x++) {
 			single_bool_coord = x + z * map->chunk_side;
 			absolute_voxel_world_x = chunk_x * map->chunk_side + x;
-			if (map->chunks[chunk_coord].map[single_bool_coord] != 0) { 
-				MeshVoxel(mesh, (float)(absolute_voxel_world_x), 0.0f, (float)(absolute_voxel_world_z), 0.0f, &map->chunks[chunk_coord].voxel_count, map->chunks[chunk_coord].map[single_bool_coord]);
+			if (map->chunks[chunk_coord].map[single_bool_coord] != white) { 
+				genObject(mesh, (float)(absolute_voxel_world_x), (float)(absolute_voxel_world_z), &map->chunks[chunk_coord].voxel_count, map->chunks[chunk_coord].map[single_bool_coord]);
 			}
 		}
 	}
 	
+}
+
+// generates voxels of predefined style base on hue_type of pixel in that place in input image
+void genObject(Mesh &mesh, float absolute_voxel_world_x, float absolute_voxel_world_z, int *voxel_count, int hue_type) {
+
+	switch(hue_type) {
+		// tree
+		case pink:
+			MeshVoxel(mesh, absolute_voxel_world_x, 0.0f, absolute_voxel_world_z, 0.0f, voxel_count, pink, 0.5f, 1.0f, 0.5f);
+			MeshVoxel(mesh, absolute_voxel_world_x, 1.0f, absolute_voxel_world_z, 0.0f, voxel_count, pink, 0.5f, 1.0f, 0.5f);
+			MeshVoxel(mesh, absolute_voxel_world_x, 2.0f, absolute_voxel_world_z, 0.0f, voxel_count, pink, 0.5f, 1.0f, 0.5f);
+			MeshVoxel(mesh, absolute_voxel_world_x, 3.0f, absolute_voxel_world_z, 0.0f, voxel_count, pink, 0.5f, 1.0f, 0.5f);
+			break;
+		// a building
+		case blue:
+			for (int i = 0; i < 5; i++) MeshVoxel(mesh, absolute_voxel_world_x, (float)i, absolute_voxel_world_z, 0.0f, voxel_count, blue, 1.0f, 2.0f, 1.0f);
+			break;
+		case green:
+			MeshVoxel(mesh, absolute_voxel_world_x, 0.0f, absolute_voxel_world_z, 0.0f, voxel_count, green, 1.0f, 1.0f, 1.0f);
+			break;
+		case red:
+			MeshVoxel(mesh, absolute_voxel_world_x, 0.0f, absolute_voxel_world_z, 0.0f, voxel_count, red, 1.0f, 2.0f, 1.0f);
+			break;
+	}
 }
 
 // build world based on map
