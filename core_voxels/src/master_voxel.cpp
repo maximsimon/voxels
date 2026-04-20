@@ -60,7 +60,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	
 	// maze model
 	Model *model = new Model[main_map.width_chunks * main_map.height_chunks]();
-	Texture2D texture = LoadTexture("src/core_voxels/resources/textures/atlas.png");    // Load map texture
+	Texture2D texture = LoadTexture("src/ros_voxels/core_voxels/resources/textures/atlas.png");    // Load map texture
 	for (int i = 0; i < main_map.width_chunks * main_map.height_chunks; i++) {
 		UploadMesh(&maze_mesh[i], false);				// upload world
 		model[i] = LoadModelFromMesh(maze_mesh[i]);                  // Load model from generated mesh
@@ -74,7 +74,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	//printMap(main_map);
 	
 	// mesh for the ground
-	Texture2D groundTex = LoadTexture("src/core_voxels/resources/textures/grass.jpg");
+	Texture2D groundTex = LoadTexture("src/ros_voxels/core_voxels/resources/textures/grass.jpg");
 	SetTextureFilter(groundTex, TEXTURE_FILTER_POINT);
 	//SetTextureWrap(groundTex, TEXTURE_WRAP_REPEAT); // important for tiling
 	
@@ -88,7 +88,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	// mesh and model of the sky
 	Mesh sky_mesh = GenMeshHemiSphere(500.0f, 32, 32);
 	Model sky_model = LoadModelFromMesh(sky_mesh);
-	Texture2D sky_texture = LoadTexture("src/core_voxels/resources/textures/stars.png");    // Load map texture
+	Texture2D sky_texture = LoadTexture("src/ros_voxels/core_voxels/resources/textures/stars.png");    // Load map texture
 	sky_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = sky_texture;
 	SetTextureWrap(sky_texture, TEXTURE_WRAP_REPEAT); // important for tiling
 	sky_model.transform = MatrixScale(1, 1, -1);

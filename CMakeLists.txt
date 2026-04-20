@@ -38,6 +38,7 @@ add_library(core_voxels STATIC
   core_voxels/src/god_movement.cpp
   core_voxels/src/collisions.cpp
   core_voxels/src/faces.cpp
+  core_voxels/src/textures.cpp
   core_voxels/src/map.cpp
   core_voxels/src/player_movement.cpp
   core_voxels/src/small_handy_stuff.cpp

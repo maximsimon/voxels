@@ -28,7 +28,6 @@ add_library(${PROJECT_NAME} STATIC
 # Link raylib (if core uses it)
 target_link_libraries(core_voxels
     raylib
-    m
     pthread
     ${OpenCV_LIBS}  # link OpenCV    
 )
