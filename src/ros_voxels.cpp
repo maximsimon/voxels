@@ -28,19 +28,22 @@ public:
 	ObsActNode()
 	: Node("obs_act_node")
 	{
-		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
-		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", 10);		// publisher that fetces observation from voxel world simulation and publishes it to topic, for outside programs to see inside the simulation trough ROS
-		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel_publisher", 10);		// publisher of robots movement (twist msg - linear and angular velocitie), yes that info is already in odom_publsher, but cmd_vel is traiditionally on robots and bearnav needs this topic for creating a map
+		auto sensor_qos = rclcpp::QoS(rclcpp::KeepLast(5)).best_effort();
+		auto cmd_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
+
+		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", sensor_qos);
+		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", sensor_qos);
+		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel_publisher", sensor_qos);
 		cmd_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::Twist>(
 		    "cmd_vel_subscriber",
-		    10,
+		    cmd_qos,
 		    std::bind(&ObsActNode::action_callback, this, std::placeholders::_1)
-		);	// subscriber that gets action from outside and passes it to voxel world simulation, for outside programs to control an agent in the simulation trough ROS
+		);
 	
-		int step_size = 2;
-		// Timer to call publish_every_spin() every 100ms
+		// 20 ms period = 50 Hz, matching the simulation's render rate
+		// (SetTargetFPS(100/step_size) with step_size=2 in master_main.cpp).
 		timer_ = this->create_wall_timer(
-			std::chrono::milliseconds(50),
+			std::chrono::milliseconds(20),
 			std::bind(&ObsActNode::publish_every_spin, this)
         	);
 
