@@ -40,7 +40,7 @@ public:
 		int step_size = 2;
 		// Timer to call publish_every_spin() every 100ms
 		timer_ = this->create_wall_timer(
-			std::chrono::milliseconds(100),
+			std::chrono::milliseconds(50),
 			std::bind(&ObsActNode::publish_every_spin, this)
         	);
 
@@ -75,6 +75,8 @@ private:
 		if (observation_ != NULL) {
 			// image
 			image_msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", observation_->camera_front).toImageMsg();
+			image_msg->header.stamp = this->now();
+			image_msg->header.frame_id = "camera_front_publish";
 			camera_publisher_->publish(*image_msg);
 			
 			// odom
