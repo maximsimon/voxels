@@ -10,6 +10,7 @@
 #include "sensor_msgs/msg/image.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 
@@ -33,7 +34,7 @@ public:
 
 		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", sensor_qos);
 		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", sensor_qos);
-		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel_publisher", sensor_qos);
+		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_publisher", sensor_qos);
 		cmd_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::Twist>(
 		    "cmd_vel_subscriber",
 		    cmd_qos,
@@ -53,7 +54,7 @@ private:
 	rclcpp::TimerBase::SharedPtr timer_;
 	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr camera_publisher_;
 	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_publisher_;
-	rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
+	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_publisher_;
 	rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscriber_;
 	sensor_msgs::msg::Image::SharedPtr image_msg;
 	Observation* observation_ = new Observation();
@@ -62,7 +63,10 @@ private:
 
 	void action_callback(const geometry_msgs::msg::Twist::SharedPtr cmd_vel_msg) {
 		action_->linear_vel = {(float)cmd_vel_msg->linear.x, (float)cmd_vel_msg->linear.y, (float)cmd_vel_msg->linear.z};
-		action_->angular_vel = {(float)cmd_vel_msg->angular.x, (float)cmd_vel_msg->angular.y, (float)cmd_vel_msg->angular.z};
+		// ROS REP-103 convention: angular.z is yaw rate. The sim internally
+		// stores yaw in angular_vel.y (raylib is Y-up), so translate at the
+		// boundary. x/z (roll/pitch) are unused by the 2D sim.
+		action_->angular_vel = {0.0f, (float)cmd_vel_msg->angular.z, 0.0f};
 	
 		////TODO: figure out how to streamline fetching obseervation (every callback? every spin? both? figure it out)
 	
@@ -105,23 +109,29 @@ private:
 			odom_msg.twist.twist.linear.y = action_->linear_vel.y;
 			odom_msg.twist.twist.linear.z = action_->linear_vel.z;
 			
-			odom_msg.twist.twist.angular.x = action_->angular_vel.x;
-			odom_msg.twist.twist.angular.y = action_->angular_vel.y;
-			odom_msg.twist.twist.angular.z = action_->angular_vel.z;
+			// Sim's internal yaw lives in angular_vel.y; emit it on angular.z
+			// per ROS REP-103 so downstream nodes see standard conventions.
+			odom_msg.twist.twist.angular.x = 0.0;
+			odom_msg.twist.twist.angular.y = 0.0;
+			odom_msg.twist.twist.angular.z = action_->angular_vel.y;
 			
 			odom_publisher_->publish(odom_msg);
 
-			// twist publish for bearnav mapmaker	
-			geometry_msgs::msg::Twist cmd_vel_out_msg;
+			// twist publish for bearnav mapmaker
+			geometry_msgs::msg::TwistStamped cmd_vel_out_msg;
+			cmd_vel_out_msg.header.stamp = this->now();
+			cmd_vel_out_msg.header.frame_id = "base_link";
 
-			cmd_vel_out_msg.linear.x = observation_->linear_vel.x;
-			cmd_vel_out_msg.linear.y = observation_->linear_vel.y;
-			cmd_vel_out_msg.linear.z = observation_->linear_vel.z;
+			cmd_vel_out_msg.twist.linear.x = observation_->linear_vel.x;
+			cmd_vel_out_msg.twist.linear.y = observation_->linear_vel.y;
+			cmd_vel_out_msg.twist.linear.z = observation_->linear_vel.z;
 
-			cmd_vel_out_msg.angular.x = observation_->angular_vel.x;
-			cmd_vel_out_msg.angular.y = observation_->angular_vel.y;
-			cmd_vel_out_msg.angular.z = observation_->angular_vel.z;
-            
+			// Publish yaw on angular.z (ROS REP-103). Internal convention
+			// keeps yaw in observation_->angular_vel.y (raylib Y-up).
+			cmd_vel_out_msg.twist.angular.x = 0.0;
+			cmd_vel_out_msg.twist.angular.y = 0.0;
+			cmd_vel_out_msg.twist.angular.z = observation_->angular_vel.y;
+
 			cmd_vel_publisher_->publish(cmd_vel_out_msg);
 		
 			// tf2 for visualisations in rviz and such
