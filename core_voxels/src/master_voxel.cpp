@@ -54,26 +54,52 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	Mesh *maze_mesh = new Mesh[main_map.width_chunks * main_map.height_chunks]();
 	printf("mesh initilized\n");
 
-	printf("maze mesh built successfully\n");
+	printf("attempting to build maze mesh\n");
 	buildVoxelWorldMesh(&main_map, maze_mesh);	// build world based on map
 	printf("maze mesh built successfully\n");
-	printf("mesh uploaded succesffully\n");
 	
+	// maze model
 	Model *model = new Model[main_map.width_chunks * main_map.height_chunks]();
+	Texture2D texture = LoadTexture("src/core_voxels/resources/textures/atlas.png");    // Load map texture
 	for (int i = 0; i < main_map.width_chunks * main_map.height_chunks; i++) {
 		UploadMesh(&maze_mesh[i], false);				// upload world
 		model[i] = LoadModelFromMesh(maze_mesh[i]);                  // Load model from generated mesh
+		model[i].materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;    // Set map diffuse texture
 	}
-	
+		
 	vw->main_map = main_map;
 	vw->maze_mesh = maze_mesh;
 	vw->maze_model = model;
+
+	//printMap(main_map);
+	
+	// mesh for the ground
+	Texture2D groundTex = LoadTexture("src/core_voxels/resources/textures/grass.jpg");
+	SetTextureFilter(groundTex, TEXTURE_FILTER_POINT);
+	//SetTextureWrap(groundTex, TEXTURE_WRAP_REPEAT); // important for tiling
+	
+	Mesh ground_mesh = GenMeshPlane(500, 500, 10, 20);
+	UploadMesh(&ground_mesh, false);
+	Model ground_model = LoadModelFromMesh(ground_mesh);
+
+	ground_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = groundTex;
+	vw->ground_model = ground_model;	
+	
+	// mesh and model of the sky
+	Mesh sky_mesh = GenMeshHemiSphere(500.0f, 32, 32);
+	Model sky_model = LoadModelFromMesh(sky_mesh);
+	Texture2D sky_texture = LoadTexture("src/core_voxels/resources/textures/stars.png");    // Load map texture
+	sky_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = sky_texture;
+	SetTextureWrap(sky_texture, TEXTURE_WRAP_REPEAT); // important for tiling
+	sky_model.transform = MatrixScale(1, 1, -1);
+	vw->sky_model = sky_model;
 
 	// mesh and model of the player
 	Mesh player_mesh = { 0 };
 	player_mesh.vertices = (float *)RL_MALLOC(0); 
 	player_mesh.normals = (float *)RL_MALLOC(0);
 	player_mesh.indices = (unsigned short *)RL_MALLOC(0);
+
 	
 	//TODO: from use player pose and player direction parameters
 	int players_count = 0;
@@ -81,11 +107,14 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
 	Vector3 scale = {1.0f, 1.0f, 1.0f};
 
-	MeshVoxel(player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count);
+	MeshVoxel(player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count, 0, 1.0f, 1.0f, 1.0f);
 	UploadMesh(&player_mesh, false);
 	Model player_model = LoadModelFromMesh(player_mesh);                  // Load model from generated mesh
+
 	vw->player_model = player_model;	
 
+	
+	
 	// mode variables
 	bool player_mode = false;	
 	bool player_view = false;
@@ -118,33 +147,38 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	// handle all keys pressed
 	handleActionsAndKeys(vw, action, observation);	// movement based on keys stop movement on action until keys are released
 	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action -> TODO: actually caluclate player movemetn in the simulaiton	
+	
 	BeginTextureMode(vw->camera_view_tex);
 		ClearBackground(RAYWHITE);
 		BeginMode3D(vw->player_camera);
+			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
+			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
 			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
 			
 			// TODO get chunk_position of the ones surroundin the player and draw only them
 			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
-				DrawModel(vw->maze_model[i], mazePosition, 1.0f, BLACK);
+				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
 			}
-			DrawGrid(1000, 1.0f);
+			//DrawGrid(1000, 1.0f);
 		EndMode3D();
     	EndTextureMode();
 	
-
+	Image pov_view_img = LoadImageFromTexture(vw->camera_view_tex.texture);	
+	ImageFlipVertical(&pov_view_img); 	
+	
 	BeginDrawing();	
 		
 		ClearBackground(RAYWHITE);
-		Image pov_view_img = LoadImageFromTexture(vw->camera_view_tex.texture);	
-		ImageFlipVertical(&pov_view_img); 	
 		
 		BeginMode3D(vw->current_camera);
 		
-			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
-			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
-				DrawModel(vw->maze_model[i], mazePosition, 1.0f, BLACK);
+			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
+			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
+			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED); // draw player
+			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {	// draw voxels
+				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
 			}
-			DrawGrid(1000, 1.0f);
+			//DrawGrid(1000, 1.0f);
 
 		EndMode3D();
 		
@@ -158,9 +192,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		
 		sprintf(mode_info, "Player Mode? %d Player View? %d", vw->player_mode, vw->player_view);
 		DrawText(mode_info, 10, 90, 20, GREEN);
-		
 		DrawFPS(10, 130);
-		
 		// draw teleport input box if T was pressed
 		if (vw->teleport_text.text_active == true) {
 			DrawRectangleRec(vw->teleport_text.text_box, (Color){0, 0, 0, 0});
@@ -171,17 +203,17 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		// TODO: put this into help window: "enter goal pose for teleportation, seperate number by spaces \n y will be ovewriten to 0.5, default goal pose is 0, 0.5, 0")
 	
 		//TODO: you can draw camera front POV in a little window at bottom right like this (only need to scale down the texture):	
-		/*DrawTextureRec(
-			vw->camera_view_tex.texture,
-			(Rectangle){ 0, 0, vw->camera_view_tex.texture.width, -vw->camera_view_tex.texture.height },
-			(Vector2){ 500, 400 },
-			WHITE
-		);*/
+		//DrawTextureRec(
+		//	vw->camera_view_tex.texture,
+		//	(Rectangle){ 0, 0, vw->camera_view_tex.texture.width, -vw->camera_view_tex.texture.height },
+		//	(Vector2){ 500, 400 },
+		//	WHITE
+		//);
 		
 		// changing variables
 
 	EndDrawing();
-
+	
         // Capture the whole screen after drawing
         //Image screenshot = LoadImageFromScreen();
 	

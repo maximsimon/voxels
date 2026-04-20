@@ -6,13 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "faces.hpp"
+#include "textures.hpp"
 
 // Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh, angle is in radians around y axis
-void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count) {
-
-	float width = 1.0f;
-	float height = 1.0f;
-	float length = 1.0f;
+void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count, int texture_type, float width, float height, float length) {
 
 	Vector3 v0 = { -width/2, -height/2,  length/2 };
 	Vector3 v1 = {  width/2, -height/2,  length/2 };
@@ -36,10 +33,14 @@ void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, i
 	int voxel_v_count = 0;
 	int voxel_t_count = 0;
 
+	float texcoords[48] = {};
+	fetchTextureCoords(texture_type, texcoords);		// fetches correct (u, v)s for wanted texture type
+
 	// prepare mesh arrays for new vertices and faces
 	mesh.vertices = (float *)RL_REALLOC(mesh.vertices, mesh.vertexCount*3*sizeof(float) + 24*3*sizeof(float));
 	mesh.normals = (float *)RL_REALLOC(mesh.normals, mesh.vertexCount*3*sizeof(float) + 24*3*sizeof(float));
 	mesh.indices = (unsigned short *)RL_REALLOC(mesh.indices, mesh.triangleCount*3*sizeof(unsigned short) + 12*3*sizeof(unsigned short));
+	mesh.texcoords = (float *)RL_REALLOC(mesh.texcoords, mesh.vertexCount*2*sizeof(float) + 24*2*sizeof(float));		// texcoords are needed for textures
 
 	float vertices[72] = {0};
 	float normals[72] = {0};
@@ -78,6 +79,10 @@ void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, i
 	for (int i = 0; i < 36; i++) {
 		mesh.indices[*(voxel_count) * 36 + i] = indices[i];
 	}
+	for (int i = 0; i < 48; i++) {	
+		mesh.texcoords[*(voxel_count) * 48 + i] = texcoords[i];
+	}
+
 	mesh.vertexCount += voxel_v_count;
 	mesh.triangleCount += voxel_t_count;
 	*(voxel_count) += 1;
