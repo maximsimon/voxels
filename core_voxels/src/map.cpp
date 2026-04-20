@@ -86,23 +86,20 @@ HUE_TYPE getPixelHue(Color pixel_color) {
 	float hue = ColorToHSV(pixel_color).x;
 	
 	HUE_TYPE hue_type;
-			
+	
+	// TODO: do this properly		
 	// TODO: magic numbers
-	printf("gray value: %f\n", GRAY_VALUE(pixel_color));
 	if (GRAY_VALUE(pixel_color) > 150) {
 		hue_type = white;
-		printf("hue_type: %d\n", hue_type);
-	} else if (hue < 25 || hue > 350) {
+	} else if (hue < 70) {
 		hue_type = red;
-	} else if (hue > 290 && hue < 350 ) {
-		hue_type = pink;
-	} else if (hue > 25 && hue < 160 ) {
+	} else if (hue > 70 && hue < 160 ) {
 		hue_type = green;
 	} else if (hue > 160 && hue < 290 ) {
 		hue_type = blue;
-	} else {
-		hue_type = unknown;
-	}
+	} else if (hue > 290 ) {
+		hue_type = pink;
+	} else hue_type = unknown;
 	return hue_type;
 }
 
