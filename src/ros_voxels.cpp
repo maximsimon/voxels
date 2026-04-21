@@ -35,7 +35,7 @@ public:
 		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", sensor_qos);
 		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", sensor_qos);
 		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_publisher", sensor_qos);
-		cmd_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::Twist>(
+		cmd_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
 		    "cmd_vel_subscriber",
 		    cmd_qos,
 		    std::bind(&ObsActNode::action_callback, this, std::placeholders::_1)
@@ -55,18 +55,20 @@ private:
 	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr camera_publisher_;
 	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_publisher_;
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_publisher_;
-	rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscriber_;
+	rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_subscriber_;
 	sensor_msgs::msg::Image::SharedPtr image_msg;
 	Observation* observation_ = new Observation();
 	Action* action_ = new Action();
 	rclcpp::Time action_last_msg;
 
-	void action_callback(const geometry_msgs::msg::Twist::SharedPtr cmd_vel_msg) {
-		action_->linear_vel = {(float)cmd_vel_msg->linear.x, (float)cmd_vel_msg->linear.y, (float)cmd_vel_msg->linear.z};
+	void action_callback(const geometry_msgs::msg::TwistStamped::SharedPtr cmd_vel_msg) {
+		//cmd_vel_msg_msg.header.stamp = this->now();
+		//cmd_vel_msg.header.frame_id = "base_link";
+		action_->linear_vel = {(float)cmd_vel_msg->twist.linear.x, (float)cmd_vel_msg->twist.linear.y, (float)cmd_vel_msg->twist.linear.z};
 		// ROS REP-103 convention: angular.z is yaw rate. The sim internally
 		// stores yaw in angular_vel.y (raylib is Y-up), so translate at the
 		// boundary. x/z (roll/pitch) are unused by the 2D sim.
-		action_->angular_vel = {0.0f, (float)cmd_vel_msg->angular.z, 0.0f};
+		action_->angular_vel = {0.0f, (float)cmd_vel_msg->twist.angular.z, 0.0f};
 	
 		////TODO: figure out how to streamline fetching obseervation (every callback? every spin? both? figure it out)
 	
