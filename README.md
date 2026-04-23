@@ -15,15 +15,25 @@ For ROS2 testbed (e.g. for __bearnavs__) switch to `ros2_api` branch.
 For ROS1 testbed (e.g. also for __bearnavs__) switch to `ros1_api` branch.
 
 ### Controls
+#### God mode movement
 `arrow keys` for movement (translation)
 
 `w s a d` for rotation
 
-`p` toggles player mode - if on move with player voxel, if off move with god view (flying)
+`pg_up pg_down` fly up and down if you are in god mode (player mode off)
+
+
+#### Player mode movement
+`w s a d` for movement (translation)
+
+`k l` for rotation
+
+
+`p` toggles player mode on - if on move with player voxel, if off move with god view (flying)
+
+`o` toggles player mode off
 
 `v` toggles view mode - if on see from player perspective, if off see from god perspective (but not possible to move in god mode but view from player perspective)
-
-`pg_up pg_down` fly up and down if you are in god mode (player mode off)
 
 `space bar` takes screenshot
 
