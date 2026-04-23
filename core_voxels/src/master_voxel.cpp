@@ -39,7 +39,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	
 	// setup player
 	Camera player_camera = { 0 };
-	player_camera.position = (Vector3){ -2.0f, 0.5f, -2.0f };    // Camera position
+	player_camera.position = (Vector3){ 21.0f, 0.5f, 6.0f };    // Camera position
 	player_camera.target = (Vector3){ -2.0f, 0.5f, -1.0f };    // Camera looking at point
 	player_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
 	player_camera.fovy = 45.0f;                                // Camera field-of-view Y
@@ -175,10 +175,18 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
 			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
 			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED); // draw player
+			
+			// draw cross
+			// TODO: fix allocating vrs in loop
+			//int size = 20; // length of each arm
+			//DrawLine((screen_width / 5) - size, (screen_height / 5), (screen_width / 5) + size, (screen_height / 5), BLACK); // horizontal
+			//DrawLine((screen_width / 5), (screen_height / 5) - size, (screen_width / 5), (screen_height / 5) + size, BLACK); // vertica			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {	// draw voxels
+			
+
+			// draw maze
 			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {	// draw voxels
 				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
 			}
-			//DrawGrid(1000, 1.0f);
 
 		EndMode3D();
 		
@@ -188,7 +196,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		DrawText("VOXELS", 10, 10, 30, BLACK);
 		
 		sprintf(position_info, "Current Player Position: x=%.2f, y=%.2f, z=%.2f", vw->player_camera.position.x, vw->player_camera.position.y, vw->player_camera.position.z);
-		DrawText(position_info, 10, 50, 20, GRAY);
+		DrawText(position_info, 10, 50, 20, RED);
 		
 		sprintf(mode_info, "Player Mode? %d Player View? %d", vw->player_mode, vw->player_view);
 		DrawText(mode_info, 10, 90, 20, GREEN);
@@ -197,8 +205,8 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		if (vw->teleport_text.text_active == true) {
 			DrawRectangleRec(vw->teleport_text.text_box, (Color){0, 0, 0, 0});
 			DrawRectangleLines((int)vw->teleport_text.text_box.x, (int)vw->teleport_text.text_box.y, (int)vw->teleport_text.text_box.width, (int)vw->teleport_text.text_box.height, DARKGRAY);
-			DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, DARKGREEN);
-			DrawText(TextFormat("teleport"), (int)vw->teleport_text.text_box.x + 20, vw->teleport_text.text_box.y + 40, 15, DARKGRAY);
+			DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, WHITE);
+			DrawText(TextFormat("teleport"), (int)vw->teleport_text.text_box.x + 20, vw->teleport_text.text_box.y + 40, 15, WHITE);
 		}
 		// TODO: put this into help window: "enter goal pose for teleportation, seperate number by spaces \n y will be ovewriten to 0.5, default goal pose is 0, 0.5, 0")
 	

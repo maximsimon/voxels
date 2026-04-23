@@ -57,6 +57,7 @@ target_link_libraries(core_voxels
 # ROS voxels library
 add_library(ros_voxels STATIC
   src/ros_voxels.cpp
+  src/teleop_keys.cpp
 )
 
 ament_target_dependencies(ros_voxels

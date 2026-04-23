@@ -8,8 +8,8 @@
 #include "player_movement.hpp"
 #include "data_types.hpp"
 
-float SPEED = 0.1f;	
-float TURN_SPEED = 0.08f;
+float SPEED = 0.05f;	
+float TURN_SPEED = 0.01f;
 int SCREENSHOT_COUNTER = 0;
 
 // teleport whatever camera (player or god) to goal_pose, without changing orientation
@@ -94,6 +94,7 @@ bool CheckMovement1person(VoxelWorld *vw, Camera *camera, Mesh *mesh, Observatio
 	}
 
 	// rotate - note: observation angular vel is only updated for rotation in 2D (so around y axis) ... the simulation is kept in 2D for now
+	/*	FORBIDDING LOOKING UP OR DOWN DURING BEARNAV TESTING SO THAT MATCHING IMAGES IS WITHOUT VERTICAL OFFSET
 	if (IsKeyDown(KEY_W)) {
 		CameraRotate(camera, UP, TURN_SPEED, observation);
 		player_moved_by_keys = true;
@@ -104,6 +105,7 @@ bool CheckMovement1person(VoxelWorld *vw, Camera *camera, Mesh *mesh, Observatio
 		player_moved_by_keys = true;
 		observation->angular_vel.y -= TURN_SPEED;
 	}
+	*/
 	if (IsKeyDown(KEY_A)) {
 		CameraRotate(camera, RIGHT, TURN_SPEED, observation);
 		player_moved_by_keys = true;

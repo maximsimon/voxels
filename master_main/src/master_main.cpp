@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "master_voxel.hpp"
 #include "ros_voxels.hpp"
+#include "teleop_keys.hpp"
 #include "master_main.hpp"
 #include <opencv2/opencv.hpp>
 #include <stdio.h>

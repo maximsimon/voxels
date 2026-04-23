@@ -58,7 +58,10 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 	bool player_moved_by_keys = false;
 	
 	if (IsKeyPressed(KEY_P)) {
-		vw->player_mode = !vw->player_mode;
+		vw->player_mode = true;
+	}
+	if (IsKeyPressed(KEY_O)) {
+		vw->player_mode = false;
 	}
 	if (IsKeyPressed(KEY_V)) {
 		vw->player_view = !vw->player_view;
@@ -70,7 +73,7 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 		vw->teleport_text.text_active = true;
 		vw->teleport_text.letter_count = 0;
 		for (int i = 0; i < vw->teleport_text.MAX_INPUT_CHARS; i++) vw->teleport_text.text[i] = '\0';
-		
+		printf("t is pressed: %d\n", IsKeyPressed(KEY_T));		
 		teleportGUIinput(vw);
 	}
 	// if input textbox for teleport opened, keep checking for numbers pressed
@@ -87,17 +90,19 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 		ss >> goal_pose.x >> goal_pose.y >> goal_pose.z;
 		teleport(&vw->player_camera, goal_pose);
 	}	
+	//	COMMMENTED OUT MOVEMENT BECAUSE PLAYER OCONTROL IS NOW HANDLED BY TELEOP_KEYS IN ROS_VOXELS
 	// control player_camera and Movement1person
 	if (vw->player_mode && vw->player_view) {
-		player_moved_by_keys = CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
+		//player_moved_by_keys = CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
 		vw->current_camera = vw->player_camera;
-		vw->player_angle = getPlayerAngle(vw->player_camera);
+		//vw->player_angle = getPlayerAngle(vw->player_camera);
 		
 	// control edit_camera but Movement1person
 	} else if(vw->player_mode) {
-		player_moved_by_keys = CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
+		//player_moved_by_keys = CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
 		vw->current_camera = vw->edit_camera;
-		vw->player_angle = getPlayerAngle(vw->player_camera);
+		//vw->player_angle = getPlayerAngle(vw->player_camera);
+	
 	// control edit_camera and MovementEdit
 	} else {
 		CheckMovementEdit(&vw->edit_camera);

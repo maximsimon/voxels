@@ -18,16 +18,17 @@
 #include <cv_bridge/cv_bridge.hpp>
 
 #include "ros_voxels.hpp"
+#include "teleop_keys.hpp"
 #include "data_types.hpp"
 #include "master_main.hpp"
 
 using namespace std::chrono_literals;
 
-class ObsActNode : public rclcpp::Node
+class MasterRosNode : public rclcpp::Node
 {
 public:
-	ObsActNode()
-	: Node("obs_act_node")
+	MasterRosNode()
+	: Node("master_ros_node")
 	{
 		auto sensor_qos = rclcpp::QoS(rclcpp::KeepLast(5)).best_effort();
 		auto cmd_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
@@ -38,14 +39,14 @@ public:
 		cmd_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
 		    "cmd_vel_subscriber",
 		    cmd_qos,
-		    std::bind(&ObsActNode::action_callback, this, std::placeholders::_1)
+		    std::bind(&MasterRosNode::action_callback, this, std::placeholders::_1)
 		);
 	
 		// 20 ms period = 50 Hz, matching the simulation's render rate
 		// (SetTargetFPS(100/step_size) with step_size=2 in master_main.cpp).
 		timer_ = this->create_wall_timer(
 			std::chrono::milliseconds(20),
-			std::bind(&ObsActNode::publish_every_spin, this)
+			std::bind(&MasterRosNode::publish_every_spin, this)
         	);
 
 	}
@@ -168,9 +169,20 @@ private:
 };
 
 void master_ros() {
-	printf("ROS_MASTER started\n\n\n");
+	printf("ROS_MASTER started\n\n");
 	rclcpp::init(0, nullptr);
 	//TODO: do the executorSafe nodes thign
-	rclcpp::spin(std::make_shared<ObsActNode>());
+	//rclcpp::spin(std::make_shared<MasterRosNode>());
+	//rclcpp::spin(std::make_shared<MasterRosNode>());
+
+	auto master_ros = std::make_shared<MasterRosNode>();
+	auto teleop_keys = std::make_shared<TeleopKeysNode>();
+
+	rclcpp::executors::MultiThreadedExecutor exec;
+	exec.add_node(master_ros);
+	exec.add_node(teleop_keys);
+
+	exec.spin();
+	
 	rclcpp::shutdown();
 }
