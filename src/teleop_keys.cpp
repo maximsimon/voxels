@@ -3,7 +3,12 @@
 #include <linux/input.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <glob.h>
 
+#include <cstdlib>
+#include <fstream>
+#include <regex>
+#include <string>
 #include <thread>
 #include <atomic>
 #include <unordered_map>
@@ -19,18 +24,70 @@ float ROS_TURN_SPEED = 0.02;
 
 // TODO: make this so that it can be at least turned off if not automatically off, WHEN YOU ARE NOT IN THE SIMULATION WINDOW OR SOMWTHING, for example when my ism is running and im writing somewhere 'publisher' and player mode turns on and then it reads all keys and moves the robot
 
+namespace {
+
+std::string first_glob_match(const char* pattern) {
+	glob_t g{};
+	std::string result;
+	if (glob(pattern, 0, nullptr, &g) == 0 && g.gl_pathc > 0) {
+		result = g.gl_pathv[0];
+	}
+	globfree(&g);
+	return result;
+}
+
+std::string scan_proc_for_keyboard() {
+	std::ifstream f("/proc/bus/input/devices");
+	if (!f) return {};
+	static const std::regex handlers_re(R"(^H: Handlers=(.*)$)");
+	static const std::regex event_re(R"(event(\d+))");
+	std::string line;
+	while (std::getline(f, line)) {
+		std::smatch m;
+		if (!std::regex_match(line, m, handlers_re)) continue;
+		const std::string handlers = m[1];
+		if (handlers.find("kbd") == std::string::npos) continue;
+		std::smatch em;
+		if (std::regex_search(handlers, em, event_re)) {
+			return "/dev/input/event" + em[1].str();
+		}
+	}
+	return {};
+}
+
+std::string resolve_keyboard_device() {
+	if (const char* env = std::getenv("TELEOP_KEYS_DEVICE")) {
+		if (env[0] != '\0') return env;
+	}
+	if (auto p = first_glob_match("/dev/input/by-path/*-event-kbd"); !p.empty()) return p;
+	if (auto p = first_glob_match("/dev/input/by-id/*-event-kbd"); !p.empty()) return p;
+	if (auto p = scan_proc_for_keyboard(); !p.empty()) return p;
+	throw std::runtime_error(
+		"teleop_keys: could not find a keyboard input device. Tried "
+		"$TELEOP_KEYS_DEVICE, /dev/input/by-path/*-event-kbd, "
+		"/dev/input/by-id/*-event-kbd, and /proc/bus/input/devices. "
+		"Set TELEOP_KEYS_DEVICE=/dev/input/eventN to override."
+	);
+}
+
+} // namespace
+
 TeleopKeysNode::TeleopKeysNode() : Node("teleop_keys"), running_(true) {
 	// QoS set to match pfvtr (document this in the 'Extensive Documentation')
 	auto cmd_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
-	
+
 	pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("/cmd_vel_subscriber", cmd_qos);
 
-        // CHANGE THIS to your device
-        device_fd_ = open("/dev/input/event4", O_RDONLY | O_NONBLOCK);
-        if (device_fd_ < 0) {
-		throw std::runtime_error("Failed to open /dev/input/eventX (check permissions)");
-		close(device_fd_); 
+	const std::string device_path = resolve_keyboard_device();
+	device_fd_ = open(device_path.c_str(), O_RDONLY | O_NONBLOCK);
+	if (device_fd_ < 0) {
+		throw std::runtime_error(
+			"teleop_keys: failed to open " + device_path +
+			" (check permissions; user must be in the 'input' group). "
+			"Set TELEOP_KEYS_DEVICE=/dev/input/eventN to override."
+		);
 	}
+	RCLCPP_INFO(this->get_logger(), "teleop_keys: reading from %s", device_path.c_str());
 
         thread_ = std::thread(&TeleopKeysNode::loop, this);
 }
