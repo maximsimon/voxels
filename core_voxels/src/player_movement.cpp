@@ -16,8 +16,16 @@ int SCREENSHOT_COUNTER = 0;
 void teleport(Camera *camera, Vector3 goal_pose) {
 	goal_pose.y = 0.5;		// force y coord to stay the same to keep the simulation 2D for now
 	Vector3 camera_direction = Vector3Subtract(camera->target, camera->position);
-	camera->position = goal_pose;	
+	camera->position = goal_pose;
 	camera->target = Vector3Add(camera->position, camera_direction);
+}
+
+// Teleport to floor (x, z) and set heading. yaw_rad is angle in the X-Z plane
+// measured from +X (matches getPlayerAngle's atan2(z, x) convention).
+void teleportWithYaw(Camera *camera, float x, float z, float yaw_rad) {
+	camera->position = (Vector3){ x, 0.5f, z };
+	camera->target = (Vector3){ x + cosf(yaw_rad), 0.5f, z + sinf(yaw_rad) };
+	camera->up = (Vector3){ 0.0f, 1.0f, 0.0f };
 }
 
 // teleport camera based on in simulation input (press T and enter goal pose into textboxt)

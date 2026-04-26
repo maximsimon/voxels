@@ -11,8 +11,10 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <cmath>
 
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.hpp>
@@ -41,7 +43,20 @@ public:
 		    cmd_qos,
 		    std::bind(&MasterRosNode::action_callback, this, std::placeholders::_1)
 		);
-	
+
+		// Subscribe to the rviz "2D Pose Estimate" convention so external
+		// tools (Tk GUI, rviz, scripts) can teleport the robot.  We use the
+		// standard ROS REP-103 convention here: pose.position.{x,y} are the
+		// floor plane (z up), yaw is the rotation about +Z extracted from
+		// the quaternion.  The simulation thread re-maps to its raylib axes
+		// (y up) when applying the teleport.
+		rclcpp::QoS pose_qos = rclcpp::QoS(rclcpp::KeepLast(1)).reliable();
+		teleport_subscriber_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+		    "/initialpose",
+		    pose_qos,
+		    std::bind(&MasterRosNode::teleport_callback, this, std::placeholders::_1)
+		);
+
 		// 20 ms period = 50 Hz, matching the simulation's render rate
 		// (SetTargetFPS(100/step_size) with step_size=2 in master_main.cpp).
 		timer_ = this->create_wall_timer(
@@ -57,10 +72,40 @@ private:
 	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_publisher_;
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_publisher_;
 	rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_subscriber_;
+	rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr teleport_subscriber_;
 	sensor_msgs::msg::Image::SharedPtr image_msg;
 	Observation* observation_ = new Observation();
 	Action* action_ = new Action();
 	rclcpp::Time action_last_msg;
+
+	void teleport_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg) {
+		// Map ROS REP-103 floor (x forward, y left, z up) to the sim's
+		// raylib axes (x along +x, z along +z floor plane, y up).  Only x/y
+		// of the pose are used; height stays pinned at 0.5 inside the sim.
+		const double px = msg->pose.pose.position.x;
+		const double py = msg->pose.pose.position.y;
+		const double qw = msg->pose.pose.orientation.w;
+		const double qx = msg->pose.pose.orientation.x;
+		const double qy = msg->pose.pose.orientation.y;
+		const double qz = msg->pose.pose.orientation.z;
+
+		// Yaw about +Z extracted from quaternion (tf2 formula).
+		const double yaw = std::atan2(2.0 * (qw * qz + qx * qy),
+		                              1.0 - 2.0 * (qy * qy + qz * qz));
+
+		// ROS x → raylib x (forward floor coord);
+		// ROS y → raylib z (lateral floor coord).
+		// Raylib's getPlayerAngle is atan2(z, x); ROS yaw is the same angle
+		// in the same X-Z plane after the swap above, so pass yaw straight
+		// through.
+		master_ros_teleport(static_cast<float>(px),
+		                    static_cast<float>(py),
+		                    static_cast<float>(yaw));
+
+		RCLCPP_INFO(this->get_logger(),
+		            "teleport request: x=%.2f y=%.2f yaw=%.2f rad",
+		            px, py, yaw);
+	}
 
 	void action_callback(const geometry_msgs::msg::TwistStamped::SharedPtr cmd_vel_msg) {
 		//cmd_vel_msg_msg.header.stamp = this->now();

@@ -85,10 +85,23 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 		vw->teleport_text.text[vw->teleport_text.letter_count+1] = '\0'; // Add null terminator at the end of the string
 		vw->teleport_text.text_active = false;
 		
-		Vector3 goal_pose = { 0 };
+		// Input format: "x z yaw_deg". x and z are the floor-plane coords
+		// (raylib y is up — height stays at 0.5 inside teleportWithYaw).
+		// yaw_deg is heading in degrees; 0=+x, 90=+z (matches getPlayerAngle).
+		// If yaw is omitted, the current heading is preserved.
+		float gx = 0.0f, gz = 0.0f, yaw_deg = 0.0f;
 		std::stringstream ss(vw->teleport_text.text);
-		ss >> goal_pose.x >> goal_pose.y >> goal_pose.z;
-		teleport(&vw->player_camera, goal_pose);
+		ss >> gx >> gz;
+		bool yaw_provided = static_cast<bool>(ss >> yaw_deg);
+
+		float yaw_rad;
+		if (yaw_provided) {
+			yaw_rad = yaw_deg * (PI / 180.0f);
+		} else {
+			Vector3 dir = Vector3Subtract(vw->player_camera.target, vw->player_camera.position);
+			yaw_rad = atan2f(dir.z, dir.x);
+		}
+		teleportWithYaw(&vw->player_camera, gx, gz, yaw_rad);
 	}	
 	//	COMMMENTED OUT MOVEMENT BECAUSE PLAYER OCONTROL IS NOW HANDLED BY TELEOP_KEYS IN ROS_VOXELS
 	// control player_camera and Movement1person

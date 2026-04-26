@@ -2,6 +2,7 @@
 
 #include "raylib.h"
 #include "master_voxel.hpp"
+#include "player_movement.hpp"
 #include "ros_voxels.hpp"
 #include "teleop_keys.hpp"
 #include "master_main.hpp"
@@ -14,6 +15,36 @@ Observation master_observation;
 Action master_action;
 std::mutex mutex_observation;
 std::mutex mutex_action;
+
+// Pending teleport request, written by ROS callbacks and consumed once per
+// simulation frame.  `pending` toggles to false once consumed so a single
+// publish results in a single teleport.
+struct TeleportRequest {
+	float x;
+	float z;
+	float yaw_rad;
+	bool pending;
+};
+static TeleportRequest master_teleport = { 0.0f, 0.0f, 0.0f, false };
+static std::mutex mutex_teleport;
+
+void master_ros_teleport(float x, float z, float yaw_rad) {
+	std::lock_guard<std::mutex> lock(mutex_teleport);
+	master_teleport.x = x;
+	master_teleport.z = z;
+	master_teleport.yaw_rad = yaw_rad;
+	master_teleport.pending = true;
+}
+
+bool master_consume_teleport(float *x, float *z, float *yaw_rad) {
+	std::lock_guard<std::mutex> lock(mutex_teleport);
+	if (!master_teleport.pending) return false;
+	*x = master_teleport.x;
+	*z = master_teleport.z;
+	*yaw_rad = master_teleport.yaw_rad;
+	master_teleport.pending = false;
+	return true;
+}
 
 // entire Voxel World is initiated and ran from this function, which is called by master_main.cpp main() function in its own neat little thread (hopefully)
 void master_step_sim() {
@@ -43,9 +74,15 @@ void master_step_sim() {
 		vw_action->angular_vel.z = master_action.angular_vel.z;
 		
 		mutex_action.unlock();
-		
-	
-		step_sim(vw_instance, vw_action, vw_observation);	// SIMULATION STEP - this is where all calculations of what happens in simulation (i.e. in core_voxels) happens		
+
+		// Apply any pending external teleport request before stepping the
+		// sim, so the new pose is reflected in this frame's observation.
+		float tp_x, tp_z, tp_yaw;
+		if (master_consume_teleport(&tp_x, &tp_z, &tp_yaw)) {
+			teleportWithYaw(&vw_instance->player_camera, tp_x, tp_z, tp_yaw);
+		}
+
+		step_sim(vw_instance, vw_action, vw_observation);	// SIMULATION STEP - this is where all calculations of what happens in simulation (i.e. in core_voxels) happens
 		
 		mutex_observation.lock();
 		

@@ -206,9 +206,12 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 			DrawRectangleRec(vw->teleport_text.text_box, (Color){0, 0, 0, 0});
 			DrawRectangleLines((int)vw->teleport_text.text_box.x, (int)vw->teleport_text.text_box.y, (int)vw->teleport_text.text_box.width, (int)vw->teleport_text.text_box.height, DARKGRAY);
 			DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, WHITE);
-			DrawText(TextFormat("teleport"), (int)vw->teleport_text.text_box.x + 20, vw->teleport_text.text_box.y + 40, 15, WHITE);
+			DrawText(TextFormat("teleport: x z yaw_deg"), (int)vw->teleport_text.text_box.x + 5, vw->teleport_text.text_box.y + 40, 13, WHITE);
 		}
-		// TODO: put this into help window: "enter goal pose for teleportation, seperate number by spaces \n y will be ovewriten to 0.5, default goal pose is 0, 0.5, 0")
+		// Input format on T-key: "x z yaw_deg" — x/z are floor-plane meters
+		// (raylib y is up, height pinned to 0.5); yaw_deg is the heading in
+		// degrees (0 = +x, 90 = +z). If only "x z" is entered, the current
+		// heading is preserved.
 	
 		//TODO: you can draw camera front POV in a little window at bottom right like this (only need to scale down the texture):	
 		//DrawTextureRec(
