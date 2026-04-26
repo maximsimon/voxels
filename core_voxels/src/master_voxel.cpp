@@ -20,6 +20,46 @@
 const int screen_width = 1600;
 const int screen_height = 850;
 
+// Draw an arrow at the agent's position pointing along its look direction
+// (camera.target - camera.position projected to the floor plane).  Used in
+// the on-screen god/edit view to make the agent's heading visible at a
+// glance.
+//
+// IMPORTANT: never call this from inside the player_camera's
+// `camera_view_tex` rendering pass.  That texture becomes the
+// `camera_front_publisher` image consumed by the navigation NN.  The arrow
+// shaft extends forward from the camera position, so it lands in the near
+// plane and turns the navigation input into a red blob — control diverges
+// instantly.  In a first-person POV there is no agent to render anyway.
+static void drawAgentArrow(Camera3D camera, Color color) {
+	Vector3 forward = Vector3Subtract(camera.target, camera.position);
+	forward.y = 0.0f;
+	float len = sqrtf(forward.x * forward.x + forward.z * forward.z);
+	if (len < 1e-3f) return;
+	forward.x /= len;
+	forward.z /= len;
+
+	const float shaft_len = 0.7f;
+	const float head_len  = 0.3f;
+	const float shaft_r   = 0.15f;
+	const float head_r    = 0.30f;
+
+	Vector3 base = camera.position;
+	Vector3 shaft_end = (Vector3){
+		base.x + forward.x * shaft_len,
+		base.y,
+		base.z + forward.z * shaft_len,
+	};
+	Vector3 tip = (Vector3){
+		base.x + forward.x * (shaft_len + head_len),
+		base.y,
+		base.z + forward.z * (shaft_len + head_len),
+	};
+
+	DrawCylinderEx(base, shaft_end, shaft_r, shaft_r, 8, color);
+	DrawCylinderEx(shaft_end, tip,  head_r,  0.0f,    12, color);
+}
+
 VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_direction, int step_size) {
 	
 	VoxelWorld *vw = (VoxelWorld*)malloc(sizeof(VoxelWorld));	
@@ -153,8 +193,10 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		BeginMode3D(vw->player_camera);
 			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
 			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
-			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED);
-			
+			// Intentionally do not draw the agent in its own first-person
+			// POV — this texture is the navigation NN's camera input, and
+			// any geometry placed at camera.position would obscure it.
+
 			// TODO get chunk_position of the ones surroundin the player and draw only them
 			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
 				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
@@ -174,7 +216,12 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		
 			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
 			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
-			DrawModelEx(vw->player_model, vw->player_camera.position, y_axis, vw->player_angle, scale, RED); // draw player
+			// Heading arrow.  Skip in first-person on-screen view (the
+			// camera is on top of the arrow, which would obscure the user's
+			// own POV — same near-plane issue as the camera_front texture).
+			if (!(vw->player_mode && vw->player_view)) {
+				drawAgentArrow(vw->player_camera, RED);
+			}
 			
 			// draw cross
 			// TODO: fix allocating vrs in loop
