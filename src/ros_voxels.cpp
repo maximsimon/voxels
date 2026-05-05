@@ -8,6 +8,7 @@
 #include "std_msgs/msg/string.hpp"
 #include "std_msgs/msg/int32.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/camera_info.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
@@ -36,6 +37,9 @@ public:
 		auto cmd_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
 
 		camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_front_publisher", sensor_qos);
+		// Standard ROS image_pipeline convention: CameraInfo lives at <image_topic>/camera_info.
+		// ROS2 enforces one type per topic name, so this MUST be a different topic from the image.
+		camera_info_publisher_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("camera_front_publisher/camera_info", sensor_qos);
 		odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odometry_publisher", sensor_qos);
 		cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_publisher", sensor_qos);
 		cmd_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
@@ -69,6 +73,8 @@ public:
 private:
 	rclcpp::TimerBase::SharedPtr timer_;
 	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr camera_publisher_;
+	rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_publisher_;
+	sensor_msgs::msg::CameraInfo camera_info_;
 	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_publisher_;
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_publisher_;
 	rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_subscriber_;
@@ -133,6 +139,18 @@ private:
 			image_msg->header.stamp = this->now();
 			image_msg->header.frame_id = "camera_front_publish";
 			camera_publisher_->publish(*image_msg);
+
+			// CameraInfo paired with the image (raylib fovy=45°, square pixels, no distortion).
+			// Static intrinsics computed once on first frame; per-frame cost is just a header stamp.
+			// Published on <image_topic>/camera_info (standard image_pipeline convention).
+			if (camera_info_.width == 0) {
+				camera_info_.width = image_msg->width;
+				camera_info_.height = image_msg->height;
+				double f = image_msg->height / (2.0 * std::tan(M_PI / 8));
+				camera_info_.k = {f, 0, image_msg->width / 2.0, 0, f, image_msg->height / 2.0, 0, 0, 1};
+			}
+			camera_info_.header = image_msg->header;
+			camera_info_publisher_->publish(camera_info_);
 			
 			// odom
 			// odom msg created every publish with should be fine, using msg shared_ptr like image worked badly with threads (segmentation fault)
