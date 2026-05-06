@@ -142,24 +142,24 @@ void TeleopKeysNode::loop() {
 
 		if (player_mode == true) {
 			// -------- BUILD CMD_VEL --------
-			//header
+			// Twist is published in ROS REP-103 frame: x forward, y left, z up.
+			// The simulator's action_callback (ros_voxels.cpp) handles the
+			// raylib axis swap via ros_axis_convert.hpp.
 			msg.header.stamp = this->now();
 			msg.header.frame_id = "base_link";
-			
-			// TODO: sort out PERMANENTLY the x, y, z ROS to x, z, y RAYLIB coord mishmash
 
 			// reset each spin
 			msg.twist.linear.x = 0.0;
-			msg.twist.linear.z = 0.0;
+			msg.twist.linear.y = 0.0;
 			msg.twist.angular.z = 0.0;
-			
+
 			// W/S = forward/back
 			if (keys_[KEY_W]) msg.twist.linear.x = ROS_SPEED;
 			if (keys_[KEY_S]) msg.twist.linear.x = -ROS_SPEED;
 
-			// A/D = strafe
-			if (keys_[KEY_A]) msg.twist.linear.z = -ROS_SPEED;
-			if (keys_[KEY_D]) msg.twist.linear.z = ROS_SPEED;
+			// A/D = strafe (REP-103: +y is left)
+			if (keys_[KEY_A]) msg.twist.linear.y = ROS_SPEED;
+			if (keys_[KEY_D]) msg.twist.linear.y = -ROS_SPEED;
 
 			// K/L = rotation
 			if (keys_[KEY_K]) msg.twist.angular.z = ROS_TURN_SPEED;
