@@ -18,11 +18,12 @@
 
 #include "teleop_keys.hpp"
 
-// control how fast the robot moves or turns based on keyboard input
-// 0.06 * 50 Hz sim tick = 3 m/s peak forward speed. Caps action-distance
-// gap at robot_speed/sync_rate ≈ 0.6 m even at peak driving.
-float ROS_SPEED = 0.06;
-float ROS_TURN_SPEED = 0.02;
+// Forward velocity (m/s) and yaw rate (rad/s) when the relevant key is held.
+// These are now true REP-103 velocities — the simulator multiplies by dt at
+// the action-application boundary (support_for_master.cpp), so values are
+// independent of the sim's tick rate. Tune for usable teleop pace.
+float ROS_SPEED = 3.0;          // 3.0 m/s forward
+float ROS_TURN_SPEED = 1.0;     // 1.0 rad/s ≈ 57 deg/s yaw
 
 // TODO: make this so that it can be at least turned off if not automatically off, WHEN YOU ARE NOT IN THE SIMULATION WINDOW OR SOMWTHING, for example when my ism is running and im writing somewhere 'publisher' and player mode turns on and then it reads all keys and moves the robot
 

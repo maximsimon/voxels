@@ -19,18 +19,29 @@ void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observati
 	Vector3 right = getRightDirection(vw->player_camera);
 	Vector3 left = getLeftDirection(vw->player_camera);
 	Vector3 back = getBackDirection(vw->player_camera);
-	
+
+	// Treat action->linear_vel and action->angular_vel as proper REP-103
+	// velocities (m/s and rad/s). CameraMove and CameraRotate take a
+	// per-frame *displacement*, so we multiply by dt = GetFrameTime() at
+	// the call site. Without this scaling the simulator would interpret
+	// e.g. linear.x = 1.0 as "move 1 m every frame" instead of "1 m/s".
+	const float dt = GetFrameTime();
+
 	// move
 	if (!CheckCollision(vw, &vw->player_camera, 0.1f, forward, vw->maze_mesh)) {
-		CameraMove(&vw->player_camera, forward, action->linear_vel.x);
+		CameraMove(&vw->player_camera, forward, action->linear_vel.x * dt);
 		observation->linear_vel.x += action->linear_vel.x;
 	}
 	if (!CheckCollision(vw, &vw->player_camera, 0.1f, right, vw->maze_mesh)) {
-		CameraMove(&vw->player_camera, right, action->linear_vel.z);
+		CameraMove(&vw->player_camera, right, action->linear_vel.z * dt);
 		observation->linear_vel.z += action->linear_vel.z;
 	}
 	//rotate
-	CameraRotate(&vw->player_camera, RIGHT, action->angular_vel.y, observation);
+	CameraRotate(&vw->player_camera, RIGHT, action->angular_vel.y * dt, observation);
+	// CameraRotate writes the dt-scaled angle into observation->angular_vel.y;
+	// overwrite with the raw rate so /cmd_vel_publisher carries rad/s, not
+	// per-frame radians.
+	observation->angular_vel.y = action->angular_vel.y;
 	vw->player_angle = getPlayerAngle(vw->player_camera);
 }
 
