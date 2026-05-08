@@ -129,58 +129,68 @@ private:
 	void publish_every_spin() {
 		master_ros_bridge(action_, observation_);
 		if (observation_ != NULL) {
-			// image
-			image_msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", observation_->camera_front).toImageMsg();
-			image_msg->header.stamp = this->now();
-			image_msg->header.frame_id = "camera_front_publish";
-			camera_publisher_->publish(*image_msg);
+			// Build ALL messages first, then publish back-to-back at the end.
+			// Reason: with every publish() the underlying RMW serialises and
+			// hands off to the kernel — non-trivial wall-clock cost. If we
+			// interleave message construction between publishes, the actual
+			// publish() calls land at different wall-clock instants, and the
+			// downstream subscribers see them spread out (which made the
+			// synchronizer in mapmaker miss matches under Kilted/Fast DDS 3.x).
+			// Using a single stamp keeps message timestamps identical; doing
+			// the publishes back-to-back keeps wall-clock arrival close too.
 
-			// CameraInfo paired with the image (raylib fovy=45°, square pixels, no distortion).
-			// Static intrinsics computed once on first frame; per-frame cost is just a header stamp.
-			// Published on <image_topic>/camera_info (standard image_pipeline convention).
+			const rclcpp::Time stamp = this->now();
+			const std_msgs::msg::Header img_header = [&]() {
+				std_msgs::msg::Header h;
+				h.stamp = stamp;
+				h.frame_id = "camera_front_publish";
+				return h;
+			}();
+
+			// --- BUILD: image -----------------------------------------------
+			image_msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", observation_->camera_front).toImageMsg();
+			image_msg->header = img_header;
+
+			// --- BUILD: camera_info (intrinsics lazy-init from first image) -
 			if (camera_info_.width == 0) {
 				camera_info_.width = image_msg->width;
 				camera_info_.height = image_msg->height;
 				double f = image_msg->height / (2.0 * std::tan(M_PI / 8));
 				camera_info_.k = {f, 0, image_msg->width / 2.0, 0, f, image_msg->height / 2.0, 0, 0, 1};
 			}
-			camera_info_.header = image_msg->header;
-			camera_info_publisher_->publish(camera_info_);
-			
-			// odom
-			// odom msg created every publish with should be fine, using msg shared_ptr like image worked badly with threads (segmentation fault)
-			// All raylib -> ROS axis conversions go through ros_axis_convert.hpp.
+			camera_info_.header = img_header;
+
+			// --- BUILD: odom ------------------------------------------------
 			nav_msgs::msg::Odometry odom_msg;
-			odom_msg.header.stamp = this->now();
+			odom_msg.header.stamp = stamp;
 			odom_msg.header.frame_id = "odom";
 			odom_msg.child_frame_id = "base_link";
-
 			odom_msg.pose.pose.position    = rl_pos_to_ros(observation_->position);
 			odom_msg.pose.pose.orientation = rl_quat_to_ros(observation_->orientation);
 			odom_msg.twist.twist.linear    = rl_vec_to_ros(action_->linear_vel);
 			odom_msg.twist.twist.angular   = rl_vec_to_ros(action_->angular_vel);
 
-			odom_publisher_->publish(odom_msg);
-
-			// twist publish for bearnav mapmaker
+			// --- BUILD: cmd_vel (for bearnav mapmaker) ----------------------
 			geometry_msgs::msg::TwistStamped cmd_vel_out_msg;
-			cmd_vel_out_msg.header.stamp = this->now();
+			cmd_vel_out_msg.header.stamp = stamp;
 			cmd_vel_out_msg.header.frame_id = "base_link";
 			cmd_vel_out_msg.twist.linear  = rl_vec_to_ros(observation_->linear_vel);
 			cmd_vel_out_msg.twist.angular = rl_vec_to_ros(observation_->angular_vel);
 
-			cmd_vel_publisher_->publish(cmd_vel_out_msg);
-
-			// tf2 for visualisations in rviz and such
+			// --- BUILD: tf transform ----------------------------------------
 			tf2_ros::TransformBroadcaster tf_broadcaster_(this);
-
 			geometry_msgs::msg::TransformStamped t;
-			t.header.stamp = this->now();
+			t.header.stamp = stamp;
 			t.header.frame_id = "odom";
 			t.child_frame_id = "base_link";
 			t.transform.translation = rl_vec_to_ros(observation_->position);
 			t.transform.rotation    = rl_quat_to_ros(observation_->orientation);
 
+			// --- PUBLISH ALL: back-to-back, no work in between --------------
+			camera_publisher_->publish(*image_msg);
+			camera_info_publisher_->publish(camera_info_);
+			odom_publisher_->publish(odom_msg);
+			cmd_vel_publisher_->publish(cmd_vel_out_msg);
 			tf_broadcaster_.sendTransform(t);
 
 			if ((rclcpp::Clock().now() - action_last_msg).seconds() > 0.2) {

@@ -19,7 +19,9 @@
 #include "teleop_keys.hpp"
 
 // control how fast the robot moves or turns based on keyboard input
-float ROS_SPEED = 0.1;
+// 0.06 * 50 Hz sim tick = 3 m/s peak forward speed. Caps action-distance
+// gap at robot_speed/sync_rate ≈ 0.6 m even at peak driving.
+float ROS_SPEED = 0.06;
 float ROS_TURN_SPEED = 0.02;
 
 // TODO: make this so that it can be at least turned off if not automatically off, WHEN YOU ARE NOT IN THE SIMULATION WINDOW OR SOMWTHING, for example when my ism is running and im writing somewhere 'publisher' and player mode turns on and then it reads all keys and moves the robot
