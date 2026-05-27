@@ -20,12 +20,7 @@ void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observati
 	Vector3 left = getLeftDirection(vw->player_camera);
 	Vector3 back = getBackDirection(vw->player_camera);
 
-	// Treat action->linear_vel and action->angular_vel as proper REP-103
-	// velocities (m/s and rad/s). CameraMove and CameraRotate take a
-	// per-frame *displacement*, so we multiply by dt = GetFrameTime() at
-	// the call site. Without this scaling the simulator would interpret
-	// e.g. linear.x = 1.0 as "move 1 m every frame" instead of "1 m/s".
-	const float dt = GetFrameTime();
+	const float dt = GetFrameTime();		// Treat action->linear_vel and action->angular_vel as proper REP-103 velocities (m/s and rad/s). CameraMove and CameraRotate take a per-frame *displacement*, so we multiply by dt = GetFrameTime() at the call site. Without this scaling the simulator would interpret e.g. linear.x = 1.0 as "move 1 m every frame" instead of "1 m/s".
 
 	// move
 	if (!CheckCollision(vw, &vw->player_camera, 0.1f, forward, vw->maze_mesh)) {
@@ -36,13 +31,11 @@ void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observati
 		CameraMove(&vw->player_camera, right, action->linear_vel.z * dt);
 		observation->linear_vel.z += action->linear_vel.z;
 	}
+
 	//rotate
-	CameraRotate(&vw->player_camera, RIGHT, action->angular_vel.y * dt, observation);
-	// CameraRotate writes the dt-scaled angle into observation->angular_vel.y;
-	// overwrite with the raw rate so /cmd_vel_publisher carries rad/s, not
-	// per-frame radians.
+	CameraRotate(&vw->player_camera, RIGHT, action->angular_vel.y * dt, observation);		// CameraRotate writes the dt-scaled angle into observation->angular_vel.y; overwrite with the raw rate so /cmd_vel_publisher carries rad/s, not per-frame radians.
 	observation->angular_vel.y = action->angular_vel.y;
-	vw->player_angle = getPlayerAngle(vw->player_camera);
+	vw->player_angle = getPlayerAngleDeg(vw->player_camera);
 }
 
 void handleActionsAndKeys(VoxelWorld *vw, Action *action, Observation *observation) {
@@ -76,7 +69,7 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 	}
 	if (IsKeyPressed(KEY_V)) {
 		vw->player_view = !vw->player_view;
-		vw->player_angle = getPlayerAngle(vw->player_camera);
+		vw->player_angle = getPlayerAngleDeg(vw->player_camera);
 	}
 	// open input textbox for teleport goal coordinations
 	if (IsKeyPressed(KEY_T)) {
@@ -84,7 +77,6 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 		vw->teleport_text.text_active = true;
 		vw->teleport_text.letter_count = 0;
 		for (int i = 0; i < vw->teleport_text.MAX_INPUT_CHARS; i++) vw->teleport_text.text[i] = '\0';
-		printf("t is pressed: %d\n", IsKeyPressed(KEY_T));		
 		teleportGUIinput(vw);
 	}
 	// if input textbox for teleport opened, keep checking for numbers pressed
@@ -96,39 +88,25 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 		vw->teleport_text.text[vw->teleport_text.letter_count+1] = '\0'; // Add null terminator at the end of the string
 		vw->teleport_text.text_active = false;
 		
-		// Input format: "x z yaw_deg". x and z are the floor-plane coords
-		// (raylib y is up — height stays at 0.5 inside teleportWithYaw).
-		// yaw_deg is heading in degrees; 0=+x, 90=+z (matches getPlayerAngle).
-		// If yaw is omitted, the current heading is preserved.
-		float gx = 0.0f, gz = 0.0f, yaw_deg = 0.0f;
+		// input format: "goal_x goal_z yaw_deg". x and z are the floor-plane coords
+		float goal_x = 0.0f, goal_z = 0.0f, yaw_deg = 0.0f;
 		std::stringstream ss(vw->teleport_text.text);
-		ss >> gx >> gz;
+		ss >> goal_x >> goal_z;
 		bool yaw_provided = static_cast<bool>(ss >> yaw_deg);
 
 		float yaw_rad;
-		if (yaw_provided) {
-			yaw_rad = yaw_deg * (PI / 180.0f);
-		} else {
+		if (yaw_provided) yaw_rad = yaw_deg * (PI / 180.0f);
+		else {
 			Vector3 dir = Vector3Subtract(vw->player_camera.target, vw->player_camera.position);
 			yaw_rad = atan2f(dir.z, dir.x);
 		}
-		teleportWithYaw(&vw->player_camera, gx, gz, yaw_rad);
+		teleportWithYaw(&vw->player_camera, goal_x, goal_z, yaw_rad);
 	}	
-	//	COMMMENTED OUT MOVEMENT BECAUSE PLAYER OCONTROL IS NOW HANDLED BY TELEOP_KEYS IN ROS_VOXELS
-	// control player_camera and Movement1person
-	if (vw->player_mode && vw->player_view) {
-		//player_moved_by_keys = CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
-		vw->current_camera = vw->player_camera;
-		//vw->player_angle = getPlayerAngle(vw->player_camera);
-		
-	// control edit_camera but Movement1person
-	} else if(vw->player_mode) {
-		//player_moved_by_keys = CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
-		vw->current_camera = vw->edit_camera;
-		//vw->player_angle = getPlayerAngle(vw->player_camera);
 	
-	// control edit_camera and MovementEdit
-	} else {
+	// switch camera to proper mode (player vs edit), in PLAYER mode movment is handled from ros_voxels (not here, but trough a ROS topic)
+	if (vw->player_mode && vw->player_view)	vw->current_camera = vw->player_camera;
+	else if(vw->player_mode) vw->current_camera = vw->edit_camera;
+	else {								// control edit_camera and MovementEdit
 		CheckMovementEdit(&vw->edit_camera);
 		vw->current_camera = vw->edit_camera;
 	}

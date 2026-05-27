@@ -7,9 +7,7 @@
 #include "player_movement.hpp"
 #include "small_handy_stuff.hpp"
 #include "data_types.hpp"
-
-float SPEED_EDIT = 0.5f;	
-float TURN_SPEED_EDIT = 0.05f;
+#include "config_core.hpp"
 
 // Check for keyboard keys that move
 void CheckMovementEdit(Camera *camera) {
@@ -67,7 +65,7 @@ void CameraMoveEdit(Camera *camera, Vector3 direction) {
 
 	direction = Vector3Normalize(direction);
 
-    	direction = Vector3Scale(direction, SPEED_EDIT);
+    	direction = Vector3Scale(direction, SPEED_GOD);
 	
 	camera->position = Vector3Add(camera->position, direction);
 	camera->target = Vector3Add(camera->target, direction);
@@ -81,7 +79,7 @@ void CameraMoveUpDownEdit(Camera *camera, Vector3 direction) {
 	
 	direction = Vector3Normalize(direction);
 
-    	direction = Vector3Scale(direction, SPEED_EDIT);
+    	direction = Vector3Scale(direction, SPEED_GOD);
 	
 	camera->position = Vector3Add(camera->position, direction);
 	camera->target = Vector3Add(camera->target, direction);
@@ -110,12 +108,12 @@ void CameraRotateEdit(Camera *camera, int HEADING) {
 	}
 	Vector3 targetPosition = Vector3Subtract(camera->target, camera->position);
 	if (up_not_right == false) {				// up or down
-		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * TURN_SPEED_EDIT);
+		targetPosition = Vector3RotateByAxisAngle(targetPosition, camera->up, angle * TURN_SPEED_GOD);
 	 
 	} else if (up_not_right == true) {				// right or left
 		Vector3 forward = getForwardDirection(*camera);
 		Vector3 right = getRightDirection(*camera);
-		targetPosition = Vector3RotateByAxisAngle(targetPosition, right, angle * TURN_SPEED_EDIT);
+		targetPosition = Vector3RotateByAxisAngle(targetPosition, right, angle * TURN_SPEED_GOD);
 	}
 
 	camera->target = Vector3Add(camera->position, targetPosition);

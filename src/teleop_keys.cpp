@@ -1,5 +1,8 @@
 // TELEOP KEYS - for controlling the simulated robot trough ekys that are published as cmd_vel - to more resemble how real world robot is controled
 
+// TODO: make this so that it can be at least turned off if not automatically off, WHEN YOU ARE NOT IN THE SIMULATION WINDOW OR SOMWTHING, for example when my sim is running and im writing somewhere 'publisher' and player mode turns on and then it reads all keys and moves the robot
+
+
 #include <linux/input.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -13,19 +16,12 @@
 #include <atomic>
 #include <unordered_map>
 
+
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 
 #include "teleop_keys.hpp"
-
-// Forward velocity (m/s) and yaw rate (rad/s) when the relevant key is held.
-// These are now true REP-103 velocities — the simulator multiplies by dt at
-// the action-application boundary (support_for_master.cpp), so values are
-// independent of the sim's tick rate. Tune for usable teleop pace.
-float ROS_SPEED = 3.0;          // 3.0 m/s forward
-float ROS_TURN_SPEED = 1.0;     // 1.0 rad/s ≈ 57 deg/s yaw
-
-// TODO: make this so that it can be at least turned off if not automatically off, WHEN YOU ARE NOT IN THE SIMULATION WINDOW OR SOMWTHING, for example when my ism is running and im writing somewhere 'publisher' and player mode turns on and then it reads all keys and moves the robot
+#include "config.hpp"
 
 namespace {
 
@@ -81,8 +77,13 @@ TeleopKeysNode::TeleopKeysNode() : Node("teleop_keys"), running_(true) {
 
 	pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("/cmd_vel_subscriber", cmd_qos);
 
-	const std::string device_path = resolve_keyboard_device();
+	std::string device_path = "";	
+	if (MANUALLY_SET_DEVICE == 0) device_path = resolve_keyboard_device();
+	else device_path = DEVICE;
+	
+	if (device_path == "") RCLCPP_ERROR(this->get_logger(), "FAILED TO SET DEVICE PATH (device_path - teleop_keys.cpp)\n");
 	device_fd_ = open(device_path.c_str(), O_RDONLY | O_NONBLOCK);
+	
 	if (device_fd_ < 0) {
 		throw std::runtime_error(
 			"teleop_keys: failed to open " + device_path +
@@ -105,8 +106,8 @@ TeleopKeysNode::~TeleopKeysNode() {
             close(device_fd_);
 }
 
-
-
+// main function, the one running this thread
+// reads keyboard presses and publishes them to cmd_vel topic - ros_voxels subscribes and puts it to simulation Action
 void TeleopKeysNode::loop() {
 	rclcpp::Rate rate(50);
 
@@ -116,38 +117,26 @@ void TeleopKeysNode::loop() {
 	bool player_mode = false;
 
 	while (rclcpp::ok() && running_) {
-	// -------- READ ALL EVENTS --------
-
+	// -------- READ ALL EVENTS -------- reads every key/control if pressed or not
 		while (read(device_fd_, &ev, sizeof(ev)) > 0) {
 			if (ev.type == EV_KEY) {
 				// 1 = press, 0 = release
 				keys_[ev.code] = (ev.value != 0);
 			}
 		}
-	// ssize_t n = read(device_fd_, &ev, sizeof(ev));
+	
+	//for debugging: RCLCPP_ERROR(this->get_logger(), "read failed: %s (errno=%d)", strerror(errno), errno);
 
-	// if (n == sizeof(ev))
-	// {
-	// if (ev.type == EV_KEY)
-	// {
-	//     keys_[ev.code] = (ev.value != 0);
-	// }
-	// }
-	// else if (n == -1)
-	// {
-	// // EAGAIN → no input, normal
-	// }
+	ssize_t n = read(device_fd_, &ev, sizeof(ev));
 
 		// P to turn on player_mode, O to turn off player_mode
 		if (keys_[KEY_P]) player_mode = true;
 		if (keys_[KEY_O]) player_mode = false;
+		
 		// publish only if in player mode (it overides other source that publish to /cmd_vel_subscirbe to control the orbot)	TODO: actually make it as a hardcore overide like the button on ps4 controllers for robot + fix this clumsy o and p tur on or off (only p detects it too often and can change it to 0 and back to 1 on 1 p press
-
 		if (player_mode == true) {
 			// -------- BUILD CMD_VEL --------
-			// Twist is published in ROS REP-103 frame: x forward, y left, z up.
-			// The simulator's action_callback (ros_voxels.cpp) handles the
-			// raylib axis swap via ros_axis_convert.hpp.
+			// twist is published in ROS REP-103 frame: x forward, y left, z up
 			msg.header.stamp = this->now();
 			msg.header.frame_id = "base_link";
 
@@ -157,12 +146,15 @@ void TeleopKeysNode::loop() {
 			msg.twist.angular.z = 0.0;
 
 			// W/S = forward/back
-			if (keys_[KEY_W]) msg.twist.linear.x = ROS_SPEED;
+			if (keys_[KEY_W]) {
+				msg.twist.linear.x = ROS_SPEED;
+				RCLCPP_INFO(this->get_logger(), "W pressed");
+			}
 			if (keys_[KEY_S]) msg.twist.linear.x = -ROS_SPEED;
 
 			// A/D = strafe (REP-103: +y is left)
-			if (keys_[KEY_A]) msg.twist.linear.y = ROS_SPEED;
-			if (keys_[KEY_D]) msg.twist.linear.y = -ROS_SPEED;
+			if (keys_[KEY_A]) msg.twist.linear.y = -ROS_SPEED;
+			if (keys_[KEY_D]) msg.twist.linear.y = ROS_SPEED;
 
 			// K/L = rotation
 			if (keys_[KEY_K]) msg.twist.angular.z = ROS_TURN_SPEED;

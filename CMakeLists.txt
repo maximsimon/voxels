@@ -44,6 +44,7 @@ add_library(core_voxels STATIC
   core_voxels/src/small_handy_stuff.cpp
   core_voxels/src/support_for_master.cpp
   core_voxels/src/odometry.cpp
+  core_voxels/src/lidar.cpp
 )
 
 target_link_libraries(core_voxels

@@ -14,6 +14,10 @@
 extern const int screen_width;
 extern const int screen_height;
 
+// lidar constants
+#define NUM_LIDAR_RAYS 60
+#define MAX_LIDAR_RANGE 10.0f
+
 // chunk size
 extern const int chunk_w;
 extern const int chunk_h;
@@ -25,6 +29,12 @@ typedef struct {
     Vector3 chunk_position;
 } chunkMap;
 
+// convinience for working with the maze map
+typedef struct {
+	int chunk;		// index of a chunk
+	int cell;		// index of a cell inside a chunk
+} mapCoords;
+
 // entire map
 typedef struct {
 	chunkMap *chunks;
@@ -33,7 +43,9 @@ typedef struct {
 	int width_chunks; 		// height in chunks
 	int height_chunks;		// width of entire world in chunks
 	int chunk_side;			// size one side of chunk in pixels (chunks are squares)
+	mapCoords map_coords;
 } mainMap;
+
 
 typedef struct {
 	cv::Mat camera_front;		// last POV view of front camera of the robot in simulation
@@ -42,6 +54,7 @@ typedef struct {
 	Quaternion orientation;
 	Vector3 linear_vel;
 	Vector3 angular_vel;
+	float lidar_scan[NUM_LIDAR_RAYS];
 } Observation;
 
 typedef struct {

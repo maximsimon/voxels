@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "small_handy_stuff.hpp"
 #include "data_types.hpp"
+#include "config_core.hpp"
 
 Vector3 getUpDirection() {
 	Vector3 up = {0.0f, 1.0f, 0.0f};
@@ -39,6 +40,28 @@ Vector3 getForwardDirection(Camera camera) {
 	return forward;
 }
 
+// fetch angle of player in radians
+float getPlayerAngle(Camera camera) {
+	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
+	Vector3 player_vec = Vector3Subtract(camera.target, camera.position);
+	
+	float angle = atan2f(player_vec.z, player_vec.x);  // angle from +X axis in radians
+	return angle;
+	
+	//float angleDeg = - (angle * 180.0f / PI) - TURN_SPEED * 300;
+	//return angleDeg;	
+}
+
+// fetch angle of player in degrees
+float getPlayerAngleDeg(Camera camera) {
+	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
+	Vector3 player_vec = Vector3Subtract(camera.target, camera.position);
+	
+	float angle = atan2f(player_vec.z, player_vec.x);  // angle from +X axis in radians
+	float angleDeg = - (angle * 180.0f / PI) - TURN_SPEED * 300;
+	return angleDeg;	
+}
+
 // print map for debugging purposes
 void printMap(mainMap main_map) {
 	printf("printing map, width and height in chunks: %d %d\n", main_map.width_chunks, main_map.height_chunks);
@@ -55,3 +78,21 @@ void printMap(mainMap main_map) {
 		printf("\n");
 	}	
 }
+
+// visualize lidar on screen
+void drawLidarRays(VoxelWorld *vw, Observation *observation, bool in_player_view) {
+    float heading = getPlayerAngle(vw->player_camera);
+    Vector3 origin = vw->player_camera.position;
+
+    for (int i = 0; i < NUM_LIDAR_RAYS; i++) {
+        float range = observation->lidar_scan[i];
+        float angle = heading + (float)i * (2.0f * PI) / (float)NUM_LIDAR_RAYS;
+        Vector3 end = {
+            origin.x + cosf(angle) * range,
+            0.5f,
+            origin.z + sinf(angle) * range
+        };
+        DrawLine3D(origin, end, RED);
+    }
+}
+

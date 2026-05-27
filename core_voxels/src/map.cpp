@@ -12,17 +12,37 @@ const int chunk_w = 16;
 const int chunk_h = 16;
 
 
-// fetches index of the chunk where point: is currently located
-int fetchCurrChunkIdx(mainMap main_map, Vector3 point) {
+// fetches index of the chunk in map where world_pose is currently located
+int fetchCurrChunkIdx(mainMap main_map, Vector3 world_pose) {
 	int curr_chunk_idx = 0;
 	int chunk_x = 0;
 	int chunk_z = 0;
 	
-	chunk_x = (int)point.x / 16;
-	chunk_z = (int)point.z / 16;
+	chunk_x = (int)world_pose.x / main_map.chunk_side;
+	chunk_z = (int)world_pose.z / main_map.chunk_side;
 
 	curr_chunk_idx = chunk_x + chunk_z * main_map.width_chunks;
 	return curr_chunk_idx;
+}
+
+// fetches index of the cell in map where world_pose is currently located
+int fetchCurrCellIdx(mainMap main_map, Vector3 world_pose) {
+	int curr_cell_idx = 0;
+	int cell_x = 0;
+	int cell_z = 0;
+	
+	cell_x = (int)world_pose.x % main_map.chunk_side;
+	cell_z = (int)world_pose.z % main_map.chunk_side;
+
+	curr_cell_idx = cell_x + cell_z * main_map.chunk_side;
+	return curr_cell_idx;
+	
+}
+
+// fetches chunk index and index of cell inside that chunk - transforms (x,z) world positioin to (ch_idx, p_idx) map position
+void fetchCurrMapCoord(mainMap &main_map, Vector3 world_pose) {
+	main_map.map_coords.chunk =  fetchCurrChunkIdx(main_map, world_pose);
+	main_map.map_coords.cell = fetchCurrCellIdx(main_map, world_pose);
 }
 
 //create entire map consisting of chunks

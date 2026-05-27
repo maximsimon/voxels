@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(core_voxels)
 
 # Compile as C++14
@@ -24,6 +24,7 @@ add_library(${PROJECT_NAME} STATIC
   src/support_for_master.cpp
   src/odometry.cpp
   src/textures.cpp
+  src/lidar.cpp
 )
 # Link raylib (if core uses it)
 target_link_libraries(core_voxels

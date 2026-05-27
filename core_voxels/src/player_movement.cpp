@@ -7,9 +7,8 @@
 #include "small_handy_stuff.hpp"
 #include "player_movement.hpp"
 #include "data_types.hpp"
+#include "config_core.hpp"
 
-float SPEED = 0.05f;	
-float TURN_SPEED = 0.01f;
 int SCREENSHOT_COUNTER = 0;
 
 // teleport whatever camera (player or god) to goal_pose, without changing orientation
@@ -50,15 +49,6 @@ void teleportGUIinput(VoxelWorld *vw) {
 	}
 }
 
-// fetch angle of player model for rendering
-float getPlayerAngle(Camera camera) {
-	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
-	Vector3 player_vec = Vector3Subtract(camera.target, camera.position);
-	
-	float angle = atan2f(player_vec.z, player_vec.x);  // angle from +X axis in radians
-	float angleDeg = - (angle * 180.0f / PI) - TURN_SPEED * 300;
-	return angleDeg;	
-}
 
 // Check for keyboard keys that move player
 bool CheckMovement1person(VoxelWorld *vw, Camera *camera, Mesh *mesh, Observation *observation) {

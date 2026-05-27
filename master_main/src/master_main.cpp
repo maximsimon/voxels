@@ -9,6 +9,7 @@
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <thread>
 
 Observation master_observation;
@@ -16,9 +17,7 @@ Action master_action;
 std::mutex mutex_observation;
 std::mutex mutex_action;
 
-// Pending teleport request, written by ROS callbacks and consumed once per
-// simulation frame.  `pending` toggles to false once consumed so a single
-// publish results in a single teleport.
+// Pending teleport request, written by ROS callbacks and consumed once per simulation frame.  `pending` toggles to false once consumed so a single publish results in a single teleport.
 struct TeleportRequest {
 	float x;
 	float z;
@@ -75,13 +74,13 @@ void master_step_sim() {
 		
 		mutex_action.unlock();
 
-		// Apply any pending external teleport request before stepping the
-		// sim, so the new pose is reflected in this frame's observation.
+		// Apply any pending external teleport request before stepping the sim, so the new pose is reflected in this frame's observation.
 		float tp_x, tp_z, tp_yaw;
 		if (master_consume_teleport(&tp_x, &tp_z, &tp_yaw)) {
 			teleportWithYaw(&vw_instance->player_camera, tp_x, tp_z, tp_yaw);
 		}
 
+		// SIMULATION STEP
 		step_sim(vw_instance, vw_action, vw_observation);	// SIMULATION STEP - this is where all calculations of what happens in simulation (i.e. in core_voxels) happens
 		
 		mutex_observation.lock();
@@ -104,6 +103,8 @@ void master_step_sim() {
 		master_observation.angular_vel.x = vw_observation->angular_vel.x;
 		master_observation.angular_vel.y = vw_observation->angular_vel.y;
 		master_observation.angular_vel.z = vw_observation->angular_vel.z;	
+	
+		memcpy(master_observation.lidar_scan, vw_observation->lidar_scan, sizeof(master_observation.lidar_scan));
 		
 		mutex_observation.unlock();
 	}
@@ -112,9 +113,8 @@ void master_step_sim() {
 }
 
 
-//funkce co ma action v argumentu a vraci observation (ros vola tuhle funkci)
+// functioon with Axtion as input and Observation as output - ros_voxels (ROS2 loop) calls this function to interact with the simulation 
 void master_ros_bridge(Action *ros_action, Observation *ros_observation) {
-	//Observation *ros_observation;
 	
 	mutex_action.lock();
 
@@ -147,6 +147,8 @@ void master_ros_bridge(Action *ros_action, Observation *ros_observation) {
 	ros_observation->angular_vel.x = master_observation.angular_vel.x;
 	ros_observation->angular_vel.y = master_observation.angular_vel.y;
 	ros_observation->angular_vel.z = master_observation.angular_vel.z;
+		
+	memcpy(ros_observation->lidar_scan, master_observation.lidar_scan, sizeof(ros_observation->lidar_scan));
 		
 	mutex_observation.unlock();
 

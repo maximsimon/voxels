@@ -13,6 +13,9 @@ Vector3 getRightDirection(Camera camera);
 Vector3 getLeftDirection(Camera camera);
 Vector3 getBackDirection(Camera camera);
 Vector3 getForwardDirection(Camera camera);
+float getPlayerAngle(Camera camera);		// heading angle of the camera in XZ plane, measured from +X axis, radians
+float getPlayerAngleDeg(Camera camera);		// heading angle ---------------------- || --------------------- , degrees
 void printMap(mainMap main_map);	// helper debugging function for printing map
+void drawLidarRays(VoxelWorld *vw, Observation *observation, bool in_player_view);		// visualize lidar on screen
 
 #endif

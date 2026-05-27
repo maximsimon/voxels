@@ -15,22 +15,14 @@
 #include "small_handy_stuff.hpp"
 #include "data_types.hpp"
 #include "odometry.hpp"
+#include "lidar.hpp"
 
 //window size
 const int screen_width = 1600;
 const int screen_height = 850;
 
 // Draw an arrow at the agent's position pointing along its look direction
-// (camera.target - camera.position projected to the floor plane).  Used in
-// the on-screen god/edit view to make the agent's heading visible at a
-// glance.
-//
 // IMPORTANT: never call this from inside the player_camera's
-// `camera_view_tex` rendering pass.  That texture becomes the
-// `camera_front_publisher` image consumed by the navigation NN.  The arrow
-// shaft extends forward from the camera position, so it lands in the near
-// plane and turns the navigation input into a red blob — control diverges
-// instantly.  In a first-person POV there is no agent to render anyway.
 static void drawAgentArrow(Camera3D camera, Color color) {
 	Vector3 forward = Vector3Subtract(camera.target, camera.position);
 	forward.y = 0.0f;
@@ -152,8 +144,6 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	Model player_model = LoadModelFromMesh(player_mesh);                  // Load model from generated mesh
 
 	vw->player_model = player_model;	
-
-	
 	
 	// mode variables
 	bool player_mode = false;	
@@ -179,29 +169,25 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	// TODO: move these somewhere a bit cleaner
 	char position_info[70];
 	char mode_info[70];
-	//int curr_chunk = fetchCurrChunkId(vw->main_map);
 	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
 	Vector3 scale = {1.0f, 1.0f, 1.0f};
     	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
 
 	// handle all keys pressed
 	handleActionsAndKeys(vw, action, observation);	// movement based on keys stop movement on action until keys are released
-	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action -> TODO: actually caluclate player movemetn in the simulaiton	
+	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action 
+	updateLidar(vw, observation);		// cast LiDAR rays through the voxel grid	
 	
 	BeginTextureMode(vw->camera_view_tex);
 		ClearBackground(RAYWHITE);
 		BeginMode3D(vw->player_camera);
 			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
 			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
-			// Intentionally do not draw the agent in its own first-person
-			// POV — this texture is the navigation NN's camera input, and
-			// any geometry placed at camera.position would obscure it.
 
 			// TODO get chunk_position of the ones surroundin the player and draw only them
 			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
 				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
 			}
-			//DrawGrid(1000, 1.0f);
 		EndMode3D();
     	EndTextureMode();
 	
@@ -216,24 +202,21 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		
 			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
 			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
-			// Heading arrow.  Skip in first-person on-screen view (the
-			// camera is on top of the arrow, which would obscure the user's
-			// own POV — same near-plane issue as the camera_front texture).
 			if (!(vw->player_mode && vw->player_view)) {
-				drawAgentArrow(vw->player_camera, RED);
+				drawAgentArrow(vw->player_camera, RED);				// draw heading arrow (the player)
 			}
-			
-			// draw cross
-			// TODO: fix allocating vrs in loop
-			//int size = 20; // length of each arm
-			//DrawLine((screen_width / 5) - size, (screen_height / 5), (screen_width / 5) + size, (screen_height / 5), BLACK); // horizontal
-			//DrawLine((screen_width / 5), (screen_height / 5) - size, (screen_width / 5), (screen_height / 5) + size, BLACK); // vertica			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {	// draw voxels
-			
 
+			if (!(vw->player_mode && vw->player_view)) drawLidarRays(vw, observation, false);
+			
 			// draw maze
 			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {	// draw voxels
 				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
 			}
+			
+			// for debugging: DrawGrid(1000, 1.0f);
+			
+			// TODO: draw cross in the middle of the screen (put toggle on/off in config)
+			// TODO: fix allocating vrs in loop
 
 		EndMode3D();
 		
@@ -255,10 +238,6 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 			DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, WHITE);
 			DrawText(TextFormat("teleport: x z yaw_deg"), (int)vw->teleport_text.text_box.x + 5, vw->teleport_text.text_box.y + 40, 13, WHITE);
 		}
-		// Input format on T-key: "x z yaw_deg" — x/z are floor-plane meters
-		// (raylib y is up, height pinned to 0.5); yaw_deg is the heading in
-		// degrees (0 = +x, 90 = +z). If only "x z" is entered, the current
-		// heading is preserved.
 	
 		//TODO: you can draw camera front POV in a little window at bottom right like this (only need to scale down the texture):	
 		//DrawTextureRec(
@@ -268,19 +247,10 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		//	WHITE
 		//);
 		
-		// changing variables
 
 	EndDrawing();
 	
-        // Capture the whole screen after drawing
-        //Image screenshot = LoadImageFromScreen();
-	
-	// to easily view camera_view_tex for debugging
-	//Image img = LoadImageFromTexture(camera_view_tex.texture);	
-	//ExportImage(img, "img.png");
-
 	// Convert current robot POV view (front camera) from type raylib Image to cv2::Mat
-	
 	cv::Mat mat_temp(pov_view_img.height, pov_view_img.width, CV_8UC4, pov_view_img.data); // RGBA
 	cv::Mat pov_view_cvimg;
 	mat_temp.copyTo(pov_view_cvimg);   // <-- deep copy - so that i can Unload image
@@ -289,10 +259,9 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 
 	UnloadImage(pov_view_img);		// TODO: if i unload the image, the cv points to empty thing, check if not unloading the image doesnt cause some ugly leaks that slow down stuff or something
 	
-	//Observation *obs = new Observation();
-	//return obs;
 }
 
+// TODO - cleanup
 void end_sim(void) {
 
 	// clean up		//todo: should free(main_map)

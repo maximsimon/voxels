@@ -56,9 +56,9 @@ void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, i
 
 	// translate voxel
 	for (int i = 0; i < 24; i++) {
-		vertices[i*3 + 0] += pos_x;
+		vertices[i*3 + 0] += pos_x + width/2;
 		vertices[i*3 + 1] += pos_y;
-		vertices[i*3 + 2] += pos_z;
+		vertices[i*3 + 2] += pos_z + length/2;
 	}
 
 	// rotate voxel
