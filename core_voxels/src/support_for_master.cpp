@@ -22,15 +22,16 @@ void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observati
 
 	const float dt = GetFrameTime();		// Treat action->linear_vel and action->angular_vel as proper REP-103 velocities (m/s and rad/s). CameraMove and CameraRotate take a per-frame *displacement*, so we multiply by dt = GetFrameTime() at the call site. Without this scaling the simulator would interpret e.g. linear.x = 1.0 as "move 1 m every frame" instead of "1 m/s".
 
-	// move
-	if (!CheckCollision(vw, &vw->player_camera, 0.1f, forward, vw->maze_mesh)) {
-		CameraMove(&vw->player_camera, forward, action->linear_vel.x * dt);
-		observation->linear_vel.x += action->linear_vel.x;
-	}
-	if (!CheckCollision(vw, &vw->player_camera, 0.1f, right, vw->maze_mesh)) {
-		CameraMove(&vw->player_camera, right, action->linear_vel.z * dt);
-		observation->linear_vel.z += action->linear_vel.z;
-	}
+	// move - decompose action into world-space camera-relative vectors and check each axis separately for sliding
+	Vector3 forward_move = Vector3Scale(forward, action->linear_vel.x);
+	Vector3 right_move = Vector3Scale(right, action->linear_vel.z);
+
+	observation->linear_vel.x = action->linear_vel.x;
+	observation->linear_vel.z = action->linear_vel.z;
+	if (CheckCollision(vw, &vw->player_camera, 0.1f, forward_move, vw->maze_mesh)) observation->linear_vel.x = 0.0f;
+	if (CheckCollision(vw, &vw->player_camera, 0.1f, right_move, vw->maze_mesh)) observation->linear_vel.z = 0.0f;
+	CameraMove(&vw->player_camera, forward, observation->linear_vel.x * dt);
+	CameraMove(&vw->player_camera, right, observation->linear_vel.z * dt);
 
 	//rotate
 	CameraRotate(&vw->player_camera, RIGHT, action->angular_vel.y * dt, observation);		// CameraRotate writes the dt-scaled angle into observation->angular_vel.y; overwrite with the raw rate so /cmd_vel_publisher carries rad/s, not per-frame radians.

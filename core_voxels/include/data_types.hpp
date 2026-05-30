@@ -6,17 +6,16 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include "config_core.hpp"
+
 #include <opencv2/opencv.hpp>
+
 
 #define GRAY_VALUE(c) ((float)(c.r + c.g + c.b)/3.0f)
 
 // window size
 extern const int screen_width;
 extern const int screen_height;
-
-// lidar constants
-#define NUM_LIDAR_RAYS 60
-#define MAX_LIDAR_RANGE 10.0f
 
 // chunk size
 extern const int chunk_w;
@@ -49,7 +48,6 @@ typedef struct {
 
 typedef struct {
 	cv::Mat camera_front;		// last POV view of front camera of the robot in simulation
-	// odometry msg
 	Vector3 position;
 	Quaternion orientation;
 	Vector3 linear_vel;

@@ -36,7 +36,7 @@ static void drawAgentArrow(Camera3D camera, Color color) {
 	const float shaft_r   = 0.15f;
 	const float head_r    = 0.30f;
 
-	Vector3 base = camera.position;
+	Vector3 base = camera.position + forward * 0.5f;
 	Vector3 shaft_end = (Vector3){
 		base.x + forward.x * shaft_len,
 		base.y,
@@ -47,7 +47,19 @@ static void drawAgentArrow(Camera3D camera, Color color) {
 		base.y,
 		base.z + forward.z * (shaft_len + head_len),
 	};
+	Model cube = LoadModelFromMesh(GenMeshCube(1,1,1));
 
+	// draw player cube
+	DrawModelEx(
+	    cube,
+	    camera.position,
+	    (Vector3){0,1,0},   // axis
+	    getPlayerAngleDeg(camera),
+	    (Vector3){1,1,1},
+	    RED
+	);
+
+	// draw arrow to visualise player heading
 	DrawCylinderEx(base, shaft_end, shaft_r, shaft_r, 8, color);
 	DrawCylinderEx(shaft_end, tip,  head_r,  0.0f,    12, color);
 }
@@ -178,6 +190,13 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action 
 	updateLidar(vw, observation);		// cast LiDAR rays through the voxel grid	
 	
+	// screenshot
+	char img_fname[64];
+	sprintf(img_fname, "screenshot.png");
+	if (IsKeyPressed(KEY_SPACE)) {
+		TakeScreenshot(img_fname); 	
+	}
+	
 	BeginTextureMode(vw->camera_view_tex);
 		ClearBackground(RAYWHITE);
 		BeginMode3D(vw->player_camera);
@@ -229,14 +248,14 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		DrawText(position_info, 10, 50, 20, RED);
 		
 		sprintf(mode_info, "Player Mode? %d Player View? %d", vw->player_mode, vw->player_view);
-		DrawText(mode_info, 10, 90, 20, GREEN);
+		DrawText(mode_info, 10, 90, 20, BLACK);
 		DrawFPS(10, 130);
 		// draw teleport input box if T was pressed
 		if (vw->teleport_text.text_active == true) {
 			DrawRectangleRec(vw->teleport_text.text_box, (Color){0, 0, 0, 0});
 			DrawRectangleLines((int)vw->teleport_text.text_box.x, (int)vw->teleport_text.text_box.y, (int)vw->teleport_text.text_box.width, (int)vw->teleport_text.text_box.height, DARKGRAY);
-			DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, WHITE);
-			DrawText(TextFormat("teleport: x z yaw_deg"), (int)vw->teleport_text.text_box.x + 5, vw->teleport_text.text_box.y + 40, 13, WHITE);
+			DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, GREEN);
+			DrawText(TextFormat("teleport: x z yaw_deg"), (int)vw->teleport_text.text_box.x + 5, vw->teleport_text.text_box.y + 40, 13, GREEN);
 		}
 	
 		//TODO: you can draw camera front POV in a little window at bottom right like this (only need to scale down the texture):	

@@ -1,128 +1,148 @@
-# voxels
-Rendering a voxel world using raylib C library.
-Voxel is a 3D pixel - i.e. a cube.
-World is generated from black voxels.
-Location of each World voxel is defined by black and white pixels in .png image.
-1 Player voxel (red) is spawned.
-Player can be controlled by arrows.
-Additionaly "God" view (flight and no collisions) is availabe.
-Keys are used to switch between "Player" mode and "God mode".
+# Ros Voxels README
 
-We are in the proccess of making this both ROS2 testbed and python API environment for reinforcement learning (RL).
+A lightweight, voxel-based robot simulator for **ROS 2** with [raylib](https://www.raylib.com/) rendering.
 
-For ROS2 testbed (e.g. for __bearnavs__) switch to `ros2_api` branch.
+Generate a block world from a 2D pixel image, drive a robot around it with keyboard or ROS commands, and get camera images + odometry + lidar scan as real-time ROS topics. Designed as a testbed for high-level navigation strategies.
 
-For ROS1 testbed (e.g. also for __bearnavs__) switch to `ros1_api` branch.
+Extended documentation can be found in `documentation/`.
 
-### Controls
-#### God mode movement
-`arrow keys` for movement (translation)
+[***Paper*** (or rather extended abstract)](https://mobile-robotics-hub.github.io/workshop2026/papers/LoWi2026_P11.pdf)
 
-`w s a d` for rotation
-
-`pg_up pg_down` fly up and down if you are in god mode (player mode off)
-
-
-#### Player mode movement
-`w s a d` for movement (translation)
-
-`k l` for rotation
-
-
-`p` toggles player mode on - if on move with player voxel, if off move with god view (flying)
-
-`o` toggles player mode off
-
-`v` toggles view mode - if on see from player perspective, if off see from god perspective (but not possible to move in god mode but view from player perspective)
-
-`space bar` takes screenshot
-
-`t` opens input box for goal position where robot (player) will be teleported after confirming by `enter`.
-Input ints, floats, negative numbers, whatever...
-Sepearate numbers by spaces; 1st number is x, 2nd y, 3rd z, y coord will be internally overwriten to 0.5 so that robot does not move up or down and stays in 2D space.
-If you enter nothing and press `enter` robot teleports to (0, 0.5 0).
-
-__Warning:__ if you teleport the robot into a wall, you won't be able to move it by arrow keys and will need to teleport out of it.
-
-## ROS API
-`ros1_api` and `ros2_api` branches are Voxel World connected with ROS1 or ROS2 respectively.
-They act as a robotic testbed.
-Currently robot can be controlled with arrow keys or ROS action commands and the only implemented sensors are front facing monocular camera and odometry.
-
-### QUICK START
-
-__You need to install raylib [(https://www.raylib.com/)]__
-If raylib is up and running, then create ROS2 workspace, clone this branch.
-```
-mkdir -p voxel_world_ws
-cd voxel_world_ws
-git clone --branch ros_api git@github.com:maximsimon/voxels.git
-```
-Now it's sketchy (I really have to fix this later) - reaname this git (*voxels*) to `src/` and then compile and source:
-```
-mv voxels src
-```
-
-The following differs for ROS1 (`ros1_api`) and ROS2 (`ros2_api`).
-
-#### ROS2
-```
-colcon build
-source install/setup.bash
-```
-Run:
-```
-./install/master_main/lib/master_main/master_main
-```
-Now a window with the simulation (see bottom of this README) should display and the simulation should be running.
-
-#### ROS1
-```
-catkin build 
-cd build
-cmake ../src/master_main/
-make
-cd ..
-catkin build
-source devel/setup.bash
-./build/master_main
-```
-Now a window with the simulation (see bottom of this README) should display and the simulation should be running.
-
-*Note: 1st `catkin build` creates `build`, `devel` and `logs` folders and compiles `ros_voxels`, you can use `cd build` instead though, just so you have it to run `cmake` from.
-`cmake ../src/master_main` prepares build for the non-ros part (`core_voxels` and `master_main`), `make` then compiles the non-ros part.
-Finally `catkin build` builds the ros part (`ros_voxels`) and `./build/master_main` launches the entire simulation including ROS*
+![Voxel World - God mode view](documentation/figures/god_view.png)
+![Voxel World - God mode view](documentation/figures/player_view.png)
 
 ---
 
-*Note: If it throws `Segmentation error` and the simulation window crashes, it is most likely structural error in how you built it or the location from when you are running is invalid with the path set for loading map_image (file `master_main/src/master_main.cpp`).*
+## Quick Start
 
-My file strcture where it's running looks like this:
+```bash
+## Prerequisites: 
+
+### ROS 2 Jazzy, raylib, OpenCV
+sudo apt install libraylib-dev libopencv-dev
+
+#### add user to the input group for reading key presses to control robot
+sudo usermod -a -G input $USER
+now log out and back in, when you run `groups` you should see `input` listed
+
+###raylib
+either from __[(https://www.raylib.com/)]__ or by:
+sudo add-apt-repository ppa:texus/raylib
+sudo apt update
+sudo apt install libraylib5-dev
+
+## Build
+mkdir -p ~/voxel_world_ws/src
+cd ~/voxel_world_ws/src
+git clone <this-repo> ros_voxels
+cd ~/voxel_world_ws
+colcon build
+source install/setup.bash
+
+# Run (must be from workspace root for resource paths)
+./install/ros_voxels/lib/ros_voxels/master_main
 ```
-voxel_world_ws/src/
-├── core_voxels
-│   ├── CMakeLists.txt
-│   ├── include
-│   ├── resources
-│   └── src
-├── documentation
-│   ├── DOCUMENTATION.md
-│   └── figures
-├── README.md
-└── ros_voxels
-    ├── CMakeLists.txt
-    ├── include
-    ├── LICENSE
-    ├── package.xml
-    └── src
+
+A window opens showing Voxels - the voxel world simulation. Fly with **Arrows**, **PgUp, PgDn** and **WASD**. Press **P** to enable player mode (**O** to disble it), then use **WASD** to move and **KL** to turn. Press **V** for first-person view (robot POV).
+
+---
+
+## Features
+
+- **Procedural voxel world** generated from a 2D pixel image (.png, .jpg, ...)
+- **Monocular camera** — `sensor_msgs/Image` at 50 Hz (BGR8, 1600×850)
+- **Ground-truth odometry** — `nav_msgs/Odometry` + TF (`odom` → `base_link`)
+- **planar LiDAR laser scan** — `sensor_msgs/LaserScan`
+- **Velocity control** — `cmd_vel_subscriber` (`TwistStamped`)
+- **Teleport** — `/initialpose` for resetting robot position
+- **Keyboard teleop** — raw `/dev/input/` reads for low-latency control
+- **1st and 3rd person view** — god mode (free-fly) + player mode (first-person)
+
+---
+
+## ROS 2 Interface
+
+| Topic | Type | Direction |
+|-------|------|-----------|
+| `/camera_front_publisher` | `sensor_msgs/Image` | Published |
+| `/odometry_publisher` | `nav_msgs/Odometry` | Published |
+| `/lidar_scan` | `sensor_msgs/LaserScan` | Published |
+| `/cmd_vel_publisher` | `geometry_msgs/TwistStamped` | Published |
+| `/cmd_vel_subscriber` | `geometry_msgs/TwistStamped` | Subscribed |
+| `/initialpose` | `geometry_msgs/PoseWithCovarianceStamped` | Subscribed |
+
+**TF**: `odom` → `base_link` (broadcast at 50 Hz)
+
+---
+
+## Controls
+
+| Key | Mode | Action |
+|-----|------|--------|
+| P | Any | Enable player mode |
+| O | Any | Disable player mode |
+| V | Any | Toggle first-person view |
+| WASD | Player | Move robot |
+| KL | Player | Rotate robot |
+| Arrows | God | Move camera |
+| WASD | God | Rotate camera |
+| PgUp/PgDn | God | Move up/down |
+| T | Any | Teleport input ("x z yaw_deg") |
+| Space | Any | Screenshot |
+| Q or Esc | Any | Quit |
+
+---
+
+## Repository Structure
+
 ```
-and I compile and run from `voxel_world_ws` or `voxel_world_ws/build` for `make` for `ros1_api` testbed. 
+ros_voxels/
+├── CMakeLists.txt              # ROS 2 package build
+├── package.xml                 # ROS 2 manifest
+├── core_voxels/                # Simulation engine (no ROS deps)
+│   ├── include/                #   Headers
+│   ├── src/                    #   Implementation (10 source files)
+│   └── resources/              #   Map images + textures
+├── ros_voxels/                 # ROS 2 glue library
+│   ├── include/
+│   └── src/
+├── master_main/                # Main entry point (executable)
+│   ├── include/
+│   └── src/
+└── documentation/                       # Full documentation suite
+    ├── architecture.md
+    ├── software_design.md
+    ├── simulation_model.md
+    ├── api_reference.md
+    └── README.md (this file)
+```
 
-If you want to run this with __bearnav__ then:
-Compile and run normally (with `roscore` running somewher for `ros1_api`).
-Now simulation is running independently and ROS is active -> you can launch bearnav in completiely different workspace and treat the topics and action services provided by this simulation as you would if they were coming from robot. 
+---
 
-See `documentation/` for more detailed description of code structure, available functions etc.
+## Documentation
+Find detailed documentation in `documentation/`:
 
-![Voxel World - God mode view](documentation/figures/god_camera_view.png)
-![Voxel World - Player mode view](documentation/figures/player_camera_view.png)
+| Document              | Content                                                        |
+| --------------------- | -------------------------------------------------------------- |
+| `README.md`           | Intro to documentation                                         |
+| `index.md`            | List of all functions and some variables - with short comments |
+| `architecture.md`     | System architecture, data flow, threading model                |
+| `software_design.md`  | Detailed module design, algorithms, data types                 |
+| `simulation_model.md` | World model, physics, sensor models, coordinate frames         |
+| `api_reference.md`    | Full ROS 2 interface, library API reference                    |
+
+---
+
+## Requirements
+
+- **ROS 2** Humble / Iron / Jazzy (tested on Jazzy)
+- **C++14** compiler
+- **raylib** (tested on ≥ 4.5)
+- **OpenCV** (tested on ≥ 4.2)
+- **X11**, OpenGL (for raylib rendering)
+
+---
+
+## License
+
+Apache 2.0. See `LICENSE`.

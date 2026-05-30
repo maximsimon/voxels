@@ -3,6 +3,7 @@
 // IMPORTANT: currently each cell is counted as full or empty, smaller "voxels" are sensed by LiDAR as any 1x1x1	TODO figure out
 #include "lidar.hpp"
 #include "map.hpp"
+#include "config_core.hpp"
 #include "small_handy_stuff.hpp"
 #include <cmath>
 

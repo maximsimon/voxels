@@ -91,7 +91,7 @@ bool CheckMovement1person(VoxelWorld *vw, Camera *camera, Mesh *mesh, Observatio
 		}
 	}
 
-	// rotate - note: observation angular vel is only updated for rotation in 2D (so around y axis) ... the simulation is kept in 2D for now
+	// rotate - note: observation angular vel is only updated for rotation in 2D (so around y axis) ... the simulation is kept planar for now
 	/*	FORBIDDING LOOKING UP OR DOWN DURING BEARNAV TESTING SO THAT MATCHING IMAGES IS WITHOUT VERTICAL OFFSET
 	if (IsKeyDown(KEY_W)) {
 		CameraRotate(camera, UP, TURN_SPEED, observation);
