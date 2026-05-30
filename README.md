@@ -1,67 +1,148 @@
-# voxels
-Rendering a voxel world using raylib.
-Voxel is a 3D pixel - i.e. a cube.
-World is generated from black voxels.
-Location of each World voxel is defined by black and white pixels in .png image.
-1 Player voxel (red) is spawned.
-Player can be controlled by arrows.
-Additionaly "God" view (flight and no collisions) is availabe.
-Keys are used to switch between "Player" mode and "God mode".
+# Ros Voxels README
 
-__Compile by `make` then run `voxel.o` executable.__
+A lightweight, voxel-based robot simulator for **ROS 2** with [raylib](https://www.raylib.com/) rendering.
 
-__Fow ROS2 testbed (e.g. for *Bearnav*) switch to `ros_api` branch.__
+Generate a block world from a 2D pixel image, drive a robot around it with keyboard or ROS commands, and get camera images + odometry + lidar scan as real-time ROS topics. Designed as a testbed for high-level navigation strategies.
 
-Currently can generate voxel at given location and it can load a pixel map (.png image) and place a voxel at each pixel - mazebuilding from image.
-Can only handle about 32x32 map - generating beyond that does not yet work.
+Extended documentation can be found in `documentation/`.
 
-Collisions are sometimes still sticky - the Player voxel does not slide reliably along walls after collision.
-Collisions are calculated by shooting ray upwards from defined boundry points of the Player voxel (Note: they have padding against the voxel), and checking if those rays collide with the map's mesh.
+[***Paper*** (or rather extended abstract)](https://mobile-robotics-hub.github.io/workshop2026/papers/LoWi2026_P11.pdf)
 
-## Dependencies
-I don't know all - did not test that yet.
-I'm developing this on Ubuntu 20.
+![Voxel World - God mode view](documentation/figures/god_view.png)
+![Voxel World - God mode view](documentation/figures/player_view.png)
 
-__Most definitely you need to install Raylib.__[(https://www.raylib.com/)]
-`#include "raylib.h"` needs to work.
+---
 
-Also __gcc__ compiler (check `Makefile` for compilation details).
+## Quick Start
 
-## Code structure
+```bash
+## Prerequisites: 
 
-I'm using __raylib.h__ library + I write my own additional resources, often heavily based on functions provided in the raylib library.
+### ROS 2 Jazzy, raylib, OpenCV
+sudo apt install libraylib-dev libopencv-dev
 
-Main file (with main()) is in `voxel.c`.
-`while(!WindowShouldClose() && !IsKeyPressed(KEY_Q)) {` in `voxel.c' is the loop where the simulation window runs.
+#### add user to the input group for reading key presses to control robot
+sudo usermod -a -G input $USER
+now log out and back in, when you run `groups` you should see `input` listed
 
-Additional `.h` files provide functionalities.
-E.g. `map.h` generates map (in form of an array) of the world base on input picture.
-`faces.h` handles generation of 1 voxel mesh face (side) by face.
+###raylib
+either from __[(https://www.raylib.com/)]__ or by:
+sudo add-apt-repository ppa:texus/raylib
+sudo apt update
+sudo apt install libraylib5-dev
 
-In `map\_images` there are .png files, which are few pixels times few pixels images that encode walls in the world.
-You could say Voxel World is build generatively.
-Black pixel means 1 voxel. White pixel means no voxel. Other options are unavailable at this moment.
-Warning: Pixels have to be black or white, transparent ones do not work.
-Note: not all of the images were used, not all of them works. `map\_images` repository is not cleaned properly.
-Loaded 'map' image is specified in `map.h`
+## Build
+mkdir -p ~/voxel_world_ws/src
+cd ~/voxel_world_ws/src
+git clone <this-repo> ros_voxels
+cd ~/voxel_world_ws
+colcon build
+source install/setup.bash
 
-`illustration\_images' contains pictures used for this `README.md` and possibly other presentation stuff.
+# Run (must be from workspace root for resource paths)
+./install/ros_voxels/lib/ros_voxels/master_main
+```
 
-## DOCUMENTATION of available functions (definitely not complete, just one or few functions so far):
+A window opens showing Voxels - the voxel world simulation. Fly with **Arrows**, **PgUp, PgDn** and **WASD**. Press **P** to enable player mode (**O** to disble it), then use **WASD** to move and **KL** to turn. Press **V** for first-person view (robot POV).
 
-Note: I'm using both raylib libraries and my own `.h` files I've created so far. Lot of functions in them are slightly edited functions from raylib library.
+---
 
-__`getUpDireciton`, `getForwardDirection` etc (`get...Direction`)__ - it is in 'small\_handy\_stuff.h':
-*returns vector (warning: the vector is not neccasrly normalized) with start at the origin of the world grid and pointing in direction as follows:*
+## Features
 
-__Up__ - normalized vector pointing UP with respect to the world grid
+- **Procedural voxel world** generated from a 2D pixel image (.png, .jpg, ...)
+- **Monocular camera** — `sensor_msgs/Image` at 50 Hz (BGR8, 1600×850)
+- **Ground-truth odometry** — `nav_msgs/Odometry` + TF (`odom` → `base_link`)
+- **planar LiDAR laser scan** — `sensor_msgs/LaserScan`
+- **Velocity control** — `cmd_vel_subscriber` (`TwistStamped`)
+- **Teleport** — `/initialpose` for resetting robot position
+- **Keyboard teleop** — raw `/dev/input/` reads for low-latency control
+- **1st and 3rd person view** — god mode (free-fly) + player mode (first-person)
 
-__Down__ - normalized vector pointing DOWN with respect to the world grid
+---
 
-__Forward, Back__ - points in direction in front of or behind, respectively, of the robot. So forward or back with respect to the robot's orientation.
+## ROS 2 Interface
 
-__Left, Right__ - points in direction to the left or right, respectively, of the robot. So left or right with respect to the robot's orientation.
+| Topic | Type | Direction |
+|-------|------|-----------|
+| `/camera_front_publisher` | `sensor_msgs/Image` | Published |
+| `/odometry_publisher` | `nav_msgs/Odometry` | Published |
+| `/lidar_scan` | `sensor_msgs/LaserScan` | Published |
+| `/cmd_vel_publisher` | `geometry_msgs/TwistStamped` | Published |
+| `/cmd_vel_subscriber` | `geometry_msgs/TwistStamped` | Subscribed |
+| `/initialpose` | `geometry_msgs/PoseWithCovarianceStamped` | Subscribed |
 
+**TF**: `odom` → `base_link` (broadcast at 50 Hz)
 
-![Voxel World - God mode view](illustration_images/god_camera_view.png)
-![Voxel World - Player mode view](illustration_images/player_camera_view.png)
+---
+
+## Controls
+
+| Key | Mode | Action |
+|-----|------|--------|
+| P | Any | Enable player mode |
+| O | Any | Disable player mode |
+| V | Any | Toggle first-person view |
+| WASD | Player | Move robot |
+| KL | Player | Rotate robot |
+| Arrows | God | Move camera |
+| WASD | God | Rotate camera |
+| PgUp/PgDn | God | Move up/down |
+| T | Any | Teleport input ("x z yaw_deg") |
+| Space | Any | Screenshot |
+| Q or Esc | Any | Quit |
+
+---
+
+## Repository Structure
+
+```
+ros_voxels/
+├── CMakeLists.txt              # ROS 2 package build
+├── package.xml                 # ROS 2 manifest
+├── core_voxels/                # Simulation engine (no ROS deps)
+│   ├── include/                #   Headers
+│   ├── src/                    #   Implementation (10 source files)
+│   └── resources/              #   Map images + textures
+├── ros_voxels/                 # ROS 2 glue library
+│   ├── include/
+│   └── src/
+├── master_main/                # Main entry point (executable)
+│   ├── include/
+│   └── src/
+└── documentation/                       # Full documentation suite
+    ├── architecture.md
+    ├── software_design.md
+    ├── simulation_model.md
+    ├── api_reference.md
+    └── README.md (this file)
+```
+
+---
+
+## Documentation
+Find detailed documentation in `documentation/`:
+
+| Document              | Content                                                        |
+| --------------------- | -------------------------------------------------------------- |
+| `README.md`           | Intro to documentation                                         |
+| `index.md`            | List of all functions and some variables - with short comments |
+| `architecture.md`     | System architecture, data flow, threading model                |
+| `software_design.md`  | Detailed module design, algorithms, data types                 |
+| `simulation_model.md` | World model, physics, sensor models, coordinate frames         |
+| `api_reference.md`    | Full ROS 2 interface, library API reference                    |
+
+---
+
+## Requirements
+
+- **ROS 2** Humble / Iron / Jazzy (tested on Jazzy)
+- **C++14** compiler
+- **raylib** (tested on ≥ 4.5)
+- **OpenCV** (tested on ≥ 4.2)
+- **X11**, OpenGL (for raylib rendering)
+
+---
+
+## License
+
+Apache 2.0. See `LICENSE`.
