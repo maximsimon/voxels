@@ -7,6 +7,7 @@
 #include "raymath.h"
 
 #include "config_core.hpp"
+#include "config_data_types.hpp"
 
 #include <opencv2/opencv.hpp>
 
@@ -20,6 +21,7 @@ extern const int screen_height;
 // chunk size
 extern const int chunk_w;
 extern const int chunk_h;
+
 
 // actual core map of the Voxel World (1 is voxel 0 is nothing)
 typedef struct {

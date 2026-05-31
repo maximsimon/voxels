@@ -5,6 +5,7 @@
 
 #include "raylib.h"
 #include "raymath.h"
+#include "config_data_types.hpp"
 
 // Generate a face of a voxel
 void fetchFront(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
@@ -13,6 +14,6 @@ void fetchTop(int vertex_count, float *vertices, float *normals, Vector3 *v_vect
 void fetchFloor(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchRight(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
 void fetchLeft(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);
-void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count, int texture_type, float width, float height, float length);		// Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh
+void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count, HUE_TYPE texture_type, float width, float height, float length);		// Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh
 
 #endif

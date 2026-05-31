@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(core_voxels)
 
 # Compile as C++14
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Include headers
 include_directories(

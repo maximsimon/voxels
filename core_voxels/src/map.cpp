@@ -7,10 +7,10 @@
 #include "map.hpp"
 #include "data_types.hpp"
 #include "faces.hpp"
+#include "config_core.hpp"
 
-const int chunk_w = 16;
-const int chunk_h = 16;
-
+const int chunk_w = CHUNK_WIDTH;
+const int chunk_h = CHUNK_HEIGHT;
 
 // fetches index of the chunk in map where world_pose is currently located
 int fetchCurrChunkIdx(mainMap main_map, Vector3 world_pose) {
@@ -54,14 +54,14 @@ mainMap fetchMainMap(Image mazemap_img) {
 	main_map.width_px = mazemap_img.width;		// width of entire world in pixels
 	main_map.height_px = mazemap_img.height;		// height of entire world in pixels
 	
-	// check if image sides are divisible by 16 for now
-	if (main_map.height_px % 16 != 0 || main_map.width_px % 16 != 0) {
+	// check if image sides are divisible by 16 (chunk_size for now
+	if (main_map.height_px % chunk_h != 0 || main_map.width_px % chunk_w != 0) {
 		printf("\n\n\n ERROR: map input image has sides not divisible by %d in pixels, pls enter image with sides of multiples of %d \n\n\n", chunk_w, chunk_w);
 	}
 
-	main_map.width_chunks = (int)((main_map.width_px - 1) / 16 + 1);		// height in chunks
-	main_map.height_chunks = (int)((main_map.height_px - 1)/ 16 + 1);		// width of entire world in chunks
-	main_map.chunk_side = chunk_w;		// TODO: magic number
+	main_map.width_chunks = (int)((main_map.width_px - 1) / chunk_w + 1);		// height in chunks
+	main_map.height_chunks = (int)((main_map.height_px - 1)/ chunk_h + 1);		// width of entire world in chunks
+	main_map.chunk_side = chunk_w;
 
 	main_map.chunks = new chunkMap[main_map.width_chunks * main_map.height_chunks]();	
 
@@ -77,9 +77,6 @@ mainMap fetchMainMap(Image mazemap_img) {
 	UnloadImageColors(pixels);
 	UnloadImage(mazemap_img);
 
-
-	
-
 	return main_map;
 }
 
@@ -92,7 +89,6 @@ chunkMap fetchChunkMap(Color *pixels, int ch_x, int ch_z, int height_px) {
 	HUE_TYPE hue_type;	
 	for (int z = 0; z < chunk_h; z++) {
 		for (int x = 0; x < chunk_w; x++) {
-			
 			// get pixels hue
 			position = (ch_z * height_px * chunk_h + z * height_px) + (ch_x * chunk_w + x);
 			map.map[x + z * chunk_w] = getPixelHue(pixels[position]);	
@@ -102,25 +98,27 @@ chunkMap fetchChunkMap(Color *pixels, int ch_x, int ch_z, int height_px) {
 	return map;
 }
 
+// returns color (from enum variable HUE_TYPE) based on pixels real RGB/HSV color
 HUE_TYPE getPixelHue(Color pixel_color) {
+
+	if (GRAY_VALUE(pixel_color) > color_config.white_gray_threshold) return white;
+
 	float hue = ColorToHSV(pixel_color).x;
-	
-	HUE_TYPE hue_type;
-	
-	// TODO: do this properly		
-	// TODO: magic numbers
-	if (GRAY_VALUE(pixel_color) > 150) {
-		hue_type = white;
-	} else if (hue < 70) {
-		hue_type = red;
-	} else if (hue > 70 && hue < 160 ) {
-		hue_type = green;
-	} else if (hue > 160 && hue < 290 ) {
-		hue_type = blue;
-	} else if (hue > 290 ) {
-		hue_type = pink;
-	} else hue_type = unknown;
-	return hue_type;
+
+	HUE_TYPE best_type = unknown;
+	float best_distance = std::numeric_limits<float>::max();
+
+	// find closest HUE_TYPE to pixels color
+	for (const auto& color : color_config.colors) {
+		float distance = std::abs(hue - color.center_hue_deg);
+		distance = std::min(distance, 360.0f - distance);		// hue wraps around at 360°
+		if (distance < best_distance) {
+			best_distance = distance;
+			best_type = color.type;
+		}
+	}
+
+	return best_type;
 }
 
 // build mesh of one chunk 16x16 voxels
@@ -142,27 +140,17 @@ void buildChunkMesh(mainMap *map, Mesh& mesh, int chunk_x, int chunk_z, int chun
 }
 
 // generates voxels of predefined style base on hue_type of pixel in that place in input image
-void genObject(Mesh &mesh, float absolute_voxel_world_x, float absolute_voxel_world_z, int *voxel_count, int hue_type) {
+void genObject(Mesh &mesh, float x, float z, int *voxel_count, int hue_type_int) {
+	
+	HUE_TYPE type = static_cast<HUE_TYPE>(hue_type_int);
+	auto item = objects.find(type);		// find voxel cluster type from ObjectMap ('objects' are elements of ObjectMap) based on pixel hue
+	
+	if (item == objects.end()) return;
 
-	switch(hue_type) {
-		// tree
-		case pink:
-			MeshVoxel(mesh, absolute_voxel_world_x, 0.0f, absolute_voxel_world_z, 0.0f, voxel_count, pink, 0.5f, 1.0f, 0.5f);
-			MeshVoxel(mesh, absolute_voxel_world_x, 1.0f, absolute_voxel_world_z, 0.0f, voxel_count, pink, 0.5f, 1.0f, 0.5f);
-			MeshVoxel(mesh, absolute_voxel_world_x, 2.0f, absolute_voxel_world_z, 0.0f, voxel_count, pink, 0.5f, 1.0f, 0.5f);
-			MeshVoxel(mesh, absolute_voxel_world_x, 3.0f, absolute_voxel_world_z, 0.0f, voxel_count, pink, 0.5f, 1.0f, 0.5f);
-			break;
-		// a building
-		case blue:
-			for (int i = 0; i < 5; i++) MeshVoxel(mesh, absolute_voxel_world_x, (float)i, absolute_voxel_world_z, 0.0f, voxel_count, blue, 1.0f, 2.0f, 1.0f);
-			break;
-		case green:
-			MeshVoxel(mesh, absolute_voxel_world_x, 0.0f, absolute_voxel_world_z, 0.0f, voxel_count, green, 1.0f, 1.0f, 1.0f);
-			break;
-		case red:
-			MeshVoxel(mesh, absolute_voxel_world_x, 0.0f, absolute_voxel_world_z, 0.0f, voxel_count, red, 1.0f, 2.0f, 1.0f);
-			break;
-	}
+	const auto& object = item->second;
+	
+	// add voxel cluster to chunk mesh
+	for (const auto& v : object.voxels) MeshVoxel(mesh, x + v.x, v.y, z + v.z, 0.0f, voxel_count, type, v.sx, v.sy, v.sz);
 }
 
 // build world based on map

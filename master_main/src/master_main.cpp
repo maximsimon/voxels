@@ -1,11 +1,14 @@
 // MASTER MAIN LAUNCHABLE - LAUNCHES SIMULATION IN A 1st THREAD AND LAUNCHES 2nd THREAD THAT IS USED TO COMMUNICATE WITH ANY MODULE THAT USES VOXEL_WORLD SIMULATION (e.g. ROS, RL setup)
 
 #include "raylib.h"
+
 #include "master_voxel.hpp"
 #include "player_movement.hpp"
 #include "ros_voxels.hpp"
 #include "teleop_keys.hpp"
 #include "master_main.hpp"
+#include "config_master.hpp"
+
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,14 +55,12 @@ void master_step_sim() {
 	Observation* vw_observation = new Observation();
 	Action* vw_action = new Action();// = (Action*)malloc(sizeof(Action));
 	
-	//TODO: add some error handling and printing if file does not load
-	//TODO temp params here to get it running -> then move to yaml file
-	Image mazemap_image = LoadImage("src/ros_voxels/core_voxels/resources/map_images/map_paper.png");	//TODO: add some error handling and printing if file does not load
-	Vector3 player_pose = { -2.0f, 0.5f, -2.0f };
-	Vector3 player_direction = { -2.0f, 0.5f, -1.0f };
+	//Image mazemap_image = LoadImage(MAP_IMAGE_PATH);	//TODO: add some error handling and printing if file does not load
+	Vector3 player_pose = PLAYER_POSE_INIT;
+	Vector3 player_direction = PLAYER_DIRECTION_INIT; 
 	int step_size = 2;		// in milliseconds
 	
-	vw_instance = init_sim(mazemap_image, player_pose, player_direction, step_size);	// init voxel world simulation
+	vw_instance = init_sim(player_pose, player_direction, step_size);	// init voxel world simulation
 	
 	while (!WindowShouldClose() && !IsKeyPressed(KEY_Q)) { //observation_ = step_sim(vw_main_, action_);	
 		mutex_action.lock();

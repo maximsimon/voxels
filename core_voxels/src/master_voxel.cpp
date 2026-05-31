@@ -1,5 +1,4 @@
-// THIS IS MAIN
-// VOXELS: PROGRAMMING MY RENDERING OF VOXEL WORLD, starting with a MAZE FROM PICTURE AND MY KEYBINDINGS FOR MOVEMENT, then connecting to ROS and more
+// THIS IS MAIN FILE CONTROLLING THE VOXELS SIMULATION
 
 #include "raylib.h"
 #include "rlgl.h"
@@ -16,14 +15,11 @@
 #include "data_types.hpp"
 #include "odometry.hpp"
 #include "lidar.hpp"
-
-//window size
-const int screen_width = 1600;
-const int screen_height = 850;
+#include "config_core.hpp"
 
 // Draw an arrow at the agent's position pointing along its look direction
 // IMPORTANT: never call this from inside the player_camera's
-static void drawAgentArrow(Camera3D camera, Color color) {
+static void drawPlayer(Camera3D camera, Color color) {
 	Vector3 forward = Vector3Subtract(camera.target, camera.position);
 	forward.y = 0.0f;
 	float len = sqrtf(forward.x * forward.x + forward.z * forward.z);
@@ -64,12 +60,13 @@ static void drawAgentArrow(Camera3D camera, Color color) {
 	DrawCylinderEx(shaft_end, tip,  head_r,  0.0f,    12, color);
 }
 
-VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_direction, int step_size) {
+// initilize simulation - allocate memory, create structs, define window size, etc
+VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_size) {
 	
 	VoxelWorld *vw = (VoxelWorld*)malloc(sizeof(VoxelWorld));	
 
 	// start window
-	InitWindow(screen_width, screen_height, "You're in voxels now.");
+	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "You're in voxels now.");
 	SetTargetFPS(100 / step_size);
 	
 	// setup camera
@@ -83,14 +80,15 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	
 	// setup player
 	Camera player_camera = { 0 };
-	player_camera.position = (Vector3){ 21.0f, 0.5f, 6.0f };    // Camera position
-	player_camera.target = (Vector3){ -2.0f, 0.5f, -1.0f };    // Camera looking at point
+	player_camera.position = player_pose;    // Camera position
+	player_camera.target = {player_pose.x + player_direction.x, 0.5f, player_pose.z + player_direction.z};    // Camera looking at point
 	player_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
 	player_camera.fovy = 45.0f;                                // Camera field-of-view Y
 	player_camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 	vw->player_camera = player_camera;
 
 	// build map and Voxel World	
+	Image mazemap_image = LoadImage(MAP_IMAGE_PATH);	//TODO: add some error handling and printing if file does not load
 	mainMap main_map = fetchMainMap(mazemap_image);		// get map of voxel world (1 - voxel, 0 - no voxel)
 	printf("map built succesffully\n");
 	
@@ -104,7 +102,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	
 	// maze model
 	Model *model = new Model[main_map.width_chunks * main_map.height_chunks]();
-	Texture2D texture = LoadTexture("src/ros_voxels/core_voxels/resources/textures/atlas.png");    // Load map texture
+	Texture2D texture = LoadTexture(TEXTURE_ATLAS_PATH);    // Load texture atlas
 	for (int i = 0; i < main_map.width_chunks * main_map.height_chunks; i++) {
 		UploadMesh(&maze_mesh[i], false);				// upload world
 		model[i] = LoadModelFromMesh(maze_mesh[i]);                  // Load model from generated mesh
@@ -118,7 +116,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	//printMap(main_map);
 	
 	// mesh for the ground
-	Texture2D groundTex = LoadTexture("src/ros_voxels/core_voxels/resources/textures/grass.jpg");
+	Texture2D groundTex = LoadTexture(GROUND_TEXTURE_PATH);
 	SetTextureFilter(groundTex, TEXTURE_FILTER_POINT);
 	//SetTextureWrap(groundTex, TEXTURE_WRAP_REPEAT); // important for tiling
 	
@@ -132,7 +130,7 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	// mesh and model of the sky
 	Mesh sky_mesh = GenMeshHemiSphere(500.0f, 32, 32);
 	Model sky_model = LoadModelFromMesh(sky_mesh);
-	Texture2D sky_texture = LoadTexture("src/ros_voxels/core_voxels/resources/textures/stars.png");    // Load map texture
+	Texture2D sky_texture = LoadTexture(SKY_TEXTURE_PATH);    // Load map texture
 	sky_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = sky_texture;
 	SetTextureWrap(sky_texture, TEXTURE_WRAP_REPEAT); // important for tiling
 	sky_model.transform = MatrixScale(1, 1, -1);
@@ -144,19 +142,6 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	player_mesh.normals = (float *)RL_MALLOC(0);
 	player_mesh.indices = (unsigned short *)RL_MALLOC(0);
 
-	
-	//TODO: from use player pose and player direction parameters
-	int players_count = 0;
-	float player_angle = 0.5f;
-	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
-	Vector3 scale = {1.0f, 1.0f, 1.0f};
-
-	MeshVoxel(player_mesh, 0.0f, 0.5f, 0.0f, player_angle, &players_count, 0, 1.0f, 1.0f, 1.0f);
-	UploadMesh(&player_mesh, false);
-	Model player_model = LoadModelFromMesh(player_mesh);                  // Load model from generated mesh
-
-	vw->player_model = player_model;	
-	
 	// mode variables
 	bool player_mode = false;	
 	bool player_view = false;
@@ -166,23 +151,21 @@ VoxelWorld *init_sim(Image mazemap_image, Vector3 player_pose, Vector3 player_di
 	vw->current_camera = current_camera;	
 	
 	// initilize rest of VoxelWorld vw	
-	vw->camera_view_tex = LoadRenderTexture(screen_width, screen_height);
+	vw->camera_view_tex = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
 	vw->teleport_text.text_active = false;
 	vw->teleport_text.letter_count = 0;
-	vw->teleport_text.text_box = { screen_width - 400, 100, 200, 50 };
-	vw->teleport_text.MAX_INPUT_CHARS = 30;		// TODO: magic number
+	vw->teleport_text.text_box = { SCREEN_WIDTH - 400, 100, 200, 50 };		// TODO: magic numbers
+	vw->teleport_text.MAX_INPUT_CHARS = 30;
 	vw->teleport_text.text[vw->teleport_text.MAX_INPUT_CHARS] = { 0 };      // NOTE: One extra space required for null terminator char '\0'	
 	printf("init succesfull\n");
 	return vw;
 }
 
-//Observation *step_sim(VoxelWorld *vw, Action *action) {
+// this function is one step of simulation, here happen all calculations of what happens in the simulation as well as the actual visual rendering, called in loop from master_main
 void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	// TODO: move these somewhere a bit cleaner
 	char position_info[70];
 	char mode_info[70];
-	Vector3 y_axis = {0.0f, 1.0f, 0.0f};
-	Vector3 scale = {1.0f, 1.0f, 1.0f};
     	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
 
 	// handle all keys pressed
@@ -222,7 +205,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
 			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
 			if (!(vw->player_mode && vw->player_view)) {
-				drawAgentArrow(vw->player_camera, RED);				// draw heading arrow (the player)
+				drawPlayer(vw->player_camera, RED);				// draw heading arrow (the player)
 			}
 
 			if (!(vw->player_mode && vw->player_view)) drawLidarRays(vw, observation, false);
@@ -235,7 +218,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 			// for debugging: DrawGrid(1000, 1.0f);
 			
 			// TODO: draw cross in the middle of the screen (put toggle on/off in config)
-			// TODO: fix allocating vrs in loop
+			// TODO: fix allocating variables in loop
 
 		EndMode3D();
 		
@@ -250,6 +233,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		sprintf(mode_info, "Player Mode? %d Player View? %d", vw->player_mode, vw->player_view);
 		DrawText(mode_info, 10, 90, 20, BLACK);
 		DrawFPS(10, 130);
+
 		// draw teleport input box if T was pressed
 		if (vw->teleport_text.text_active == true) {
 			DrawRectangleRec(vw->teleport_text.text_box, (Color){0, 0, 0, 0});

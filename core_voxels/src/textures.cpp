@@ -7,16 +7,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include "map.hpp"
+#include "config_core.hpp"
+#include "config_data_types.hpp"
 
+//TODO: parametrize pickign texture from texture atlas - you need to automate the 48 values in the tex_corrds array
 
-void fetchTextureCoords(int texture_type, float *texcoords) {
-	if (texture_type == red) for (int i = 0; i < 48; i++) texcoords[i] = brick[i];
-	if (texture_type == green) for (int i = 0; i < 48; i++) texcoords[i] = bush[i];
-	if (texture_type == pink) for (int i = 0; i < 48; i++) texcoords[i] = tree[i];
-	if (texture_type == blue) for (int i = 0; i < 48; i++) texcoords[i] = building[i];
+void fetchTextureCoords(HUE_TYPE texture_type, float *texcoords) {
+	if (texture_type == red) for (int i = 0; i < 48; i++) texcoords[i] = first_tex_coords[i];
+	if (texture_type == green) for (int i = 0; i < 48; i++) texcoords[i] = second_tex_coords[i];
+	if (texture_type == pink) for (int i = 0; i < 48; i++) texcoords[i] = third_tex_coords[i];
+	if (texture_type == blue) for (int i = 0; i < 48; i++) texcoords[i] = fourth_tex_coords[i];
 }
 
-const float tree[48] = {
+// TODO: on 1 side of voxels the texture is rotated by 90 degrees, figure out properly how the texture coords work
+
+const float first_tex_coords[48] = {
 	0.0f, 0.0f,
 	0.5f, 0.0f,
 	0.5f, 0.5f,
@@ -43,7 +48,7 @@ const float tree[48] = {
 	0.0f, 0.5f
 };
 
-const float brick[48] = {
+const float second_tex_coords[48] = {
 	0.5f, 0.0f,
 	1.0f, 0.0f,
 	1.0f, 0.5f,
@@ -70,7 +75,7 @@ const float brick[48] = {
 	0.5f, 0.5f,
 };
 
-const float building[48] = {
+const float third_tex_coords[48] = {
 	0.0f, 0.5f,
 	0.5f, 0.5f,
 	0.5f, 1.0f,
@@ -97,7 +102,7 @@ const float building[48] = {
 	0.0f, 1.0f,
 };
 
-const float bush[48] = {
+const float fourth_tex_coords[48] = {
 	0.5f, 0.5f,
 	1.0f, 0.5f,
 	1.0f, 1.0f,
