@@ -204,11 +204,11 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		
 			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
 			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
+			// Rays first, then agent, so the player marker stays readable over scan lines.
+			if (!(vw->player_mode && vw->player_view)) drawLidarRays(vw, observation, false);
 			if (!(vw->player_mode && vw->player_view)) {
 				drawPlayer(vw->player_camera, RED);				// draw heading arrow (the player)
 			}
-
-			if (!(vw->player_mode && vw->player_view)) drawLidarRays(vw, observation, false);
 			
 			// draw maze
 			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {	// draw voxels

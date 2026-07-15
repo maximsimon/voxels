@@ -79,11 +79,13 @@ void printMap(mainMap main_map) {
 	}	
 }
 
-// visualize lidar on screen
+// visualize lidar on screen (semi-transparent cyan; distinct from agent RED)
 void drawLidarRays(VoxelWorld *vw, Observation *observation, bool in_player_view) {
     float heading = getPlayerAngle(vw->player_camera);
     Vector3 origin = vw->player_camera.position;
+    const Color RAY_COLOR = { 0, 200, 255, 90 };  // cyan, ~35% alpha
 
+    BeginBlendMode(BLEND_ALPHA);
     for (int i = 0; i < NUM_LIDAR_RAYS; i++) {
         float range = observation->lidar_scan[i];
         float angle = heading + (float)i * (2.0f * PI) / (float)NUM_LIDAR_RAYS;
@@ -92,7 +94,8 @@ void drawLidarRays(VoxelWorld *vw, Observation *observation, bool in_player_view
             0.5f,
             origin.z + sinf(angle) * range
         };
-        DrawLine3D(origin, end, RED);
+        DrawLine3D(origin, end, RAY_COLOR);
     }
+    EndBlendMode();
 }
 
