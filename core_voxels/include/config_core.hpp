@@ -93,7 +93,20 @@ inline ObjectDefinition puddle = {
 
 // paths to files
 
+// PAPER (VTR testbed default)
+inline const char* MAP_IMAGE_PATH = "src/ros_voxels/core_voxels/resources/map_images/map_paper.png";
+inline const char* TEXTURE_ATLAS_PATH = "src/ros_voxels/core_voxels/resources/textures/atlas.png";
+inline const char* GROUND_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/grass.png";
+inline const char* SKY_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/stars.png";
+inline ObjectMap objects = {
+	{red, tree},
+	{green, brick},
+	{pink, building},
+	{blue, bush}
+};
+
 // SIDLISTE
+/*
 inline const char* MAP_IMAGE_PATH = "src/ros_voxels/core_voxels/resources/map_images/map_sidliste.png";
 inline const char* TEXTURE_ATLAS_PATH = "src/ros_voxels/core_voxels/resources/textures/atlas.png";
 inline const char* GROUND_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/grass.png";
@@ -104,6 +117,7 @@ inline ObjectMap objects = {
 	{pink, building},
 	{blue, bush}
 };
+*/
 
 // DESERT
 /*
