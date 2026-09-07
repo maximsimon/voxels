@@ -8,7 +8,7 @@
 #include <string.h>
 #include "map.hpp"
 #include "config_core.hpp"
-#include "config_data_types.hpp"
+#include "data_types.hpp"
 
 //TODO: parametrize pickign texture from texture atlas - you need to automate the 48 values in the tex_corrds array
 

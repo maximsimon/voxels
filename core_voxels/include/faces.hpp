@@ -5,7 +5,7 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include "config_data_types.hpp"
+#include "data_types.hpp"
 
 // Generate a face of a voxel
 void fetchFront(int vertex_count, float *vertices, float *normals, Vector3 *v_vectors, Vector3 *n_vectors, int *voxel_v_count, int *voxel_t_count, unsigned short *indices);

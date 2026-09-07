@@ -143,9 +143,9 @@ void buildChunkMesh(mainMap *map, Mesh& mesh, int chunk_x, int chunk_z, int chun
 void genObject(Mesh &mesh, float x, float z, int *voxel_count, int hue_type_int) {
 	
 	HUE_TYPE type = static_cast<HUE_TYPE>(hue_type_int);
-	auto item = objects.find(type);		// find voxel cluster type from ObjectMap ('objects' are elements of ObjectMap) based on pixel hue
+	auto item = CurrentWorld.objects.find(type);		// find voxel cluster type from ObjectMap ('objects' are elements of ObjectMap) based on pixel hue
 	
-	if (item == objects.end()) return;
+	if (item == CurrentWorld.objects.end()) return;
 
 	const auto& object = item->second;
 	

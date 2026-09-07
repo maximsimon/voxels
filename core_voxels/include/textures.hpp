@@ -1,7 +1,7 @@
 #ifndef TEXTURES_H
 #define TEXTURES_H
 
-#include "config_data_types.hpp"
+#include "data_types.hpp"
 
 void fetchTextureCoords(HUE_TYPE texture_type, float *texcoords);
 

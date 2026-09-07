@@ -27,6 +27,7 @@ find_path(RAYLIB_INCLUDE_DIR raylib.h REQUIRED)
 include_directories(
   include
   core_voxels/include
+  core_voxels/resources/worlds
   master_main/include
   ${OpenCV_INCLUDE_DIRS}
   ${RAYLIB_INCLUDE_DIR}
@@ -45,6 +46,8 @@ add_library(core_voxels STATIC
   core_voxels/src/support_for_master.cpp
   core_voxels/src/odometry.cpp
   core_voxels/src/lidar.cpp
+  core_voxels/src/world_loading.cpp
+  core_voxels/src/world_config.cpp
 )
 
 target_link_libraries(core_voxels

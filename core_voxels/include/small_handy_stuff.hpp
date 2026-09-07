@@ -17,5 +17,6 @@ float getPlayerAngle(Camera camera);		// heading angle of the camera in XZ plane
 float getPlayerAngleDeg(Camera camera);		// heading angle ---------------------- || --------------------- , degrees
 void printMap(mainMap main_map);	// helper debugging function for printing map
 void drawLidarRays(VoxelWorld *vw, Observation *observation, bool in_player_view);		// visualize lidar on screen
+void printWorld(const World& world);			// convinience function for printing World structure (e.g. definition of currently rendered world: printWorld(vw->current_world))
 
 #endif

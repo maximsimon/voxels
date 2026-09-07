@@ -6,11 +6,11 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#include "config_core.hpp"
-#include "config_data_types.hpp"
-
 #include <opencv2/opencv.hpp>
+#include <vector>
+#include <unordered_map>
 
+#include "config_core.hpp"
 
 #define GRAY_VALUE(c) ((float)(c.r + c.g + c.b)/3.0f)
 
@@ -21,7 +21,6 @@ extern const int screen_height;
 // chunk size
 extern const int chunk_w;
 extern const int chunk_h;
-
 
 // actual core map of the Voxel World (1 is voxel 0 is nothing)
 typedef struct {
@@ -85,6 +84,7 @@ typedef struct VoxelWorld {
 	Mesh *maze_mesh;			// mesh of the world;
 	Model ground_model;		// model for texturing the ground visually
 	Model sky_model;
+	World current_world;
 	teleportText teleport_text;
 } VoxelWorld;
 

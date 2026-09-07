@@ -16,6 +16,7 @@
 #include "odometry.hpp"
 #include "lidar.hpp"
 #include "config_core.hpp"
+#include "world_config.hpp"
 
 // Draw an arrow at the agent's position pointing along its look direction
 // IMPORTANT: never call this from inside the player_camera's
@@ -87,8 +88,12 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_siz
 	player_camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 	vw->player_camera = player_camera;
 
-	// build map and Voxel World	
-	Image mazemap_image = LoadImage(MAP_IMAGE_PATH);	//TODO: add some error handling and printing if file does not load
+	// load which world to use from config file before building the world
+	load_world_config("src/ros_voxels/core_voxels/resources/worlds/worlds.config");
+	vw->current_world = CurrentWorld;
+
+	// BUILD MAP AND THE VOXEL WORLD world (it's appearance and "physical" strcture")	
+	Image mazemap_image = LoadImage(CurrentWorld.MAP_IMAGE_PATH);	//TODO: add some error handling and printing if file does not load
 	mainMap main_map = fetchMainMap(mazemap_image);		// get map of voxel world (1 - voxel, 0 - no voxel)
 	printf("map built succesffully\n");
 	
@@ -102,7 +107,7 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_siz
 	
 	// maze model
 	Model *model = new Model[main_map.width_chunks * main_map.height_chunks]();
-	Texture2D texture = LoadTexture(TEXTURE_ATLAS_PATH);    // Load texture atlas
+	Texture2D texture = LoadTexture(CurrentWorld.TEXTURE_ATLAS_PATH);    // Load texture atlas
 	for (int i = 0; i < main_map.width_chunks * main_map.height_chunks; i++) {
 		UploadMesh(&maze_mesh[i], false);				// upload world
 		model[i] = LoadModelFromMesh(maze_mesh[i]);                  // Load model from generated mesh
@@ -116,7 +121,7 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_siz
 	//printMap(main_map);
 	
 	// mesh for the ground
-	Texture2D groundTex = LoadTexture(GROUND_TEXTURE_PATH);
+	Texture2D groundTex = LoadTexture(CurrentWorld.GROUND_TEXTURE_PATH);
 	SetTextureFilter(groundTex, TEXTURE_FILTER_POINT);
 	//SetTextureWrap(groundTex, TEXTURE_WRAP_REPEAT); // important for tiling
 	
@@ -130,11 +135,13 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_siz
 	// mesh and model of the sky
 	Mesh sky_mesh = GenMeshHemiSphere(500.0f, 32, 32);
 	Model sky_model = LoadModelFromMesh(sky_mesh);
-	Texture2D sky_texture = LoadTexture(SKY_TEXTURE_PATH);    // Load map texture
+	Texture2D sky_texture = LoadTexture(CurrentWorld.SKY_TEXTURE_PATH);    // Load map texture
 	sky_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = sky_texture;
 	SetTextureWrap(sky_texture, TEXTURE_WRAP_REPEAT); // important for tiling
 	sky_model.transform = MatrixScale(1, 1, -1);
 	vw->sky_model = sky_model;
+
+	// END OF BUILDING THE VOXEL WORLD world (appearance and "physical" structure)
 
 	// mesh and model of the player
 	Mesh player_mesh = { 0 };

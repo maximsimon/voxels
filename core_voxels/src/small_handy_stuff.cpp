@@ -6,6 +6,7 @@
 #include "small_handy_stuff.hpp"
 #include "data_types.hpp"
 #include "config_core.hpp"
+#include <iostream>
 
 Vector3 getUpDirection() {
 	Vector3 up = {0.0f, 1.0f, 0.0f};
@@ -98,4 +99,26 @@ void drawLidarRays(VoxelWorld *vw, Observation *observation, bool in_player_view
     }
     EndBlendMode();
 }
+
+// convinience function for printing World structure (e.g. definition of currently rendered world: printWorld(vw->current_world))
+void printWorld(const World& world) {
+	std::cout << "=== World ===\n";
+
+	std::cout << "MAP_IMAGE_PATH:      "<< world.MAP_IMAGE_PATH << '\n';
+
+	std::cout << "TEXTURE_ATLAS_PATH:  "<< world.TEXTURE_ATLAS_PATH << '\n';
+
+	std::cout << "GROUND_TEXTURE_PATH: "<< world.GROUND_TEXTURE_PATH << '\n';
+
+	std::cout << "SKY_TEXTURE_PATH:    "<< world.SKY_TEXTURE_PATH << '\n';
+
+	std::cout << "Objects:\n";
+	for (const auto& [hue, object] : world.objects) {
+	std::cout << "  hue=" << static_cast<int>(hue)
+	<< '\n';
+	}
+
+	std::cout << "==============\n";
+}
+
 

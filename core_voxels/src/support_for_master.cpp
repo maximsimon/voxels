@@ -13,6 +13,8 @@
 #include "master_voxel.hpp"
 #include "support_for_master.hpp"
 #include "data_types.hpp"
+#include "world_loading.hpp"
+#include "world_config.hpp"
 
 void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observation) {
 	Vector3 forward = getForwardDirection(vw->player_camera);
@@ -80,6 +82,12 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 		for (int i = 0; i < vw->teleport_text.MAX_INPUT_CHARS; i++) vw->teleport_text.text[i] = '\0';
 		teleportGUIinput(vw);
 	}
+	// reload world live - e.g. after changing world definition
+	// TODO: add this to ros_voxels too, so that reloading can be done from ROS - through publishing and stuff
+	if (IsKeyPressed(KEY_R)) {
+		reload_world(vw);
+	}		
+
 	// if input textbox for teleport opened, keep checking for numbers pressed
 	if (vw->teleport_text.text_active == true) {
 		teleportGUIinput(vw);

@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Include headers
 include_directories(
   include
+  resources/worlds
   ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -25,6 +26,8 @@ add_library(${PROJECT_NAME} STATIC
   src/odometry.cpp
   src/textures.cpp
   src/lidar.cpp
+  src/world_loading.cpp
+  src/world_config.cpp
 )
 # Link raylib (if core uses it)
 target_link_libraries(core_voxels
@@ -39,5 +42,6 @@ install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin)
 install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY resources/worlds/ DESTINATION resources/worlds)
 
 

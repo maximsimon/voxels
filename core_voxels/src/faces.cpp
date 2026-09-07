@@ -7,7 +7,7 @@
 #include <string.h>
 #include "faces.hpp"
 #include "textures.hpp"
-#include "config_data_types.hpp"
+#include "data_types.hpp"
 
 // Generate a voxel at given position (pos_x, pos_y, pos_z), voxel_count is number of voxels already in mesh, angle is in radians around y axis
 void MeshVoxel(Mesh& mesh, float pos_x, float pos_y, float pos_z, float angle, int *voxel_count, HUE_TYPE texture_type, float width, float height, float length) {
