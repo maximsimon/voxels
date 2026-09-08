@@ -113,9 +113,13 @@ bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 	}	
 	
 	// switch camera to proper mode (player vs edit), in PLAYER mode movment is handled from ros_voxels (not here, but trough a ROS topic)
-	if (vw->player_mode && vw->player_view)	vw->current_camera = vw->player_camera;
-	else if(vw->player_mode) vw->current_camera = vw->edit_camera;
-	else {								// control edit_camera and MovementEdit
+	if (vw->player_mode && vw->player_view)	{
+		vw->current_camera = vw->player_camera;
+		CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
+	} else if (vw->player_mode) {
+		vw->current_camera = vw->edit_camera;
+		CheckMovement1person(vw, &vw->player_camera, vw->maze_mesh, observation);
+	} else {								// control edit_camera and MovementEdit
 		CheckMovementEdit(&vw->edit_camera);
 		vw->current_camera = vw->edit_camera;
 	}

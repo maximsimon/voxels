@@ -1,4 +1,5 @@
 # Ros Voxels README
+## this branch is underconstruction - contains no ROS API, here is python API instead
 
 A lightweight, voxel-based robot simulator for **ROS 2** with [raylib](https://www.raylib.com/) rendering.
 
@@ -10,6 +11,24 @@ Extended documentation can be found in `documentation/`.
 
 ![Voxel World - God mode view](documentation/figures/god_view.png)
 ![Voxel World - God mode view](documentation/figures/player_view.png)
+
+---
+
+## pythonAPI BRANCH
+
+This branch is for using the simulation for Reinforcment Learning - mainly from python, but cpp should also be possible.	\
+For use of Voxels simulation with ROS, see ros2_api.
+  
+1. To use this branches version, put your python code in examples/ \
+2. `cmake -S . -B build`
+3. build: `cmake --build build`
+3. run: `PYTHONPATH=build examples/python_drive.py`
+(or `./build/master_main` for purely cpp version)
+
+### Prerequisities: OpenCV, raylib
+
+
+**NOTE**: info below is targeted for ros2_api branch and may be (probably is) incorrect for this python_api branch.
 
 ---
 
@@ -44,6 +63,8 @@ source install/setup.bash
 ```
 
 A window opens showing Voxels - the voxel world simulation. Fly with **Arrows**, **PgUp, PgDn** and **WASD**. Press **P** to enable player mode (**O** to disble it), then use **WASD** to move and **KL** to turn. Press **V** for first-person view (robot POV).
+
+
 
 ---
 

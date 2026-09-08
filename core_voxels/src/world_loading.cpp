@@ -12,7 +12,7 @@ void reload_world(VoxelWorld *vw) {
 
 	printf("\n\n R       E        L        O        A        D        I        N        G                 W        O        R        L        D \n\n"); 
 	
-	load_world_config("src/ros_voxels/core_voxels/resources/worlds/worlds.config");
+	load_world_config("core_voxels/resources/worlds/worlds.config");
 	vw->current_world = CurrentWorld;
 
 	printWorld(CurrentWorld);

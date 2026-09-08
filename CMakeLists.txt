@@ -6,18 +6,27 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+
 # Find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(tf2_ros REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(ament_index_cpp REQUIRED)
 find_package(X11 REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
+# Find pybind11 (pip install pybind11)
+execute_process(
+  COMMAND ${Python3_EXECUTABLE} -m pybind11 --cmakedir
+  OUTPUT_VARIABLE pybind11_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET)
+find_package(pybind11 CONFIG PATHS ${pybind11_DIR} NO_DEFAULT_PATH REQUIRED)
+
+# Find numpy headers for the pybind11 module
+execute_process(
+  COMMAND ${Python3_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
+  OUTPUT_VARIABLE NumPy_INCLUDE_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET)
 
 # Find raylib
 find_library(RAYLIB_LIBRARY raylib REQUIRED)
@@ -58,34 +67,15 @@ target_link_libraries(core_voxels
   ${OpenCV_LIBS}
 )
 
-# ROS voxels library
-add_library(ros_voxels STATIC
-  src/ros_voxels.cpp
-  src/teleop_keys.cpp
-)
+set_target_properties(core_voxels PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-ament_target_dependencies(ros_voxels
-  rclcpp
-  std_msgs
-  sensor_msgs
-  cv_bridge
-  geometry_msgs
-  nav_msgs
-  tf2_ros
-)
-
-target_link_libraries(ros_voxels
-  ${OpenCV_LIBS}
-)
-
-# Master main executable
-add_executable(master_main
+# Master main library (static) - sim glue: init/step/teleport + public action/observation buffers
+add_library(master_main_core STATIC
   master_main/src/master_main.cpp
 )
 
-target_link_libraries(master_main
+target_link_libraries(master_main_core
   core_voxels
-  ros_voxels
   ${RAYLIB_LIBRARY}
   ${X11_LIBRARIES}
   m
@@ -93,21 +83,38 @@ target_link_libraries(master_main
   ${OpenCV_LIBS}
 )
 
-ament_target_dependencies(master_main
-  rclcpp
-  std_msgs
-  geometry_msgs
-  nav_msgs
-  sensor_msgs
-  tf2_ros
-  cv_bridge
-  ament_index_cpp
+set_target_properties(master_main_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# Python bridge module - exposes Init()/Step()/Teleport()/Close() to Python
+pybind11_add_module(voxel_sim
+  src/main.cpp
+)
+
+target_include_directories(voxel_sim PRIVATE ${NumPy_INCLUDE_DIR})
+
+target_link_libraries(voxel_sim PRIVATE
+  master_main_core
+  core_voxels
+  ${RAYLIB_LIBRARY}
+  ${X11_LIBRARIES}
+  m
+  pthread
+  ${OpenCV_LIBS}
+)
+
+# Standalone CLI executable - runs the simulation without Python
+add_executable(master_main
+  src/cli_main.cpp
+)
+
+target_link_libraries(master_main
+  master_main_core
 )
 
 # Install targets
 install(TARGETS
   core_voxels
-  ros_voxels
+  master_main_core
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -133,5 +140,3 @@ install(DIRECTORY master_main/include/
 install(DIRECTORY core_voxels/resources/
   DESTINATION share/${PROJECT_NAME}/resources
 )
-
-ament_package()

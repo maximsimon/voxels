@@ -1,5 +1,5 @@
 #ifndef WORLDS_H
-#define WOLRDS_H
+#define WORLDS_H
 
 #include "data_types_worlds.hpp"
 #include "objects.hpp"
@@ -12,10 +12,10 @@
 
 
 inline World ConferenceWorld = {
-	.MAP_IMAGE_PATH = "src/ros_voxels/core_voxels/resources/map_images/map_paper.png",
-	.TEXTURE_ATLAS_PATH = "src/ros_voxels/core_voxels/resources/textures/atlas.png",
-	.GROUND_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/grass.png",
-	.SKY_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/stars.png",
+	.MAP_IMAGE_PATH = "core_voxels/resources/map_images/map_paper.png",
+	.TEXTURE_ATLAS_PATH = "core_voxels/resources/textures/atlas.png",
+	.GROUND_TEXTURE_PATH = "core_voxels/resources/textures/grass.png",
+	.SKY_TEXTURE_PATH = "core_voxels/resources/textures/stars.png",
 	.objects = {
 		{red, tree},
 		{green, brick},
@@ -25,10 +25,10 @@ inline World ConferenceWorld = {
 };
 
 inline World SidlisteWorld = {
-	.MAP_IMAGE_PATH = "src/ros_voxels/core_voxels/resources/map_images/map_sidliste.png",
-	.TEXTURE_ATLAS_PATH = "src/ros_voxels/core_voxels/resources/textures/atlas.png",
-	.GROUND_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/grass.png",
-	.SKY_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/stars.png",
+	.MAP_IMAGE_PATH = "core_voxels/resources/map_images/map_sidliste.png",
+	.TEXTURE_ATLAS_PATH = "core_voxels/resources/textures/atlas.png",
+	.GROUND_TEXTURE_PATH = "core_voxels/resources/textures/grass.png",
+	.SKY_TEXTURE_PATH = "core_voxels/resources/textures/stars.png",
 	.objects = {
 		{red, tree},
 		{green, brick},
@@ -38,10 +38,10 @@ inline World SidlisteWorld = {
 };
 
 inline World DesertWorld = {
-	.MAP_IMAGE_PATH = "src/ros_voxels/core_voxels/resources/map_images/map_desert.png",
-	.TEXTURE_ATLAS_PATH = "src/ros_voxels/core_voxels/resources/textures/desert_texture_atlas.png",
-	.GROUND_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/desert.png",
-	.SKY_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/sky_clouds.png",
+	.MAP_IMAGE_PATH = "core_voxels/resources/map_images/map_desert.png",
+	.TEXTURE_ATLAS_PATH = "core_voxels/resources/textures/desert_texture_atlas.png",
+	.GROUND_TEXTURE_PATH = "core_voxels/resources/textures/desert.png",
+	.SKY_TEXTURE_PATH = "core_voxels/resources/textures/sky_clouds.png",
 	.objects = {
 		{red, sand},
 		{green, tree},
@@ -51,10 +51,10 @@ inline World DesertWorld = {
 };
 
 inline World BleakCityWorld = {
-	.MAP_IMAGE_PATH = "src/ros_voxels/core_voxels/resources/map_images/map_city.png",
-	.TEXTURE_ATLAS_PATH = "src/ros_voxels/core_voxels/resources/textures/city_atlas.png",
-	.GROUND_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/asphalt.png",
-	.SKY_TEXTURE_PATH = "src/ros_voxels/core_voxels/resources/textures/stars.png",
+	.MAP_IMAGE_PATH = "core_voxels/resources/map_images/map_city.png",
+	.TEXTURE_ATLAS_PATH = "core_voxels/resources/textures/city_atlas.png",
+	.GROUND_TEXTURE_PATH = "core_voxels/resources/textures/asphalt.png",
+	.SKY_TEXTURE_PATH = "core_voxels/resources/textures/stars.png",
 	.objects = {
 		{red, fence},
 		{green, brick},

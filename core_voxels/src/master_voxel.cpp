@@ -64,8 +64,8 @@ static void drawPlayer(Camera3D camera, Color color) {
 // initilize simulation - allocate memory, create structs, define window size, etc
 VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_size) {
 	
-	VoxelWorld *vw = (VoxelWorld*)malloc(sizeof(VoxelWorld));	
-
+	//VoxelWorld *vw = (VoxelWorld*)malloc(sizeof(VoxelWorld));	
+	VoxelWorld *vw = new VoxelWorld();
 	// start window
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "You're in voxels now.");
 	SetTargetFPS(100 / step_size);
@@ -89,7 +89,7 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_siz
 	vw->player_camera = player_camera;
 
 	// load which world to use from config file before building the world
-	load_world_config("src/ros_voxels/core_voxels/resources/worlds/worlds.config");
+	load_world_config("core_voxels/resources/worlds/worlds.config");
 	vw->current_world = CurrentWorld;
 
 	// BUILD MAP AND THE VOXEL WORLD world (it's appearance and "physical" strcture")	

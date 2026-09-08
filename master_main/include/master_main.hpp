@@ -3,18 +3,25 @@
 #ifndef MASTER_MAIN_H
 #define MASTER_MAIN_H
 
-#include <thread>
-#include <mutex>
 #include "data_types.hpp"
 
-// entire Voxel World is initiated and ran from this function, which is called by master_main.cpp main() function in its own neat little thread (hopefully)
-void master_step_sim();
+// public action/observation buffers - the hand-off point between the simulation
+// and external modules (e.g. the python bridge). Write master_action before a
+// step, read master_observation after it.
+extern Observation master_observation;
+extern Action master_action;
 
-// function called from ros_voxels, ros passes Action to control the robot and recieves Observation to see sensor readings from simulation
-void master_ros_bridge(Action *ros_action, Observation *ros_observation);
+// initializes the entire Voxel World simulation - called once at launch
+void master_init_sim();
 
-// Cross-thread teleport channel.  ROS callbacks queue a request via master_ros_teleport(); the simulation thread drains it once per frame via master_consume_teleport().
-// Coordinates are in raylib floor-plane axes x, z; yaw_rad is the heading angle in the X-Z plane measured from +x (matches getPlayerAngle).
+// steps one simulation frame - called repeatedly in a loop from src/main.cpp; returns false when the window/quit key requests exit
+bool master_step_sim();
+
+// Teleport channel.  External modules queue a request via
+// master_ros_teleport(); master_step_sim() drains it once per frame via
+// master_consume_teleport().  Coordinates are in raylib floor-plane axes
+// (x along raylib +x, z along raylib +z); yaw_rad is the heading angle in
+// the X-Z plane measured from +x (matches getPlayerAngle).
 void master_ros_teleport(float x, float z, float yaw_rad);
 bool master_consume_teleport(float *x, float *z, float *yaw_rad);
 
