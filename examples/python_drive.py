@@ -5,18 +5,24 @@ observation dict keys:
     camera_front : np.uint8[H, W, 3]  BGR image from the robot front camera
     position     : np.float32[3]      x, y, z
     orientation  : np.float32[4]      w, x, y, z
+    yaw          : float              floor-plane heading from +x, radians
     linear_vel   : np.float32[3]
     angular_vel  : np.float32[3]
-    lidar_scan   : np.float32[60]     ranges in meters
+    lidar_scan   : np.float32[N]      ranges in meters (N = configured lidar_rays, 180 by default)
     running      : bool               false once the window/quit key requests exit
 
 action is a 6-float sequence [vx, vy, vz, wx, wy, wz] (m/s and rad/s).
 The raylib keyboard (P player mode, W/S/A/D, K/L, V view, Q quit) still works
 while Python drives the loop.
 
-Run from the build directory so the module is importable:
+Run from the repository root so the module is importable and the simulator finds its
+resources:
 
     PYTHONPATH=build python3 examples/python_drive.py
+
+This example uses the stock settings (50 Hz cap, full-size window and camera). See
+voxel_sim.Configure()/GetConfig() for the knobs that trade fidelity for stepping speed,
+and examples/python_informed_repeat.py for a run tuned for minimum wall time.
 """
 
 import numpy as np

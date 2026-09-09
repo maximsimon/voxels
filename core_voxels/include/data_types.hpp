@@ -53,6 +53,11 @@ typedef struct {
 	Quaternion orientation;
 	Vector3 linear_vel;
 	Vector3 angular_vel;
+	// heading in the floor plane measured from +x, radians (getPlayerAngle convention).
+	// Carried explicitly because recovering it from `orientation` means undoing raylib's
+	// camera-forward offset - see rl_quat_to_ros in the ros2_api branch for how easy that
+	// is to get wrong.
+	float yaw;
 	float lidar_scan[NUM_LIDAR_RAYS];
 } Observation;
 
@@ -62,12 +67,17 @@ typedef struct {
 } Action;
 
 // teleport input box (activated by T key)
+// text was a flexible array member, but teleportText is embedded by value in VoxelWorld,
+// so every write into it ran past the end of the VoxelWorld allocation.  Give it a real
+// buffer: capacity is MAX_INPUT_CHARS plus room for the null terminator.
+#define TELEPORT_TEXT_CAPACITY 32
+
 typedef struct {
 	bool text_active;
 	int letter_count;
 	Rectangle text_box;
 	int MAX_INPUT_CHARS;
-	char text[];
+	char text[TELEPORT_TEXT_CAPACITY];
 } teleportText;
 
 typedef struct VoxelWorld {
@@ -82,8 +92,14 @@ typedef struct VoxelWorld {
 	RenderTexture2D camera_view_tex;
 	Model *maze_model;		// model of the world
 	Mesh *maze_mesh;			// mesh of the world;
+	int maze_chunk_count;		// number of entries in maze_model / maze_mesh
 	Model ground_model;		// model for texturing the ground visually
 	Model sky_model;
+	// textures owned by the world - kept so a world swap can unload them instead of leaking them on the GPU
+	Texture2D atlas_texture;
+	Texture2D ground_texture;
+	Texture2D sky_texture;
+	bool world_built;		// false before the first build_world(), false again after destroy_world()
 	World current_world;
 	teleportText teleport_text;
 } VoxelWorld;

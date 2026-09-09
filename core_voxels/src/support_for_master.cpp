@@ -15,6 +15,15 @@
 #include "data_types.hpp"
 #include "world_loading.hpp"
 #include "world_config.hpp"
+#include "sim_params.hpp"
+
+// clamp a commanded rate to +/- limit; limit <= 0 means "no ceiling"
+static float clampRate(float value, float limit) {
+	if (limit <= 0.0f) return value;
+	if (value >  limit) return  limit;
+	if (value < -limit) return -limit;
+	return value;
+}
 
 void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observation) {
 	Vector3 forward = getForwardDirection(vw->player_camera);
@@ -22,22 +31,35 @@ void movePlayerWithAction(VoxelWorld *vw, Action *action, Observation *observati
 	Vector3 left = getLeftDirection(vw->player_camera);
 	Vector3 back = getBackDirection(vw->player_camera);
 
-	const float dt = GetFrameTime();		// Treat action->linear_vel and action->angular_vel as proper REP-103 velocities (m/s and rad/s). CameraMove and CameraRotate take a per-frame *displacement*, so we multiply by dt = GetFrameTime() at the call site. Without this scaling the simulator would interpret e.g. linear.x = 1.0 as "move 1 m every frame" instead of "1 m/s".
+	// Treat action->linear_vel and action->angular_vel as proper REP-103 velocities (m/s
+	// and rad/s). CameraMove and CameraRotate take a per-frame *displacement*, so we
+	// multiply by dt at the call site. Without this scaling the simulator would interpret
+	// e.g. linear.x = 1.0 as "move 1 m every frame" instead of "1 m/s".
+	// dt comes from sim_params: a fixed value makes a step advance the same amount of
+	// simulated time no matter how long the frame actually took, which is what lets the
+	// sim run uncapped and still produce a reproducible trajectory. sim_params.fixed_dt <= 0
+	// restores the old behaviour of integrating over real elapsed wall time.
+	const float dt = simStepDelta();
+
+	// respect the configured speed ceilings before anything is integrated
+	const float cmd_forward = clampRate(action->linear_vel.x, sim_params.max_linear_speed);
+	const float cmd_right   = clampRate(action->linear_vel.z, sim_params.max_linear_speed);
+	const float cmd_yaw     = clampRate(action->angular_vel.y, sim_params.max_angular_speed);
 
 	// move - decompose action into world-space camera-relative vectors and check each axis separately for sliding
-	Vector3 forward_move = Vector3Scale(forward, action->linear_vel.x);
-	Vector3 right_move = Vector3Scale(right, action->linear_vel.z);
+	Vector3 forward_move = Vector3Scale(forward, cmd_forward);
+	Vector3 right_move = Vector3Scale(right, cmd_right);
 
-	observation->linear_vel.x = action->linear_vel.x;
-	observation->linear_vel.z = action->linear_vel.z;
+	observation->linear_vel.x = cmd_forward;
+	observation->linear_vel.z = cmd_right;
 	if (CheckCollision(vw, &vw->player_camera, 0.1f, forward_move, vw->maze_mesh)) observation->linear_vel.x = 0.0f;
 	if (CheckCollision(vw, &vw->player_camera, 0.1f, right_move, vw->maze_mesh)) observation->linear_vel.z = 0.0f;
 	CameraMove(&vw->player_camera, forward, observation->linear_vel.x * dt);
 	CameraMove(&vw->player_camera, right, observation->linear_vel.z * dt);
 
 	//rotate
-	CameraRotate(&vw->player_camera, RIGHT, action->angular_vel.y * dt, observation);		// CameraRotate writes the dt-scaled angle into observation->angular_vel.y; overwrite with the raw rate so /cmd_vel_publisher carries rad/s, not per-frame radians.
-	observation->angular_vel.y = action->angular_vel.y;
+	CameraRotate(&vw->player_camera, RIGHT, cmd_yaw * dt, observation);		// CameraRotate writes the dt-scaled angle into observation->angular_vel.y; overwrite with the raw rate so the published twist carries rad/s, not per-frame radians.
+	observation->angular_vel.y = cmd_yaw;
 	vw->player_angle = getPlayerAngleDeg(vw->player_camera);
 }
 
@@ -63,7 +85,14 @@ void handleActionsAndKeys(VoxelWorld *vw, Action *action, Observation *observati
 
 bool checkControls(VoxelWorld *vw, Action *action, Observation *observation) {
 	bool player_moved_by_keys = false;
-	
+
+	// With the keyboard disabled the window's key state never touches the robot or the god
+	// camera, so a scripted rollout cannot be perturbed by a keypress landing in the window.
+	if (!sim_params.keyboard_enabled) {
+		vw->current_camera = (vw->player_mode && vw->player_view) ? vw->player_camera : vw->edit_camera;
+		return false;
+	}
+
 	if (IsKeyPressed(KEY_P)) {
 		vw->player_mode = true;
 	}

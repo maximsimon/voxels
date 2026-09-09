@@ -6,6 +6,7 @@
 #include "small_handy_stuff.hpp"
 #include "data_types.hpp"
 #include "config_core.hpp"
+#include "sim_params.hpp"
 #include <iostream>
 
 Vector3 getUpDirection() {
@@ -87,9 +88,10 @@ void drawLidarRays(VoxelWorld *vw, Observation *observation, bool in_player_view
     const Color RAY_COLOR = { 0, 200, 255, 90 };  // cyan, ~35% alpha
 
     BeginBlendMode(BLEND_ALPHA);
-    for (int i = 0; i < NUM_LIDAR_RAYS; i++) {
+    const int rays = simActiveLidarRays();
+    for (int i = 0; i < rays; i++) {
         float range = observation->lidar_scan[i];
-        float angle = heading + (float)i * (2.0f * PI) / (float)NUM_LIDAR_RAYS;
+        float angle = heading + (float)i * (2.0f * PI) / (float)rays;
         Vector3 end = {
             origin.x + cosf(angle) * range,
             0.5f,

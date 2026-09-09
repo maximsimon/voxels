@@ -1,0 +1,38 @@
+rosbag2_bagfile_information:
+  version: 9
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 23426939484
+  starting_time:
+    nanoseconds_since_epoch: 1784159191728148222
+  message_count: 1263
+  topics_with_message_count:
+    - topic_metadata:
+        name: /recorded_odometry
+        type: nav_msgs/msg/Odometry
+        serialization_format: cdr
+        offered_qos_profiles:
+          []
+        type_description_hash: ""
+      message_count: 632
+    - topic_metadata:
+        name: /recorded_actions
+        type: pfvtr/msg/DistancedTwist
+        serialization_format: cdr
+        offered_qos_profiles:
+          []
+        type_description_hash: ""
+      message_count: 631
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - bag_0.mcap
+  files:
+    - path: bag_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1784159191728148222
+      duration:
+        nanoseconds: 23426939484
+      message_count: 1263
+  custom_data: ~
+  ros_distro: kilted

@@ -13,6 +13,7 @@
 void updateOdometry(VoxelWorld *vw, Action *action, Observation *observation) {
 	observation->position = vw->player_camera.position;	
 	observation->orientation = getQuaternionOrientation(vw);
+	observation->yaw = getPlayerAngle(vw->player_camera);
 }
 
 Quaternion getQuaternionOrientation(VoxelWorld *vw) {

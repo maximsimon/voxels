@@ -57,6 +57,7 @@ add_library(core_voxels STATIC
   core_voxels/src/lidar.cpp
   core_voxels/src/world_loading.cpp
   core_voxels/src/world_config.cpp
+  core_voxels/src/sim_params.cpp
 )
 
 target_link_libraries(core_voxels

@@ -16,11 +16,16 @@
 #include "odometry.hpp"
 #include "lidar.hpp"
 #include "config_core.hpp"
+#include "sim_params.hpp"
 #include "world_config.hpp"
+#include "world_loading.hpp"
 
-// Draw an arrow at the agent's position pointing along its look direction
-// IMPORTANT: never call this from inside the player_camera's
-static void drawPlayer(Camera3D camera, Color color) {
+// Draw an arrow at the agent's position pointing along its look direction.
+// The body cube lives in vw->player_model and is built once in init_sim - it used to be
+// generated and uploaded to the GPU on every single frame, which leaked a mesh per frame.
+// IMPORTANT: never call this from inside the player_camera's own render pass.
+static void drawPlayer(VoxelWorld *vw, Color color) {
+	Camera3D camera = vw->player_camera;
 	Vector3 forward = Vector3Subtract(camera.target, camera.position);
 	forward.y = 0.0f;
 	float len = sqrtf(forward.x * forward.x + forward.z * forward.z);
@@ -44,11 +49,10 @@ static void drawPlayer(Camera3D camera, Color color) {
 		base.y,
 		base.z + forward.z * (shaft_len + head_len),
 	};
-	Model cube = LoadModelFromMesh(GenMeshCube(1,1,1));
 
 	// draw player cube
 	DrawModelEx(
-	    cube,
+	    vw->player_model,
 	    camera.position,
 	    (Vector3){0,1,0},   // axis
 	    getPlayerAngleDeg(camera),
@@ -61,15 +65,34 @@ static void drawPlayer(Camera3D camera, Color color) {
 	DrawCylinderEx(shaft_end, tip,  head_r,  0.0f,    12, color);
 }
 
-// initilize simulation - allocate memory, create structs, define window size, etc
-VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_size) {
-	
-	//VoxelWorld *vw = (VoxelWorld*)malloc(sizeof(VoxelWorld));	
+// draw the voxel world itself - sky, ground and every chunk model.  Shared by the robot
+// POV pass and the third-person pass so the two views can never diverge.
+static void drawWorld(VoxelWorld *vw) {
+	const Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };
+
+	DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
+	DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
+
+	// TODO get chunk_position of the ones surrounding the player and draw only them
+	for (int i = 0; i < vw->maze_chunk_count; i++) {
+		DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
+	}
+}
+
+// initilize simulation - allocate memory, create structs, define window size, etc.
+// Window size, frame-rate cap, camera resolution and window visibility all come from
+// sim_params (see sim_params.hpp) and must be set before this call.
+VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction) {
+
 	VoxelWorld *vw = new VoxelWorld();
+
+	if (!sim_params.verbose) SetTraceLogLevel(LOG_WARNING);
+	if (!sim_params.show_window) SetConfigFlags(FLAG_WINDOW_HIDDEN);
+
 	// start window
-	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "You're in voxels now.");
-	SetTargetFPS(100 / step_size);
-	
+	InitWindow(sim_params.screen_width, sim_params.screen_height, "You're in voxels now.");
+	SetTargetFPS(sim_params.target_fps > 0 ? sim_params.target_fps : 0);	// 0 removes the cap
+
 	// setup camera
 	Camera edit_camera = { 0 };
 	edit_camera.position = (Vector3){ -10.0f, 40.0f, -10.0f };    // Camera position
@@ -78,7 +101,7 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_siz
 	edit_camera.fovy = 45.0f;                                // Camera field-of-view Y
 	edit_camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 	vw->edit_camera = edit_camera;
-	
+
 	// setup player
 	Camera player_camera = { 0 };
 	player_camera.position = player_pose;    // Camera position
@@ -92,79 +115,24 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_siz
 	load_world_config("core_voxels/resources/worlds/worlds.config");
 	vw->current_world = CurrentWorld;
 
-	// BUILD MAP AND THE VOXEL WORLD world (it's appearance and "physical" strcture")	
-	Image mazemap_image = LoadImage(CurrentWorld.MAP_IMAGE_PATH);	//TODO: add some error handling and printing if file does not load
-	mainMap main_map = fetchMainMap(mazemap_image);		// get map of voxel world (1 - voxel, 0 - no voxel)
-	printf("map built succesffully\n");
-	
-	printf("initilizing mesh\n");
-	Mesh *maze_mesh = new Mesh[main_map.width_chunks * main_map.height_chunks]();
-	printf("mesh initilized\n");
+	build_world(vw);	// map, chunk meshes/models, ground, sky - see world_loading.cpp
 
-	printf("attempting to build maze mesh\n");
-	buildVoxelWorldMesh(&main_map, maze_mesh);	// build world based on map
-	printf("maze mesh built successfully\n");
-	
-	// maze model
-	Model *model = new Model[main_map.width_chunks * main_map.height_chunks]();
-	Texture2D texture = LoadTexture(CurrentWorld.TEXTURE_ATLAS_PATH);    // Load texture atlas
-	for (int i = 0; i < main_map.width_chunks * main_map.height_chunks; i++) {
-		UploadMesh(&maze_mesh[i], false);				// upload world
-		model[i] = LoadModelFromMesh(maze_mesh[i]);                  // Load model from generated mesh
-		model[i].materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;    // Set map diffuse texture
-	}
-		
-	vw->main_map = main_map;
-	vw->maze_mesh = maze_mesh;
-	vw->maze_model = model;
-
-	//printMap(main_map);
-	
-	// mesh for the ground
-	Texture2D groundTex = LoadTexture(CurrentWorld.GROUND_TEXTURE_PATH);
-	SetTextureFilter(groundTex, TEXTURE_FILTER_POINT);
-	//SetTextureWrap(groundTex, TEXTURE_WRAP_REPEAT); // important for tiling
-	
-	Mesh ground_mesh = GenMeshPlane(500, 500, 10, 20);
-	UploadMesh(&ground_mesh, false);
-	Model ground_model = LoadModelFromMesh(ground_mesh);
-
-	ground_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = groundTex;
-	vw->ground_model = ground_model;	
-	
-	// mesh and model of the sky
-	Mesh sky_mesh = GenMeshHemiSphere(500.0f, 32, 32);
-	Model sky_model = LoadModelFromMesh(sky_mesh);
-	Texture2D sky_texture = LoadTexture(CurrentWorld.SKY_TEXTURE_PATH);    // Load map texture
-	sky_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = sky_texture;
-	SetTextureWrap(sky_texture, TEXTURE_WRAP_REPEAT); // important for tiling
-	sky_model.transform = MatrixScale(1, 1, -1);
-	vw->sky_model = sky_model;
-
-	// END OF BUILDING THE VOXEL WORLD world (appearance and "physical" structure)
-
-	// mesh and model of the player
-	Mesh player_mesh = { 0 };
-	player_mesh.vertices = (float *)RL_MALLOC(0); 
-	player_mesh.normals = (float *)RL_MALLOC(0);
-	player_mesh.indices = (unsigned short *)RL_MALLOC(0);
+	// model of the player (robot) body - built once, reused every frame
+	vw->player_model = LoadModelFromMesh(GenMeshCube(1, 1, 1));
 
 	// mode variables
-	bool player_mode = false;	
-	bool player_view = false;
-	Camera current_camera = edit_camera;
-	vw->player_mode = player_mode;
-	vw->player_view = player_view;
-	vw->current_camera = current_camera;	
-	
-	// initilize rest of VoxelWorld vw	
-	vw->camera_view_tex = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+	vw->player_mode = false;
+	vw->player_view = false;
+	vw->current_camera = edit_camera;
+
+	// initilize rest of VoxelWorld vw
+	vw->camera_view_tex = LoadRenderTexture(sim_params.camera_width, sim_params.camera_height);
 	vw->teleport_text.text_active = false;
 	vw->teleport_text.letter_count = 0;
-	vw->teleport_text.text_box = { SCREEN_WIDTH - 400, 100, 200, 50 };		// TODO: magic numbers
-	vw->teleport_text.MAX_INPUT_CHARS = 30;
-	vw->teleport_text.text[vw->teleport_text.MAX_INPUT_CHARS] = { 0 };      // NOTE: One extra space required for null terminator char '\0'	
-	printf("init succesfull\n");
+	vw->teleport_text.text_box = { (float)(sim_params.screen_width - 400), 100, 200, 50 };		// TODO: magic numbers
+	vw->teleport_text.MAX_INPUT_CHARS = TELEPORT_TEXT_CAPACITY - 2;
+	memset(vw->teleport_text.text, 0, sizeof(vw->teleport_text.text));
+	if (sim_params.verbose) printf("init succesfull\n");
 	return vw;
 }
 
@@ -173,111 +141,123 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	// TODO: move these somewhere a bit cleaner
 	char position_info[70];
 	char mode_info[70];
-    	Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };           // Define model position
 
 	// handle all keys pressed
 	handleActionsAndKeys(vw, action, observation);	// movement based on keys stop movement on action until keys are released
-	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action 
-	updateLidar(vw, observation);		// cast LiDAR rays through the voxel grid	
-	
+	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action
+	if (sim_params.lidar_enabled) updateLidar(vw, observation);		// cast LiDAR rays through the voxel grid
+
 	// screenshot
-	char img_fname[64];
-	sprintf(img_fname, "screenshot.png");
-	if (IsKeyPressed(KEY_SPACE)) {
-		TakeScreenshot(img_fname); 	
+	if (sim_params.keyboard_enabled && IsKeyPressed(KEY_SPACE)) {
+		TakeScreenshot("screenshot.png");
 	}
-	
-	BeginTextureMode(vw->camera_view_tex);
-		ClearBackground(RAYWHITE);
-		BeginMode3D(vw->player_camera);
-			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
-			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
 
-			// TODO get chunk_position of the ones surroundin the player and draw only them
-			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {
-				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
-			}
-		EndMode3D();
-    	EndTextureMode();
-	
-	Image pov_view_img = LoadImageFromTexture(vw->camera_view_tex.texture);	
-	ImageFlipVertical(&pov_view_img); 	
-	
-	BeginDrawing();	
-		
-		ClearBackground(RAYWHITE);
-		
-		BeginMode3D(vw->current_camera);
-		
-			DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
-			DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
-			// Rays first, then agent, so the player marker stays readable over scan lines.
-			if (!(vw->player_mode && vw->player_view)) drawLidarRays(vw, observation, false);
-			if (!(vw->player_mode && vw->player_view)) {
-				drawPlayer(vw->player_camera, RED);				// draw heading arrow (the player)
-			}
-			
-			// draw maze
-			for (int i = 0; i < vw->main_map.width_chunks * vw->main_map.height_chunks; i++) {	// draw voxels
-				DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
-			}
-			
-			// for debugging: DrawGrid(1000, 1.0f);
-			
-			// TODO: draw cross in the middle of the screen (put toggle on/off in config)
-			// TODO: fix allocating variables in loop
+	// ---- robot front camera -------------------------------------------------
+	// The single most expensive thing a step does, and always on: the image is the point
+	// of the observation. Cost scales with camera_width * camera_height (sim_params).
+	{
+		BeginTextureMode(vw->camera_view_tex);
+			ClearBackground(RAYWHITE);
+			BeginMode3D(vw->player_camera);
+				drawWorld(vw);
+			EndMode3D();
+		EndTextureMode();
 
-		EndMode3D();
-		
-		Vector2 screenPos = GetWorldToScreen(vw->current_camera.target, vw->current_camera);
-		
-		// draw title, current position, fps
-		DrawText("VOXELS", 10, 10, 30, BLACK);
-		
-		sprintf(position_info, "Current Player Position: x=%.2f, y=%.2f, z=%.2f", vw->player_camera.position.x, vw->player_camera.position.y, vw->player_camera.position.z);
-		DrawText(position_info, 10, 50, 20, RED);
-		
-		sprintf(mode_info, "Player Mode? %d Player View? %d", vw->player_mode, vw->player_view);
-		DrawText(mode_info, 10, 90, 20, BLACK);
-		DrawFPS(10, 130);
+		Image pov_view_img = LoadImageFromTexture(vw->camera_view_tex.texture);
 
-		// draw teleport input box if T was pressed
-		if (vw->teleport_text.text_active == true) {
-			DrawRectangleRec(vw->teleport_text.text_box, (Color){0, 0, 0, 0});
-			DrawRectangleLines((int)vw->teleport_text.text_box.x, (int)vw->teleport_text.text_box.y, (int)vw->teleport_text.text_box.width, (int)vw->teleport_text.text_box.height, DARKGRAY);
-			DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, GREEN);
-			DrawText(TextFormat("teleport: x z yaw_deg"), (int)vw->teleport_text.text_box.x + 5, vw->teleport_text.text_box.y + 40, 13, GREEN);
+		// Convert current robot POV view (front camera) from raylib Image to cv::Mat.
+		// The OpenGL framebuffer origin is bottom-left, so the rows come back flipped;
+		// cv::flip does that in the same pass that produces the output buffer, which
+		// saves the separate ImageFlipVertical scan and the extra deep copy.
+		cv::Mat rgba(pov_view_img.height, pov_view_img.width, CV_8UC4, pov_view_img.data);
+		cv::Mat bgr;
+		cv::cvtColor(rgba, bgr, cv::COLOR_RGBA2BGR);
+		cv::flip(bgr, observation->camera_front, 0);
+
+		UnloadImage(pov_view_img);
+	}
+
+	// ---- third-person / god view --------------------------------------------
+	// BeginDrawing/EndDrawing always run: EndDrawing is what polls input and applies
+	// the frame-rate cap, so skipping it would freeze the window and the keyboard.
+	// Only the (expensive) second pass over the world is conditional.
+	BeginDrawing();
+
+		if (sim_params.render_gui) {
+			ClearBackground(RAYWHITE);
+
+			BeginMode3D(vw->current_camera);
+
+				DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
+				DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
+				// Rays first, then agent, so the player marker stays readable over scan lines.
+				if (!(vw->player_mode && vw->player_view)) {
+					if (sim_params.lidar_enabled && sim_params.draw_lidar_rays) drawLidarRays(vw, observation, false);
+					drawPlayer(vw, RED);				// draw heading arrow (the player)
+				}
+
+				// draw maze
+				const Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };
+				for (int i = 0; i < vw->maze_chunk_count; i++) {	// draw voxels
+					DrawModel(vw->maze_model[i], mazePosition, 1.0f, WHITE);
+				}
+
+				// for debugging: DrawGrid(1000, 1.0f);
+
+				// TODO: draw cross in the middle of the screen (put toggle on/off in config)
+
+			EndMode3D();
+
+			// draw title, current position, fps
+			DrawText("VOXELS", 10, 10, 30, BLACK);
+
+			sprintf(position_info, "Current Player Position: x=%.2f, y=%.2f, z=%.2f", vw->player_camera.position.x, vw->player_camera.position.y, vw->player_camera.position.z);
+			DrawText(position_info, 10, 50, 20, RED);
+
+			sprintf(mode_info, "Player Mode? %d Player View? %d", vw->player_mode, vw->player_view);
+			DrawText(mode_info, 10, 90, 20, BLACK);
+			DrawFPS(10, 130);
+
+			// draw teleport input box if T was pressed
+			if (vw->teleport_text.text_active == true) {
+				DrawRectangleRec(vw->teleport_text.text_box, (Color){0, 0, 0, 0});
+				DrawRectangleLines((int)vw->teleport_text.text_box.x, (int)vw->teleport_text.text_box.y, (int)vw->teleport_text.text_box.width, (int)vw->teleport_text.text_box.height, DARKGRAY);
+				DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, GREEN);
+				DrawText(TextFormat("teleport: x z yaw_deg"), (int)vw->teleport_text.text_box.x + 5, vw->teleport_text.text_box.y + 40, 13, GREEN);
+			}
+		} else if (sim_params.show_window) {
+			// GUI pass is off but the window is visible - blit the POV texture we already
+			// rendered instead of leaving a stale frame on screen. One textured quad, so
+			// it costs nothing next to a second pass over the world.
+			DrawTexturePro(
+				vw->camera_view_tex.texture,
+				(Rectangle){ 0, 0, (float)vw->camera_view_tex.texture.width, -(float)vw->camera_view_tex.texture.height },
+				(Rectangle){ 0, 0, (float)sim_params.screen_width, (float)sim_params.screen_height },
+				(Vector2){ 0, 0 }, 0.0f, WHITE
+			);
 		}
-	
-		//TODO: you can draw camera front POV in a little window at bottom right like this (only need to scale down the texture):	
-		//DrawTextureRec(
-		//	vw->camera_view_tex.texture,
-		//	(Rectangle){ 0, 0, vw->camera_view_tex.texture.width, -vw->camera_view_tex.texture.height },
-		//	(Vector2){ 500, 400 },
-		//	WHITE
-		//);
-		
 
 	EndDrawing();
-	
-	// Convert current robot POV view (front camera) from type raylib Image to cv2::Mat
-	cv::Mat mat_temp(pov_view_img.height, pov_view_img.width, CV_8UC4, pov_view_img.data); // RGBA
-	cv::Mat pov_view_cvimg;
-	mat_temp.copyTo(pov_view_cvimg);   // <-- deep copy - so that i can Unload image
-	cv::cvtColor(pov_view_cvimg, pov_view_cvimg, cv::COLOR_RGBA2BGR);	
-	observation->camera_front = pov_view_cvimg;
-
-	UnloadImage(pov_view_img);		// TODO: if i unload the image, the cv points to empty thing, check if not unloading the image doesnt cause some ugly leaks that slow down stuff or something
-	
 }
 
-// TODO - cleanup
-void end_sim(void) {
+// tear everything down. Guarded on IsWindowReady() so calling it twice, or after the
+// window has already gone, cannot touch a dead GL context.
+void end_sim(VoxelWorld *vw) {
+	const bool gl_alive = IsWindowReady();
 
-	// clean up		//todo: should free(main_map)
-	//UnloadModel(model);
-	//rlBindFramebuffer(0); // bind default framebuffer
-	//free(color_view_pixels) or something
-	CloseWindow();
+	if (vw != nullptr) {
+		if (gl_alive) {
+			destroy_world(vw);
+			UnloadModel(vw->player_model);
+			UnloadRenderTexture(vw->camera_view_tex);
+		} else {
+			// no GL context left to release the GPU buffers through; free what is ours on the CPU
+			delete[] vw->main_map.chunks;
+			delete[] vw->maze_mesh;
+			delete[] vw->maze_model;
+		}
+		delete vw;
+	}
+
+	if (gl_alive) CloseWindow();
 }
-

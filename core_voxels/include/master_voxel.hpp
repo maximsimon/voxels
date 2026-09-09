@@ -8,8 +8,16 @@
 #include "faces.hpp"
 #include "data_types.hpp"
 
-VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction, int step_fq);			 // initilize simulation - allocate memory, create structs, define window size, etc
-void step_sim(VoxelWorld *vw, Action *action, Observation *observation);			// this function is one step of simulation, here happen all calculations of what happens in the simulation as well as the actual visual rendering, called in loop from master_main
-static void drawPlayer(Camera3D camera, Color color); 		// Draw an arrow at the agent's position pointing along its look direction
+// initilize simulation - allocate memory, create structs, define window size, etc.
+// Window size, frame-rate cap and camera resolution come from sim_params (sim_params.hpp)
+// and have to be set before calling this.
+VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction);
+
+// one step of simulation: all calculations of what happens in the simulation plus the
+// visual rendering. Called in a loop from master_main.
+void step_sim(VoxelWorld *vw, Action *action, Observation *observation);
+
+// tear the simulation down - frees the world, the player model and the render texture, then closes the window
+void end_sim(VoxelWorld *vw);
 
 #endif

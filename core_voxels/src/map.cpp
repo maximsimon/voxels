@@ -8,6 +8,7 @@
 #include "data_types.hpp"
 #include "faces.hpp"
 #include "config_core.hpp"
+#include "sim_params.hpp"
 
 const int chunk_w = CHUNK_WIDTH;
 const int chunk_h = CHUNK_HEIGHT;
@@ -65,7 +66,7 @@ mainMap fetchMainMap(Image mazemap_img) {
 
 	main_map.chunks = new chunkMap[main_map.width_chunks * main_map.height_chunks]();	
 
-	printf("starting to map image pixels to binary matrix map\n");
+	if (sim_params.verbose) printf("starting to map image pixels to binary matrix map\n");
 	
 	for (int chunk_z = 0; chunk_z < main_map.height_chunks; chunk_z++) {
 		for (int chunk_x = 0; chunk_x < main_map.width_chunks; chunk_x++) {

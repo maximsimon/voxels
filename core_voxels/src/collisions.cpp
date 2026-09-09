@@ -7,6 +7,35 @@
 #include "collisions.hpp"
 #include "data_types.hpp"
 #include "map.hpp"
+#include "sim_params.hpp"
+#include <cmath>
+
+// Is the map cell containing world position (wx, wz) occupied?  Same cell convention as
+// the lidar's cellOccupied: world (x, z) maps to cell (floor(x), floor(z)).
+static bool cellOccupiedAt(const mainMap &main_map, float wx, float wz) {
+	const int grid_x = (int)floorf(wx);
+	const int grid_z = (int)floorf(wz);
+	if (grid_x < 0 || grid_z < 0 || grid_x >= main_map.width_px || grid_z >= main_map.height_px) return false;	// outside the map is open ground
+
+	const int chunk_x = grid_x / main_map.chunk_side;
+	const int chunk_z = grid_z / main_map.chunk_side;
+	const int local_x = grid_x % main_map.chunk_side;
+	const int local_z = grid_z % main_map.chunk_side;
+
+	return main_map.chunks[chunk_x + chunk_z * main_map.width_chunks].map[local_x + local_z * main_map.chunk_side] != 0;
+}
+
+// Grid footprint test: the four corners of the robot's square plus its centre.
+static bool checkCollisionGrid(VoxelWorld *vw, Camera *camera, float speed, Vector3 direction) {
+	const Vector3 future = Vector3Add(camera->position, Vector3Scale(direction, speed));
+	const float r = sim_params.collision_radius;
+
+	return cellOccupiedAt(vw->main_map, future.x, future.z)
+	    || cellOccupiedAt(vw->main_map, future.x - r, future.z - r)
+	    || cellOccupiedAt(vw->main_map, future.x - r, future.z + r)
+	    || cellOccupiedAt(vw->main_map, future.x + r, future.z - r)
+	    || cellOccupiedAt(vw->main_map, future.x + r, future.z + r);
+}
 
 // calculate position 4 vertices of voxel (top square) 
 void getVoxelBoundryPoints(Vector3 *boundry_points, Vector3 pose) {
@@ -35,6 +64,8 @@ void getVoxelBoundryPoints(Vector3 *boundry_points, Vector3 pose) {
 
 // Check if player is colliding with any voxel
 bool CheckCollision(VoxelWorld *vw, Camera *camera, const float speed, Vector3 direction, Mesh *mesh) {
+
+	if (sim_params.fast_collisions) return checkCollisionGrid(vw, camera, speed, direction);
 
 	bool collision = false;
 	float buffer = 1.0f;

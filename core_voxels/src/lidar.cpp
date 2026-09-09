@@ -5,6 +5,7 @@
 #include "map.hpp"
 #include "config_core.hpp"
 #include "small_handy_stuff.hpp"
+#include "sim_params.hpp"
 #include <cmath>
 
 // look up the cell value at absolute grid coordinate (grid_x, grid_z) inside the maze_map, out-of-bounds is treated as empty.
@@ -72,9 +73,14 @@ void updateLidar(VoxelWorld *vw, Observation *observation) {
 	Vector3 origin = vw->player_camera.position;
 	float heading = getPlayerAngle(vw->player_camera);		// in which direction the robot is facing and so to cast the 1st lidar ray
 
-	for (int i = 0; i < NUM_LIDAR_RAYS; i++) {
-		float angle = heading + (float)i * (2.0f * PI) / (float)NUM_LIDAR_RAYS;
-		observation->lidar_scan[i] = castRay(vw->main_map, origin, angle, MAX_LIDAR_RANGE);
+	// ray count and range are runtime knobs (sim_params); NUM_LIDAR_RAYS stays the
+	// compile-time capacity of observation->lidar_scan. Unused slots are zeroed so a
+	// consumer reading the full array never sees stale ranges from a previous config.
+	const int rays = simActiveLidarRays();
+	for (int i = 0; i < rays; i++) {
+		float angle = heading + (float)i * (2.0f * PI) / (float)rays;
+		observation->lidar_scan[i] = castRay(vw->main_map, origin, angle, sim_params.lidar_range);
 	}
+	for (int i = rays; i < NUM_LIDAR_RAYS; i++) observation->lidar_scan[i] = 0.0f;
 }
 
