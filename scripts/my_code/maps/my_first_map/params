@@ -1,0 +1,4 @@
+stepSize: 1.0
+cmdVelTopic: /cmd_vel_subscriber
+odomTopic: /odometry_publisher
+cameraTopic: /camera_front_publisher

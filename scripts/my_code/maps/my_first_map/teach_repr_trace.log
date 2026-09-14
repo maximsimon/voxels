@@ -1,0 +1,515 @@
+# teach start 2026-07-16 01:46:31 map='my_first_map' backward=False
+# repr=/pfvtr/live_representation dist=/pfvtr/teach/output_dist camera=/camera_front_publisher
+repr#1 stamp=1784159191.630228 mapping=True dist_cache=3 cam_cache=10 pf_dist=0.000
+  -> sync_ok#1 dist=0.000 mapping=True
+repr#2 stamp=1784159191.7503266 mapping=True dist_cache=8 cam_cache=10 pf_dist=0.000
+  -> sync_ok#2 dist=0.000 mapping=True
+repr#3 stamp=1784159191.8361487 mapping=True dist_cache=14 cam_cache=10 pf_dist=0.000
+  -> sync_ok#3 dist=0.000 mapping=True
+repr#4 stamp=1784159191.930607 mapping=True dist_cache=19 cam_cache=10 pf_dist=0.000
+  -> sync_ok#4 dist=0.000 mapping=True
+repr#5 stamp=1784159192.0118754 mapping=True dist_cache=25 cam_cache=10 pf_dist=0.000
+  -> sync_ok#5 dist=0.000 mapping=True
+repr#6 stamp=1784159192.170771 mapping=True dist_cache=30 cam_cache=10 pf_dist=0.000
+  -> sync_ok#6 dist=0.000 mapping=True
+repr#7 stamp=1784159192.2302463 mapping=True dist_cache=35 cam_cache=10 pf_dist=0.000
+  -> sync_ok#7 dist=0.000 mapping=True
+repr#8 stamp=1784159192.429007 mapping=True dist_cache=41 cam_cache=10 pf_dist=0.000
+  -> sync_ok#8 dist=0.000 mapping=True
+repr#9 stamp=1784159192.5687761 mapping=True dist_cache=49 cam_cache=10 pf_dist=0.000
+  -> sync_ok#9 dist=0.000 mapping=True
+repr#10 stamp=1784159192.6530766 mapping=True dist_cache=54 cam_cache=10 pf_dist=0.000
+  -> sync_ok#10 dist=0.000 mapping=True
+repr#11 stamp=1784159192.7325084 mapping=True dist_cache=59 cam_cache=10 pf_dist=0.000
+  -> sync_ok#11 dist=0.000 mapping=True
+repr#12 stamp=1784159192.853009 mapping=True dist_cache=63 cam_cache=10 pf_dist=0.000
+  -> sync_ok#12 dist=0.000 mapping=True
+repr#13 stamp=1784159192.9496899 mapping=True dist_cache=69 cam_cache=10 pf_dist=0.000
+  -> sync_ok#13 dist=0.000 mapping=True
+repr#14 stamp=1784159193.0118928 mapping=True dist_cache=74 cam_cache=10 pf_dist=0.000
+  -> sync_ok#14 dist=0.000 mapping=True
+repr#15 stamp=1784159193.16976 mapping=True dist_cache=79 cam_cache=10 pf_dist=0.000
+  -> sync_ok#15 dist=0.000 mapping=True
+repr#16 stamp=1784159193.232088 mapping=True dist_cache=84 cam_cache=10 pf_dist=0.000
+  -> sync_ok#16 dist=0.000 mapping=True
+repr#17 stamp=1784159193.2714605 mapping=True dist_cache=90 cam_cache=10 pf_dist=0.000
+  -> sync_ok#17 dist=0.000 mapping=True
+repr#18 stamp=1784159193.4107158 mapping=True dist_cache=95 cam_cache=10 pf_dist=0.000
+  -> sync_ok#18 dist=0.000 mapping=True
+repr#19 stamp=1784159193.5096626 mapping=True dist_cache=100 cam_cache=10 pf_dist=0.000
+  -> sync_ok#19 dist=0.000 mapping=True
+repr#20 stamp=1784159193.7485301 mapping=True dist_cache=107 cam_cache=10 pf_dist=0.000
+  -> sync_ok#20 dist=0.000 mapping=True
+repr#21 stamp=1784159193.7904713 mapping=True dist_cache=112 cam_cache=10 pf_dist=0.000
+  -> sync_ok#21 dist=0.000 mapping=True
+repr#22 stamp=1784159193.8940253 mapping=True dist_cache=118 cam_cache=10 pf_dist=0.000
+  -> sync_ok#22 dist=0.000 mapping=True
+repr#23 stamp=1784159194.034357 mapping=True dist_cache=124 cam_cache=10 pf_dist=0.000
+  -> sync_ok#23 dist=0.000 mapping=True
+repr#24 stamp=1784159194.1545198 mapping=True dist_cache=129 cam_cache=10 pf_dist=0.000
+  -> sync_ok#24 dist=0.000 mapping=True
+repr#25 stamp=1784159194.2591805 mapping=True dist_cache=135 cam_cache=10 pf_dist=0.000
+  -> sync_ok#25 dist=0.000 mapping=True
+repr#26 stamp=1784159194.372683 mapping=True dist_cache=141 cam_cache=10 pf_dist=0.000
+  -> sync_ok#26 dist=0.000 mapping=True
+repr#27 stamp=1784159194.4897413 mapping=True dist_cache=146 cam_cache=10 pf_dist=0.000
+  -> sync_ok#27 dist=0.000 mapping=True
+repr#28 stamp=1784159194.5928187 mapping=True dist_cache=152 cam_cache=10 pf_dist=0.000
+  -> sync_ok#28 dist=0.000 mapping=True
+repr#29 stamp=1784159194.6284473 mapping=True dist_cache=157 cam_cache=10 pf_dist=0.000
+  -> sync_ok#29 dist=0.000 mapping=True
+repr#30 stamp=1784159194.8282135 mapping=True dist_cache=163 cam_cache=10 pf_dist=0.000
+  -> sync_ok#30 dist=0.000 mapping=True
+repr#31 stamp=1784159194.9312503 mapping=True dist_cache=168 cam_cache=10 pf_dist=0.000
+  -> sync_ok#31 dist=0.000 mapping=True
+repr#32 stamp=1784159195.0113358 mapping=True dist_cache=173 cam_cache=10 pf_dist=0.000
+  -> sync_ok#32 dist=0.000 mapping=True
+repr#33 stamp=1784159195.1527858 mapping=True dist_cache=179 cam_cache=10 pf_dist=0.000
+  -> sync_ok#33 dist=0.000 mapping=True
+repr#34 stamp=1784159195.2131135 mapping=True dist_cache=184 cam_cache=10 pf_dist=0.000
+  -> sync_ok#34 dist=0.000 mapping=True
+repr#35 stamp=1784159195.3540583 mapping=True dist_cache=189 cam_cache=10 pf_dist=0.000
+  -> sync_ok#35 dist=0.000 mapping=True
+repr#36 stamp=1784159195.4711568 mapping=True dist_cache=194 cam_cache=10 pf_dist=0.000
+  -> sync_ok#36 dist=0.000 mapping=True
+repr#37 stamp=1784159195.571018 mapping=True dist_cache=200 cam_cache=10 pf_dist=0.000
+  -> sync_ok#37 dist=0.000 mapping=True
+repr#38 stamp=1784159195.6307878 mapping=True dist_cache=206 cam_cache=10 pf_dist=0.000
+  -> sync_ok#38 dist=0.000 mapping=True
+repr#39 stamp=1784159195.7289953 mapping=True dist_cache=211 cam_cache=10 pf_dist=0.000
+  -> sync_ok#39 dist=0.000 mapping=True
+repr#40 stamp=1784159195.9291222 mapping=True dist_cache=217 cam_cache=10 pf_dist=0.240
+  -> sync_ok#40 dist=0.000 mapping=True
+repr#41 stamp=1784159195.9500427 mapping=True dist_cache=222 cam_cache=10 pf_dist=0.552
+  -> sync_ok#41 dist=0.060 mapping=True
+repr#42 stamp=1784159196.1106775 mapping=True dist_cache=227 cam_cache=10 pf_dist=0.854
+  -> sync_ok#42 dist=0.552 mapping=True
+repr#43 stamp=1784159196.2884912 mapping=True dist_cache=234 cam_cache=10 pf_dist=1.278
+  -> sync_ok#43 dist=1.098 mapping=True
+repr#44 stamp=1784159196.351157 mapping=True dist_cache=241 cam_cache=10 pf_dist=1.650
+  -> sync_ok#44 dist=1.278 mapping=True
+repr#45 stamp=1784159196.4896452 mapping=True dist_cache=246 cam_cache=10 pf_dist=1.973
+  -> sync_ok#45 dist=1.650 mapping=True
+repr#46 stamp=1784159196.5890102 mapping=True dist_cache=251 cam_cache=10 pf_dist=2.296
+  -> sync_ok#46 dist=1.973 mapping=True
+repr#47 stamp=1784159196.6698627 mapping=True dist_cache=256 cam_cache=10 pf_dist=2.615
+  -> sync_ok#47 dist=2.230 mapping=True
+repr#48 stamp=1784159196.8288012 mapping=True dist_cache=262 cam_cache=10 pf_dist=2.921
+  -> sync_ok#48 dist=2.741 mapping=True
+repr#49 stamp=1784159196.8701982 mapping=True dist_cache=266 cam_cache=10 pf_dist=3.170
+  -> sync_ok#49 dist=2.861 mapping=True
+repr#50 stamp=1784159196.9929497 mapping=True dist_cache=271 cam_cache=10 pf_dist=3.479
+  -> sync_ok#50 dist=3.170 mapping=True
+repr#51 stamp=1784159197.1108603 mapping=True dist_cache=277 cam_cache=10 pf_dist=3.854
+  -> sync_ok#51 dist=3.541 mapping=True
+repr#52 stamp=1784159197.2098525 mapping=True dist_cache=282 cam_cache=10 pf_dist=4.164
+  -> sync_ok#52 dist=3.854 mapping=True
+repr#53 stamp=1784159197.2289314 mapping=True dist_cache=287 cam_cache=10 pf_dist=4.471
+  -> sync_ok#53 dist=3.914 mapping=True
+repr#54 stamp=1784159197.415275 mapping=True dist_cache=293 cam_cache=10 pf_dist=4.791
+  -> sync_ok#54 dist=4.471 mapping=True
+repr#55 stamp=1784159197.5115988 mapping=True dist_cache=298 cam_cache=10 pf_dist=5.115
+  -> sync_ok#55 dist=4.731 mapping=True
+repr#56 stamp=1784159197.6147363 mapping=True dist_cache=304 cam_cache=10 pf_dist=5.516
+  -> sync_ok#56 dist=5.054 mapping=True
+repr#57 stamp=1784159197.750665 mapping=True dist_cache=309 cam_cache=10 pf_dist=5.840
+  -> sync_ok#57 dist=5.516 mapping=True
+repr#58 stamp=1784159197.87165 mapping=True dist_cache=315 cam_cache=10 pf_dist=6.227
+  -> sync_ok#58 dist=5.840 mapping=True
+repr#59 stamp=1784159197.971429 mapping=True dist_cache=320 cam_cache=10 pf_dist=6.468
+  -> sync_ok#59 dist=6.107 mapping=True
+repr#60 stamp=1784159198.089384 mapping=True dist_cache=325 cam_cache=10 pf_dist=6.782
+  -> sync_ok#60 dist=6.468 mapping=True
+repr#61 stamp=1784159198.1893644 mapping=True dist_cache=330 cam_cache=10 pf_dist=7.088
+  -> sync_ok#61 dist=6.782 mapping=True
+repr#62 stamp=1784159198.2910197 mapping=True dist_cache=335 cam_cache=10 pf_dist=7.401
+  -> sync_ok#62 dist=7.088 mapping=True
+repr#63 stamp=1784159198.350301 mapping=True dist_cache=341 cam_cache=10 pf_dist=7.767
+  -> sync_ok#63 dist=7.280 mapping=True
+repr#64 stamp=1784159198.4295275 mapping=True dist_cache=345 cam_cache=10 pf_dist=7.952
+  -> sync_ok#64 dist=7.526 mapping=True
+repr#65 stamp=1784159198.5576746 mapping=True dist_cache=349 cam_cache=10 pf_dist=8.225
+  -> sync_ok#65 dist=7.892 mapping=True
+repr#66 stamp=1784159198.6625836 mapping=True dist_cache=356 cam_cache=10 pf_dist=8.646
+  -> sync_ok#66 dist=8.225 mapping=True
+repr#67 stamp=1784159198.885538 mapping=True dist_cache=364 cam_cache=10 pf_dist=8.646
+  -> sync_ok#67 dist=8.646 mapping=True
+repr#68 stamp=1784159199.0338397 mapping=True dist_cache=368 cam_cache=10 pf_dist=8.933
+  -> sync_ok#68 dist=8.646 mapping=True
+repr#69 stamp=1784159199.1161048 mapping=True dist_cache=373 cam_cache=10 pf_dist=9.292
+  -> sync_ok#69 dist=8.784 mapping=True
+repr#70 stamp=1784159199.1764317 mapping=True dist_cache=379 cam_cache=10 pf_dist=9.492
+  -> sync_ok#70 dist=8.933 mapping=True
+repr#71 stamp=1784159199.3750303 mapping=True dist_cache=383 cam_cache=10 pf_dist=9.617
+  -> sync_ok#71 dist=9.492 mapping=True
+repr#72 stamp=1784159199.502428 mapping=True dist_cache=389 cam_cache=10 pf_dist=9.983
+  -> sync_ok#72 dist=9.677 mapping=True
+repr#73 stamp=1784159199.5669417 mapping=True dist_cache=393 cam_cache=10 pf_dist=10.255
+  -> sync_ok#73 dist=9.862 mapping=True
+repr#74 stamp=1784159199.701279 mapping=True dist_cache=399 cam_cache=10 pf_dist=10.652
+  -> sync_ok#74 dist=10.255 mapping=True
+repr#75 stamp=1784159199.8118012 mapping=True dist_cache=404 cam_cache=10 pf_dist=10.903
+  -> sync_ok#75 dist=10.652 mapping=True
+repr#76 stamp=1784159199.910046 mapping=True dist_cache=409 cam_cache=10 pf_dist=11.195
+  -> sync_ok#76 dist=10.903 mapping=True
+repr#77 stamp=1784159199.9502742 mapping=True dist_cache=415 cam_cache=10 pf_dist=11.585
+  -> sync_ok#77 dist=10.986 mapping=True
+repr#78 stamp=1784159200.1292212 mapping=True dist_cache=420 cam_cache=10 pf_dist=11.838
+  -> sync_ok#78 dist=11.585 mapping=True
+repr#79 stamp=1784159200.1519783 mapping=True dist_cache=425 cam_cache=10 pf_dist=12.158
+  -> sync_ok#79 dist=11.647 mapping=True
+repr#80 stamp=1784159200.3367515 mapping=True dist_cache=429 cam_cache=10 pf_dist=12.443
+  -> sync_ok#80 dist=12.158 mapping=True
+repr#81 stamp=1784159200.4129043 mapping=True dist_cache=435 cam_cache=10 pf_dist=12.855
+  -> sync_ok#81 dist=12.374 mapping=True
+repr#82 stamp=1784159200.5132718 mapping=True dist_cache=440 cam_cache=10 pf_dist=13.117
+  -> sync_ok#82 dist=12.718 mapping=True
+repr#83 stamp=1784159200.6684928 mapping=True dist_cache=446 cam_cache=10 pf_dist=13.509
+  -> sync_ok#83 dist=13.187 mapping=True
+repr#84 stamp=1784159200.7702236 mapping=True dist_cache=451 cam_cache=10 pf_dist=13.781
+  -> sync_ok#84 dist=13.509 mapping=True
+repr#85 stamp=1784159200.8712382 mapping=True dist_cache=458 cam_cache=10 pf_dist=14.157
+  -> sync_ok#85 dist=13.781 mapping=True
+repr#86 stamp=1784159201.0100813 mapping=True dist_cache=461 cam_cache=10 pf_dist=14.508
+  -> sync_ok#86 dist=14.157 mapping=True
+repr#87 stamp=1784159201.1107905 mapping=True dist_cache=466 cam_cache=10 pf_dist=14.823
+  -> sync_ok#87 dist=14.508 mapping=True
+repr#88 stamp=1784159201.2310114 mapping=True dist_cache=472 cam_cache=10 pf_dist=15.205
+  -> sync_ok#88 dist=14.883 mapping=True
+repr#89 stamp=1784159201.3117185 mapping=True dist_cache=476 cam_cache=10 pf_dist=15.505
+  -> sync_ok#89 dist=15.133 mapping=True
+repr#90 stamp=1784159201.4530823 mapping=True dist_cache=481 cam_cache=10 pf_dist=15.756
+  -> sync_ok#90 dist=15.569 mapping=True
+repr#91 stamp=1784159201.5374222 mapping=True dist_cache=487 cam_cache=10 pf_dist=16.157
+  -> sync_ok#91 dist=15.756 mapping=True
+repr#92 stamp=1784159201.5690057 mapping=True dist_cache=493 cam_cache=10 pf_dist=16.494
+  -> sync_ok#92 dist=15.889 mapping=True
+repr#93 stamp=1784159201.6774726 mapping=True dist_cache=499 cam_cache=10 pf_dist=16.822
+  -> sync_ok#93 dist=16.226 mapping=True
+repr#94 stamp=1784159201.8492837 mapping=True dist_cache=504 cam_cache=10 pf_dist=17.143
+  -> sync_ok#94 dist=16.759 mapping=True
+repr#95 stamp=1784159201.9723198 mapping=True dist_cache=510 cam_cache=10 pf_dist=17.548
+  -> sync_ok#95 dist=17.076 mapping=True
+repr#96 stamp=1784159202.1540139 mapping=True dist_cache=517 cam_cache=10 pf_dist=17.915
+  -> sync_ok#96 dist=17.671 mapping=True
+repr#97 stamp=1784159202.2119427 mapping=True dist_cache=521 cam_cache=10 pf_dist=18.232
+  -> sync_ok#97 dist=17.791 mapping=True
+repr#98 stamp=1784159202.2712228 mapping=True dist_cache=526 cam_cache=10 pf_dist=18.483
+  -> sync_ok#98 dist=17.979 mapping=True
+repr#99 stamp=1784159202.41604 mapping=True dist_cache=532 cam_cache=10 pf_dist=18.901
+  -> sync_ok#99 dist=18.416 mapping=True
+repr#100 stamp=1784159202.5531223 mapping=True dist_cache=538 cam_cache=10 pf_dist=19.219
+  -> sync_ok#100 dist=18.834 mapping=True
+repr#101 stamp=1784159202.6883254 mapping=True dist_cache=543 cam_cache=10 pf_dist=19.559
+  -> sync_ok#101 dist=19.219 mapping=True
+repr#102 stamp=1784159202.8123024 mapping=True dist_cache=549 cam_cache=10 pf_dist=19.891
+  -> sync_ok#102 dist=19.624 mapping=True
+repr#103 stamp=1784159202.9106145 mapping=True dist_cache=553 cam_cache=10 pf_dist=20.247
+  -> sync_ok#103 dist=19.891 mapping=True
+repr#104 stamp=1784159202.9817152 mapping=True dist_cache=559 cam_cache=10 pf_dist=20.553
+  -> sync_ok#104 dist=20.105 mapping=True
+repr#105 stamp=1784159203.1295383 mapping=True dist_cache=563 cam_cache=10 pf_dist=20.905
+  -> sync_ok#105 dist=20.553 mapping=True
+repr#106 stamp=1784159203.2321787 mapping=True dist_cache=567 cam_cache=10 pf_dist=21.099
+  -> sync_ok#106 dist=20.905 mapping=True
+repr#107 stamp=1784159203.310515 mapping=True dist_cache=572 cam_cache=10 pf_dist=21.370
+  -> sync_ok#107 dist=21.099 mapping=True
+repr#108 stamp=1784159203.4135222 mapping=True dist_cache=577 cam_cache=10 pf_dist=21.721
+  -> sync_ok#108 dist=21.370 mapping=True
+repr#109 stamp=1784159203.5113475 mapping=True dist_cache=582 cam_cache=10 pf_dist=21.999
+  -> sync_ok#109 dist=21.721 mapping=True
+repr#110 stamp=1784159203.5699856 mapping=True dist_cache=587 cam_cache=10 pf_dist=22.270
+  -> sync_ok#110 dist=21.861 mapping=True
+repr#111 stamp=1784159203.6896203 mapping=True dist_cache=592 cam_cache=10 pf_dist=22.557
+  -> sync_ok#111 dist=22.202 mapping=True
+repr#112 stamp=1784159203.8116038 mapping=True dist_cache=597 cam_cache=10 pf_dist=22.865
+  -> sync_ok#112 dist=22.557 mapping=True
+repr#113 stamp=1784159203.9489818 mapping=True dist_cache=603 cam_cache=10 pf_dist=23.280
+  -> sync_ok#113 dist=23.009 mapping=True
+repr#114 stamp=1784159204.0329106 mapping=True dist_cache=608 cam_cache=10 pf_dist=23.584
+  -> sync_ok#114 dist=23.280 mapping=True
+repr#115 stamp=1784159204.131793 mapping=True dist_cache=613 cam_cache=10 pf_dist=23.822
+  -> sync_ok#115 dist=23.584 mapping=True
+repr#116 stamp=1784159204.2331805 mapping=True dist_cache=618 cam_cache=10 pf_dist=24.194
+  -> sync_ok#116 dist=23.822 mapping=True
+repr#117 stamp=1784159204.3128796 mapping=True dist_cache=623 cam_cache=10 pf_dist=24.417
+  -> sync_ok#117 dist=24.123 mapping=True
+repr#118 stamp=1784159204.3902476 mapping=True dist_cache=628 cam_cache=10 pf_dist=24.771
+  -> sync_ok#118 dist=24.338 mapping=True
+repr#119 stamp=1784159204.5281732 mapping=True dist_cache=633 cam_cache=10 pf_dist=25.002
+  -> sync_ok#119 dist=24.771 mapping=True
+repr#120 stamp=1784159204.6298218 mapping=True dist_cache=638 cam_cache=10 pf_dist=25.340
+  -> sync_ok#120 dist=25.002 mapping=True
+repr#121 stamp=1784159204.7318711 mapping=True dist_cache=643 cam_cache=10 pf_dist=25.664
+  -> sync_ok#121 dist=25.340 mapping=True
+repr#122 stamp=1784159204.830508 mapping=True dist_cache=648 cam_cache=10 pf_dist=25.934
+  -> sync_ok#122 dist=25.664 mapping=True
+repr#123 stamp=1784159204.9330635 mapping=True dist_cache=653 cam_cache=10 pf_dist=26.183
+  -> sync_ok#123 dist=25.934 mapping=True
+repr#124 stamp=1784159205.034905 mapping=True dist_cache=659 cam_cache=10 pf_dist=26.558
+  -> sync_ok#124 dist=26.183 mapping=True
+repr#125 stamp=1784159205.167957 mapping=True dist_cache=666 cam_cache=10 pf_dist=27.044
+  -> sync_ok#125 dist=26.655 mapping=True
+repr#126 stamp=1784159205.2763357 mapping=True dist_cache=671 cam_cache=10 pf_dist=27.310
+  -> sync_ok#126 dist=26.950 mapping=True
+repr#127 stamp=1784159205.3882873 mapping=True dist_cache=677 cam_cache=10 pf_dist=27.675
+  -> sync_ok#127 dist=27.310 mapping=True
+repr#128 stamp=1784159205.4917476 mapping=True dist_cache=681 cam_cache=10 pf_dist=27.925
+  -> sync_ok#128 dist=27.598 mapping=True
+repr#129 stamp=1784159205.6293716 mapping=True dist_cache=688 cam_cache=10 pf_dist=28.363
+  -> sync_ok#129 dist=28.024 mapping=True
+repr#130 stamp=1784159205.654043 mapping=True dist_cache=693 cam_cache=10 pf_dist=28.632
+  -> sync_ok#130 dist=28.120 mapping=True
+repr#131 stamp=1784159205.9083376 mapping=True dist_cache=699 cam_cache=10 pf_dist=29.068
+  -> sync_ok#131 dist=28.947 mapping=True
+repr#132 stamp=1784159205.9905038 mapping=True dist_cache=704 cam_cache=10 pf_dist=29.395
+  -> sync_ok#132 dist=29.068 mapping=True
+repr#133 stamp=1784159206.0904038 mapping=True dist_cache=708 cam_cache=10 pf_dist=29.641
+  -> sync_ok#133 dist=29.395 mapping=True
+repr#134 stamp=1784159206.1111703 mapping=True dist_cache=714 cam_cache=10 pf_dist=29.994
+  -> sync_ok#134 dist=29.476 mapping=True
+repr#135 stamp=1784159206.2908895 mapping=True dist_cache=719 cam_cache=10 pf_dist=30.312
+  -> sync_ok#135 dist=29.994 mapping=True
+repr#136 stamp=1784159206.4483953 mapping=True dist_cache=726 cam_cache=10 pf_dist=30.728
+  -> sync_ok#136 dist=30.533 mapping=True
+repr#137 stamp=1784159206.5112472 mapping=True dist_cache=731 cam_cache=10 pf_dist=31.050
+  -> sync_ok#137 dist=30.653 mapping=True
+repr#138 stamp=1784159206.6122732 mapping=True dist_cache=736 cam_cache=10 pf_dist=31.367
+  -> sync_ok#138 dist=30.979 mapping=True
+repr#139 stamp=1784159206.7489433 mapping=True dist_cache=741 cam_cache=10 pf_dist=31.685
+  -> sync_ok#139 dist=31.367 mapping=True
+repr#140 stamp=1784159206.809522 mapping=True dist_cache=745 cam_cache=10 pf_dist=31.902
+  -> sync_ok#140 dist=31.622 mapping=True
+repr#141 stamp=1784159206.9080365 mapping=True dist_cache=749 cam_cache=10 pf_dist=32.160
+  -> sync_ok#141 dist=31.902 mapping=True
+repr#142 stamp=1784159206.9903767 mapping=True dist_cache=755 cam_cache=10 pf_dist=32.525
+  -> sync_ok#142 dist=32.160 mapping=True
+repr#143 stamp=1784159207.1284049 mapping=True dist_cache=759 cam_cache=10 pf_dist=32.718
+  -> sync_ok#143 dist=32.594 mapping=True
+repr#144 stamp=1784159207.169487 mapping=True dist_cache=763 cam_cache=10 pf_dist=32.943
+  -> sync_ok#144 dist=32.658 mapping=True
+repr#145 stamp=1784159207.2300503 mapping=True dist_cache=768 cam_cache=10 pf_dist=33.240
+  -> sync_ok#145 dist=32.870 mapping=True
+repr#146 stamp=1784159207.3523595 mapping=True dist_cache=773 cam_cache=10 pf_dist=33.556
+  -> sync_ok#146 dist=33.240 mapping=True
+repr#147 stamp=1784159207.4709494 mapping=True dist_cache=777 cam_cache=10 pf_dist=33.839
+  -> sync_ok#147 dist=33.556 mapping=True
+repr#148 stamp=1784159207.5512486 mapping=True dist_cache=781 cam_cache=10 pf_dist=34.060
+  -> sync_ok#148 dist=33.839 mapping=True
+repr#149 stamp=1784159207.7093987 mapping=True dist_cache=788 cam_cache=10 pf_dist=34.508
+  -> sync_ok#149 dist=34.328 mapping=True
+repr#150 stamp=1784159207.770985 mapping=True dist_cache=791 cam_cache=10 pf_dist=34.754
+  -> sync_ok#150 dist=34.448 mapping=True
+repr#151 stamp=1784159207.8519025 mapping=True dist_cache=795 cam_cache=10 pf_dist=35.049
+  -> sync_ok#151 dist=34.675 mapping=True
+repr#152 stamp=1784159207.9694114 mapping=True dist_cache=800 cam_cache=10 pf_dist=35.275
+  -> sync_ok#152 dist=35.049 mapping=True
+repr#153 stamp=1784159208.069724 mapping=True dist_cache=806 cam_cache=10 pf_dist=35.701
+  -> sync_ok#153 dist=35.339 mapping=True
+repr#154 stamp=1784159208.1682682 mapping=True dist_cache=810 cam_cache=10 pf_dist=35.898
+  -> sync_ok#154 dist=35.701 mapping=True
+repr#155 stamp=1784159208.2303145 mapping=True dist_cache=814 cam_cache=10 pf_dist=36.124
+  -> sync_ok#155 dist=35.837 mapping=True
+repr#156 stamp=1784159208.3481398 mapping=True dist_cache=819 cam_cache=10 pf_dist=36.438
+  -> sync_ok#156 dist=36.203 mapping=True
+repr#157 stamp=1784159208.4288292 mapping=True dist_cache=824 cam_cache=10 pf_dist=36.750
+  -> sync_ok#157 dist=36.438 mapping=True
+repr#158 stamp=1784159208.5290523 mapping=True dist_cache=828 cam_cache=10 pf_dist=36.972
+  -> sync_ok#158 dist=36.750 mapping=True
+repr#159 stamp=1784159208.589586 mapping=True dist_cache=833 cam_cache=10 pf_dist=37.267
+  -> sync_ok#159 dist=36.894 mapping=True
+repr#160 stamp=1784159208.6481543 mapping=True dist_cache=837 cam_cache=10 pf_dist=37.546
+  -> sync_ok#160 dist=37.120 mapping=True
+repr#161 stamp=1784159208.80844 mapping=True dist_cache=842 cam_cache=10 pf_dist=37.840
+  -> sync_ok#161 dist=37.623 mapping=True
+repr#162 stamp=1784159208.8301806 mapping=True dist_cache=844 cam_cache=10 pf_dist=38.000
+  -> sync_ok#162 dist=37.623 mapping=True
+repr#163 stamp=1784159208.9505477 mapping=True dist_cache=849 cam_cache=10 pf_dist=38.288
+  -> sync_ok#163 dist=38.000 mapping=True
+repr#164 stamp=1784159209.068279 mapping=True dist_cache=854 cam_cache=10 pf_dist=38.606
+  -> sync_ok#164 dist=38.365 mapping=True
+repr#165 stamp=1784159209.130011 mapping=True dist_cache=859 cam_cache=10 pf_dist=38.935
+  -> sync_ok#165 dist=38.524 mapping=True
+repr#166 stamp=1784159209.2500005 mapping=True dist_cache=863 cam_cache=10 pf_dist=39.203
+  -> sync_ok#166 dist=38.935 mapping=True
+repr#167 stamp=1784159209.3112633 mapping=True dist_cache=868 cam_cache=10 pf_dist=39.531
+  -> sync_ok#167 dist=39.141 mapping=True
+repr#168 stamp=1784159209.4495292 mapping=True dist_cache=873 cam_cache=10 pf_dist=39.840
+  -> sync_ok#168 dist=39.531 mapping=True
+repr#169 stamp=1784159209.5318766 mapping=True dist_cache=878 cam_cache=10 pf_dist=40.146
+  -> sync_ok#169 dist=39.776 mapping=True
+repr#170 stamp=1784159209.589272 mapping=True dist_cache=883 cam_cache=10 pf_dist=40.454
+  -> sync_ok#170 dist=39.965 mapping=True
+repr#171 stamp=1784159209.75162 mapping=True dist_cache=888 cam_cache=10 pf_dist=40.761
+  -> sync_ok#171 dist=40.454 mapping=True
+repr#172 stamp=1784159209.8306177 mapping=True dist_cache=893 cam_cache=10 pf_dist=41.063
+  -> sync_ok#172 dist=40.701 mapping=True
+repr#173 stamp=1784159209.9108567 mapping=True dist_cache=898 cam_cache=10 pf_dist=41.313
+  -> sync_ok#173 dist=40.943 mapping=True
+repr#174 stamp=1784159210.0552688 mapping=True dist_cache=902 cam_cache=10 pf_dist=41.509
+  -> sync_ok#174 dist=41.313 mapping=True
+repr#175 stamp=1784159210.1484694 mapping=True dist_cache=907 cam_cache=10 pf_dist=41.850
+  -> sync_ok#175 dist=41.669 mapping=True
+repr#176 stamp=1784159210.1886826 mapping=True dist_cache=912 cam_cache=10 pf_dist=42.225
+  -> sync_ok#176 dist=41.729 mapping=True
+repr#177 stamp=1784159210.3592837 mapping=True dist_cache=917 cam_cache=10 pf_dist=42.596
+  -> sync_ok#177 dist=42.225 mapping=True
+repr#178 stamp=1784159210.4685547 mapping=True dist_cache=922 cam_cache=10 pf_dist=42.897
+  -> sync_ok#178 dist=42.596 mapping=True
+repr#179 stamp=1784159210.579514 mapping=True dist_cache=928 cam_cache=10 pf_dist=43.206
+  -> sync_ok#179 dist=42.897 mapping=True
+repr#180 stamp=1784159210.656685 mapping=True dist_cache=933 cam_cache=10 pf_dist=43.551
+  -> sync_ok#180 dist=43.146 mapping=True
+repr#181 stamp=1784159210.809594 mapping=True dist_cache=939 cam_cache=10 pf_dist=43.952
+  -> sync_ok#181 dist=43.642 mapping=True
+repr#182 stamp=1784159210.855623 mapping=True dist_cache=947 cam_cache=10 pf_dist=44.645
+  -> sync_ok#182 dist=43.762 mapping=True
+repr#183 stamp=1784159211.190715 mapping=True dist_cache=954 cam_cache=10 pf_dist=44.769
+  -> sync_ok#183 dist=44.769 mapping=True
+repr#184 stamp=1784159211.289598 mapping=True dist_cache=960 cam_cache=10 pf_dist=44.769
+  -> sync_ok#184 dist=44.769 mapping=True
+repr#185 stamp=1784159211.4883244 mapping=True dist_cache=966 cam_cache=10 pf_dist=44.955
+  -> sync_ok#185 dist=44.769 mapping=True
+repr#186 stamp=1784159211.5325413 mapping=True dist_cache=972 cam_cache=10 pf_dist=45.271
+  -> sync_ok#186 dist=44.889 mapping=True
+repr#187 stamp=1784159211.7138908 mapping=True dist_cache=979 cam_cache=10 pf_dist=45.707
+  -> sync_ok#187 dist=45.465 mapping=True
+repr#188 stamp=1784159211.7704976 mapping=True dist_cache=985 cam_cache=10 pf_dist=46.104
+  -> sync_ok#188 dist=45.585 mapping=True
+repr#189 stamp=1784159211.9160855 mapping=True dist_cache=992 cam_cache=10 pf_dist=46.519
+  -> sync_ok#189 dist=46.044 mapping=True
+repr#190 stamp=1784159211.993031 mapping=True dist_cache=997 cam_cache=10 pf_dist=46.844
+  -> sync_ok#190 dist=46.242 mapping=True
+repr#191 stamp=1784159212.179873 mapping=True dist_cache=1000 cam_cache=10 pf_dist=47.257
+  -> sync_ok#191 dist=46.844 mapping=True
+repr#192 stamp=1784159212.3118134 mapping=True dist_cache=1000 cam_cache=10 pf_dist=47.379
+  -> sync_ok#192 dist=47.257 mapping=True
+repr#193 stamp=1784159212.4491146 mapping=True dist_cache=1000 cam_cache=10 pf_dist=47.379
+  -> sync_ok#193 dist=47.379 mapping=True
+repr#194 stamp=1784159212.5598967 mapping=True dist_cache=1000 cam_cache=10 pf_dist=47.379
+  -> sync_ok#194 dist=47.379 mapping=True
+repr#195 stamp=1784159212.6732411 mapping=True dist_cache=1000 cam_cache=10 pf_dist=47.379
+  -> sync_ok#195 dist=47.379 mapping=True
+repr#196 stamp=1784159212.8136792 mapping=True dist_cache=1000 cam_cache=10 pf_dist=47.514
+  -> sync_ok#196 dist=47.379 mapping=True
+repr#197 stamp=1784159212.9893098 mapping=True dist_cache=1000 cam_cache=10 pf_dist=47.995
+  -> sync_ok#197 dist=47.744 mapping=True
+repr#198 stamp=1784159213.0942566 mapping=True dist_cache=1000 cam_cache=10 pf_dist=48.363
+  -> sync_ok#198 dist=47.995 mapping=True
+repr#199 stamp=1784159213.1931787 mapping=True dist_cache=1000 cam_cache=10 pf_dist=48.666
+  -> sync_ok#199 dist=48.285 mapping=True
+repr#200 stamp=1784159213.2922165 mapping=True dist_cache=1000 cam_cache=10 pf_dist=48.958
+  -> sync_ok#200 dist=48.582 mapping=True
+repr#201 stamp=1784159213.3915923 mapping=True dist_cache=1000 cam_cache=10 pf_dist=49.256
+  -> sync_ok#201 dist=48.884 mapping=True
+repr#202 stamp=1784159213.6897955 mapping=True dist_cache=1000 cam_cache=10 pf_dist=50.095
+  -> sync_ok#202 dist=49.849 mapping=True
+repr#203 stamp=1784159213.7703424 mapping=True dist_cache=1000 cam_cache=10 pf_dist=50.374
+  -> sync_ok#203 dist=50.095 mapping=True
+repr#204 stamp=1784159213.8694687 mapping=True dist_cache=1000 cam_cache=10 pf_dist=50.719
+  -> sync_ok#204 dist=50.374 mapping=True
+repr#205 stamp=1784159214.0115802 mapping=True dist_cache=1000 cam_cache=10 pf_dist=51.046
+  -> sync_ok#205 dist=50.797 mapping=True
+repr#206 stamp=1784159214.1090956 mapping=True dist_cache=1000 cam_cache=10 pf_dist=51.379
+  -> sync_ok#206 dist=51.046 mapping=True
+repr#207 stamp=1784159214.2109268 mapping=True dist_cache=1000 cam_cache=10 pf_dist=51.714
+  -> sync_ok#207 dist=51.379 mapping=True
+repr#208 stamp=1784159214.3492253 mapping=True dist_cache=1000 cam_cache=10 pf_dist=52.019
+  -> sync_ok#208 dist=51.839 mapping=True
+repr#209 stamp=1784159214.4322276 mapping=True dist_cache=1000 cam_cache=10 pf_dist=52.355
+  -> sync_ok#209 dist=52.019 mapping=True
+repr#210 stamp=1784159214.514773 mapping=True dist_cache=1000 cam_cache=10 pf_dist=52.687
+  -> sync_ok#210 dist=52.279 mapping=True
+repr#211 stamp=1784159214.6484773 mapping=True dist_cache=1000 cam_cache=10 pf_dist=52.959
+  -> sync_ok#211 dist=52.687 mapping=True
+repr#212 stamp=1784159214.7506843 mapping=True dist_cache=1000 cam_cache=10 pf_dist=53.258
+  -> sync_ok#212 dist=52.959 mapping=True
+repr#213 stamp=1784159214.8298686 mapping=True dist_cache=1000 cam_cache=10 pf_dist=53.543
+  -> sync_ok#213 dist=53.258 mapping=True
+repr#214 stamp=1784159214.9113054 mapping=True dist_cache=1000 cam_cache=10 pf_dist=53.819
+  -> sync_ok#214 dist=53.473 mapping=True
+repr#215 stamp=1784159215.110114 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#215 dist=54.107 mapping=True
+repr#216 stamp=1784159215.189933 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#216 dist=54.167 mapping=True
+repr#217 stamp=1784159215.2904148 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#217 dist=54.167 mapping=True
+repr#218 stamp=1784159215.3917274 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#218 dist=54.167 mapping=True
+repr#219 stamp=1784159215.4751296 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#219 dist=54.167 mapping=True
+repr#220 stamp=1784159215.5709658 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#220 dist=54.167 mapping=True
+repr#221 stamp=1784159215.7501285 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#221 dist=54.167 mapping=True
+repr#222 stamp=1784159215.8518322 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#222 dist=54.167 mapping=True
+repr#223 stamp=1784159215.9678285 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#223 dist=54.167 mapping=True
+repr#224 stamp=1784159216.0683663 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#224 dist=54.167 mapping=True
+repr#225 stamp=1784159216.1534472 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#225 dist=54.167 mapping=True
+repr#226 stamp=1784159216.3089552 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#226 dist=54.167 mapping=True
+repr#227 stamp=1784159216.3708382 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#227 dist=54.167 mapping=True
+repr#228 stamp=1784159216.4296446 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#228 dist=54.167 mapping=True
+repr#229 stamp=1784159216.571396 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#229 dist=54.167 mapping=True
+repr#230 stamp=1784159216.6505017 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#230 dist=54.167 mapping=True
+repr#231 stamp=1784159216.8359377 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#231 dist=54.167 mapping=True
+repr#232 stamp=1784159216.942264 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#232 dist=54.167 mapping=True
+repr#233 stamp=1784159217.048825 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#233 dist=54.167 mapping=True
+repr#234 stamp=1784159217.1687226 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#234 dist=54.167 mapping=True
+repr#235 stamp=1784159217.3708751 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#235 dist=54.167 mapping=True
+repr#236 stamp=1784159217.39319 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#236 dist=54.167 mapping=True
+repr#237 stamp=1784159217.6699274 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#237 dist=54.167 mapping=True
+repr#238 stamp=1784159217.7597153 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#238 dist=54.167 mapping=True
+repr#239 stamp=1784159218.0691726 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#239 dist=54.167 mapping=True
+repr#240 stamp=1784159218.1556726 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#240 dist=54.167 mapping=True
+repr#241 stamp=1784159218.251155 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#241 dist=54.167 mapping=True
+repr#242 stamp=1784159218.3549724 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#242 dist=54.167 mapping=True
+repr#243 stamp=1784159218.4532254 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#243 dist=54.167 mapping=True
+repr#244 stamp=1784159218.5693467 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#244 dist=54.167 mapping=True
+repr#245 stamp=1784159218.6530163 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#245 dist=54.167 mapping=True
+repr#246 stamp=1784159218.7133257 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#246 dist=54.167 mapping=True
+repr#247 stamp=1784159218.8717065 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#247 dist=54.167 mapping=True
+repr#248 stamp=1784159218.9149933 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#248 dist=54.167 mapping=True
+repr#249 stamp=1784159219.0754936 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#249 dist=54.167 mapping=True
+repr#250 stamp=1784159219.1916752 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#250 dist=54.167 mapping=True
+repr#251 stamp=1784159219.3091302 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#251 dist=54.167 mapping=True
+repr#252 stamp=1784159219.3901508 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#252 dist=54.167 mapping=True
+repr#253 stamp=1784159219.5083456 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#253 dist=54.167 mapping=True
+repr#254 stamp=1784159219.6310523 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#254 dist=54.167 mapping=True
+repr#255 stamp=1784159219.768858 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#255 dist=54.167 mapping=True
+repr#256 stamp=1784159219.8498073 mapping=True dist_cache=1000 cam_cache=10 pf_dist=54.167
+  -> sync_ok#256 dist=54.167 mapping=True
+# teach end 2026-07-16 01:47:00 repr_recv=256 sync_ok=256

@@ -111,6 +111,57 @@ much; shrinking the camera is where the time is. Collision checking is the only 
 lever with real weight, and only once the camera is small (mesh footprint costs ~1 ms/step
 in open space, grid footprint ~0.01 ms).
 
+### Vectorized environments (parallel RL)
+
+RL collects more samples per wall second from *many parallel environments*, and this
+simulator can provide them — as **separate processes**, not threads. raylib allows exactly
+one window / OpenGL context per process, and the sim keeps its state in process globals
+(`sim_params`, `CurrentWorld`, the `master_action`/`master_observation` buffers), so N
+instances means N processes. `examples/vec_env.py` wraps all of that in a gymnasium-style
+`VecEnv` and ships observations to Python as numpy arrays stacked along a leading
+`[N, ...]` dimension:
+
+```python
+import numpy as np
+from vec_env import VecEnv
+
+env = VecEnv(n_envs=8)                       # 8 processes, each its own (hidden) window
+obs = env.reset("ConferenceWorld", [(0.0, 0.0, 90.0)] * 8)
+while running:
+    acts = np.zeros((8, 6), dtype=np.float32)  # one [vx,vy,vz, wx,wy,wz] row per env
+    obs, reward, terminated, truncated, info = env.step(acts)
+    # train on the batch: obs["camera_front"] is [8,H,W,3] uint8 BGR, obs["lidar_scan"] [8,180], ...
+env.close()
+```
+
+| call | what it does |
+| ---- | ------------ |
+| `VecEnv(n_envs, config=None, start_method="fork")` | start N workers, each `Configure`d headless then `Init()`ed; blocks until every window and world is up |
+| `env.reset(worlds, positions)` | new episode in every env; `worlds`/`positions` apply to all or are listed per-env → stacked obs `[N, ...]` |
+| `env.step(actions)` | `actions` is `[N,6]` float32 → `(obs, reward, terminated, truncated, info)` |
+| `env.reset_at(i, world, pos)` | reset one env inside an episode (its obs is returned unstacked) |
+| `env.close()` / context manager | shut the workers down and release their windows/GL contexts |
+
+Details:
+
+- **Speed**: each process steps independently on its own core, so aggregate sample
+  throughput scales towards N× a single env until cores or memory bandwidth (the camera
+  readback, ~3 ns/px, is shared DRAM bandwidth) saturate. `examples/python_vec_drive.py`
+  prints the speedup on your machine. The default worker config is the fast one from the
+  table above (hidden window, no third-person pass, 128x80 camera, grid collisions).
+- **Construction rule**: create the `VecEnv` *before* any `voxel_sim.Init()` in the same
+  process — forking (or spawning) a child under an existing raylib window would duplicate
+  that GL context into the workers. The examples keep `Init()` out of the calling process
+  entirely: vector run first, then the single-instance benchmark.
+- **Config**: pass a dict (applied to every env) or a list of N dicts to `VecEnv(n_envs,
+  config=...)`, e.g. `config={"camera_width": 256, "camera_height": 160, "fixed_dt": 0.02}`.
+  Click the same knobs as `voxel_sim.Configure()`.
+- **Uniformity**: camera resolution and `lidar_rays` must match across envs (stacking).
+- **Reward**: the sim computes no reward; set `env.reward_fn = lambda obs, acts: ...` and
+  `step()` will call it, or compute rewards in your own loop.
+- This composes with GPU-side learning: the envs run on CPU in parallel while your policy
+  trains on the GPU; observations are plain numpy, so they move to a GPU tensor trivially.
+
 ---
 
 ## Examples
@@ -120,6 +171,7 @@ Run from the repository root; the simulator resolves its resources relative to i
 | script | what it does |
 | ------ | ------------ |
 | `examples/python_drive.py` | minimal Init/Step/Close loop at the stock settings |
+| `examples/python_vec_drive.py` | runs N environments in parallel (VecEnv), drives them, prints the aggregate steps/s vs a single env |
 | `examples/vtr_map.py` | loads a VTR teach map (`examples/maps/`) — a self-contained MCAP/CDR reader, no ROS needed. Run it directly to print a summary of each map. |
 | `examples/python_informed_repeat.py` | drives a taught trajectory in minimum wall time |
 | `examples/repeat_sweep.sh` | runs both maps under a range of parameter values and prints a comparison table |

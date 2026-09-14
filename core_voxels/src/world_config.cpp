@@ -1,3 +1,5 @@
+// PARSES WORLD CONFIG FILE
+
 #include "world_config.hpp"
 
 #include <cctype>
