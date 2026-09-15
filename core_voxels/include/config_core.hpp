@@ -1,7 +1,7 @@
 #ifndef CONFIG_CORE_H
 #define CONFIG_CORE_H
 
-#include "worlds.hpp"
+#include "data_types_worlds.hpp"
 
 // simulation window size
 inline const int SCREEN_WIDTH = 1600;

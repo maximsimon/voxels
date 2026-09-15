@@ -9,6 +9,7 @@
 #include "faces.hpp"
 #include "config_core.hpp"
 #include "sim_params.hpp"
+#include "color_hue_mapping.hpp"
 
 const int chunk_w = CHUNK_WIDTH;
 const int chunk_h = CHUNK_HEIGHT;
@@ -100,9 +101,12 @@ chunkMap fetchChunkMap(Color *pixels, int ch_x, int ch_z, int height_px) {
 }
 
 // returns color (from enum variable HUE_TYPE) based on pixels real RGB/HSV color
+// colors and thresholds come from the currently built world (hue_config); worlds that do not define their own fall back to the default palette
 HUE_TYPE getPixelHue(Color pixel_color) {
 
-	if (GRAY_VALUE(pixel_color) > color_config.white_gray_threshold) return white;
+	const HueConfig &cfg = CurrentWorld.hue_config.colors.empty() ? color_config : CurrentWorld.hue_config;
+
+	if (GRAY_VALUE(pixel_color) > cfg.white_gray_threshold) return white;
 
 	float hue = ColorToHSV(pixel_color).x;
 
@@ -110,7 +114,7 @@ HUE_TYPE getPixelHue(Color pixel_color) {
 	float best_distance = std::numeric_limits<float>::max();
 
 	// find closest HUE_TYPE to pixels color
-	for (const auto& color : color_config.colors) {
+	for (const auto& color : cfg.colors) {
 		float distance = std::abs(hue - color.center_hue_deg);
 		distance = std::min(distance, 360.0f - distance);		// hue wraps around at 360°
 		if (distance < best_distance) {
@@ -118,6 +122,9 @@ HUE_TYPE getPixelHue(Color pixel_color) {
 			best_type = color.type;
 		}
 	}
+
+	// hue too far from every color - treat it as no object (keeps stray near-gray pixels from turning into red/etc.)
+	if (best_distance > cfg.hue_tolerance_deg) return unknown;
 
 	return best_type;
 }
@@ -149,9 +156,12 @@ void genObject(Mesh &mesh, float x, float z, int *voxel_count, int hue_type_int)
 	if (item == CurrentWorld.objects.end()) return;
 
 	const auto& object = item->second;
-	
+
+	// the object's own texture wins; otherwise fall back to the hue->tile mapping of the world (stated so the map file only knows colors, not textures)
+	const int texture_index = (object.texture >= 0) ? object.texture : CurrentWorld.textureFor(type);
+
 	// add voxel cluster to chunk mesh
-	for (const auto& v : object.voxels) MeshVoxel(mesh, x + v.x, v.y, z + v.z, 0.0f, voxel_count, type, v.sx, v.sy, v.sz);
+	for (const auto& v : object.voxels) MeshVoxel(mesh, x + v.x, v.y, z + v.z, 0.0f, voxel_count, texture_index, v.sx, v.sy, v.sz);
 }
 
 // build world based on map

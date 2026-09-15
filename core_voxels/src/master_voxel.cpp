@@ -111,7 +111,7 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction) {
 	player_camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 	vw->player_camera = player_camera;
 
-	// load which world to use from config file before building the world
+	// load the world registry and pick the world from config before building it (registry= and world= keys)
 	load_world_config("core_voxels/resources/worlds/worlds.config");
 	vw->current_world = CurrentWorld;
 

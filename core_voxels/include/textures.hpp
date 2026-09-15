@@ -3,11 +3,6 @@
 
 #include "data_types.hpp"
 
-void fetchTextureCoords(HUE_TYPE texture_type, float *texcoords);
-
-extern const float first_tex_coords[48];
-extern const float second_tex_coords[48];
-extern const float third_tex_coords[48];
-extern const float fourth_tex_coords[48];
+void fetchTextureCoords(int tile_index, float *texcoords);		// fills 48 floats (6 faces x 4 verts x 2 UV) with the quad of atlas tile `tile_index` from the world's atlas grid
 
 #endif

@@ -135,11 +135,10 @@ bool switch_world(VoxelWorld *vw, const char *world_name) {
 	World requested;
 	if (!world_by_name(world_name, &requested)) return false;
 
-	// same world already standing - nothing to rebuild, keep the reset path cheap
-	if (vw->world_built && strcmp(requested.MAP_IMAGE_PATH, vw->current_world.MAP_IMAGE_PATH) == 0
-	    && strcmp(requested.TEXTURE_ATLAS_PATH, vw->current_world.TEXTURE_ATLAS_PATH) == 0
-	    && strcmp(requested.GROUND_TEXTURE_PATH, vw->current_world.GROUND_TEXTURE_PATH) == 0
-	    && strcmp(requested.SKY_TEXTURE_PATH, vw->current_world.SKY_TEXTURE_PATH) == 0) {
+	// same world already standing - nothing to rebuild, keep the reset path cheap.
+	// names uniquely identify a registered world, so the equality check is just the NAME.
+	if (vw->world_built && requested.NAME != nullptr && vw->current_world.NAME != nullptr
+	    && strcmp(requested.NAME, vw->current_world.NAME) == 0) {
 		return true;
 	}
 

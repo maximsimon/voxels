@@ -29,6 +29,7 @@
 #include "master_main.hpp"
 #include "sim_params.hpp"
 #include "world_config.hpp"
+#include "world_registry.hpp"
 
 namespace py = pybind11;
 
@@ -196,7 +197,7 @@ static py::dict Step(py::array_t<float, py::array::c_style | py::array::forcecas
 
 // Reset the episode: optionally switch world, put the robot at a chosen pose, and return
 // a fresh observation.
-//   world    - "ConferenceWorld" | "SidlisteWorld" | "DesertWorld" | "BleakCityWorld",
+//   world    - any registered world name (predefined or loaded from the registry file),
 //              or None to stay in the world already loaded.
 //   position - (x, z) or (x, z, yaw_deg) on the floor plane; None keeps the current pose.
 // The world is only rebuilt when it actually changes, so resetting inside one world costs
@@ -255,13 +256,31 @@ static std::string CurrentWorldName() {
 	return master_current_world_name();
 }
 
+// every registered world by name - whatever the registry currently holds
+static void refresh_worlds(py::module_ &m) {
+	py::list worlds;
+	for (int i = 0; i < registry_world_count(); i++) worlds.append(registry_world_name_at(i));
+	m.attr("WORLDS") = py::tuple(worlds);
+}
+
+// clear the world registry and replace it with the file; refresh WORLDS so the tuple stays accurate.
+static void ReloadRegistry(const std::string &path) {
+	load_world_registry(path.c_str());
+	py::module_ m = py::module_::import("voxel_sim");
+	refresh_worlds(m);
+}
+
 PYBIND11_MODULE(voxel_sim, m) {
+	// load the world registry at import time, so WORLDS is populated before Init() builds the sim
+	load_world_config("core_voxels/resources/worlds/worlds.config");
+
 	m.doc() =
 		"Voxel World robot simulator. Optionally Configure(...), then call Init() once "
 		"and Step(action) in a loop: action is 6 floats [vx,vy,vz, wx,wy,wz], each call "
 		"returns an observation dict (camera_front BGR image, pose, velocities, "
 		"lidar_scan, running). Reset(world, position) restarts an episode. Keyboard "
 		"controls (P/WASD/K/L/V/Q) work in the window unless keyboard_enabled=False.";
+
 
 	m.def("Configure", &Configure,
 	      "set runtime parameters as keyword arguments; see GetConfig() for the names.\n"
@@ -284,6 +303,8 @@ PYBIND11_MODULE(voxel_sim, m) {
 	m.def("Teleport", &Teleport, py::arg("x"), py::arg("z"), py::arg("yaw_deg"),
 	      "queue a teleport to floor coords (x, z) with heading yaw_deg (applied next step)");
 	m.def("Close", &Close, "close the simulation and release the world and the window");
+	m.def("ReloadRegistry", &ReloadRegistry, py::arg("path"),
+	      "clear the world registry and replace it with the file; refresh WORLDS so the tuple stays accurate");
 	m.def("CurrentWorld", &CurrentWorldName, "name of the world currently loaded");
 
 	// lowercase alias, so the module reads naturally next to gym-style code
@@ -292,5 +313,6 @@ PYBIND11_MODULE(voxel_sim, m) {
 	// constants useful on the python side
 	m.attr("NUM_LIDAR_RAYS") = NUM_LIDAR_RAYS;	// compile-time capacity of the scan buffer
 	m.attr("MAX_LIDAR_RANGE") = MAX_LIDAR_RANGE;	// build-time default for lidar_range
-	m.attr("WORLDS") = py::make_tuple("ConferenceWorld", "SidlisteWorld", "DesertWorld", "BleakCityWorld");
+
+	refresh_worlds(m);
 }

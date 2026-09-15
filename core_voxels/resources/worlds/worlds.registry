@@ -1,0 +1,65 @@
+# Voxel World Registry
+# Each "world=NAME" block defines one world. Settings inside the block apply to that world.
+# Unknown keys are ignored, so the file can grow without breaking older binaries.
+#
+# Required keys: world, map, atlas, ground, sky  - a world missing any of these is skipped with a warning.
+# Optional keys: atlas_cols, atlas_rows, colors, tile.*, object.*, object_texture.*
+#
+# Color names for colors= and tile.*: white, red, orange, yellow, green, cyan, blue, pink, purple, brown
+# Object names for object.*: tree, brick, bush, building, rock, sand, fence, puddle, pillar, crate
+# tile.* maps a color to an atlas tile index; object.* maps a color to a voxel cluster; object_texture.* overrides an object's atlas tile.
+#
+# the classic worlds - red/green/pink/blue map to the four 2x2 atlas tiles (pink is bottom-left = tile 2, blue = tile 3)
+
+world=ConferenceWorld
+map=core_voxels/resources/map_images/map_paper.png
+atlas=core_voxels/resources/textures/atlas.png
+ground=core_voxels/resources/textures/grass.png
+sky=core_voxels/resources/textures/stars.png
+atlas_cols=2  atlas_rows=2
+colors=red,green,blue,pink
+tile.red=0  tile.green=1  tile.pink=2  tile.blue=3
+object.red=tree  object.green=brick  object.pink=building  object.blue=bush
+
+world=SidlisteWorld
+map=core_voxels/resources/map_images/map_sidliste.png
+atlas=core_voxels/resources/textures/atlas.png
+ground=core_voxels/resources/textures/grass.png
+sky=core_voxels/resources/textures/stars.png
+atlas_cols=2  atlas_rows=2
+colors=red,green,blue,pink
+tile.red=0  tile.green=1  tile.pink=2  tile.blue=3
+object.red=tree  object.green=brick  object.pink=building  object.blue=bush
+
+world=DesertWorld
+map=core_voxels/resources/map_images/map_desert.png
+atlas=core_voxels/resources/textures/desert_texture_atlas.png
+ground=core_voxels/resources/textures/desert.png
+sky=core_voxels/resources/textures/sky_clouds.png
+atlas_cols=2  atlas_rows=2
+colors=red,green,blue,pink
+tile.red=0  tile.green=1  tile.pink=2  tile.blue=3
+object.red=sand  object.green=tree  object.pink=rock  object.blue=bush
+
+world=BleakCityWorld
+map=core_voxels/resources/map_images/map_city.png
+atlas=core_voxels/resources/textures/city_atlas.png
+ground=core_voxels/resources/textures/asphalt.png
+sky=core_voxels/resources/textures/stars.png
+atlas_cols=2  atlas_rows=2
+colors=red,green,blue,pink
+tile.red=0  tile.green=1  tile.pink=2  tile.blue=3
+object.red=fence  object.green=brick  object.pink=building  object.blue=puddle
+
+world=Gen
+map=core_voxels/resources/generated/test_ds/test_ds_map000.png
+atlas=core_voxels/resources/textures/atlas.png
+ground=core_voxels/resources/textures/grass.png
+sky=core_voxels/resources/textures/stars.png
+atlas_cols=2  atlas_rows=2
+colors=red,green,blue,pink
+tile.red=0  tile.green=1  tile.pink=2  tile.blue=3
+object.red=tree  object.green=brick  object.pink=building  object.blue=bush
+
+# Generate more worlds with scripts/worldgen/generate_all.py and add them here;
+# VecEnv reads WORLDS from C++ at import time.
