@@ -14,13 +14,13 @@ def main():
 	ap.add_argument("--steps", type=int, default=200, help="steps to run (default: 200)")
 	args = ap.parse_args()
 
-	actions = np.zeros((18, 6), dtype=np.float32)
+	actions = np.zeros((2, 6), dtype=np.float32)
 	actions[:, 0] = 1.5
 	actions[:, 4] = 1.2
 
 	total_rew = 0
 
-	with VecEnv(18, show_window=args.show) as env:
+	with VecEnv(2, show_window=args.show) as env:
 		obs = env.reset("ConferenceWorld", None)
 		for _ in range(args.steps):
 			print("running")

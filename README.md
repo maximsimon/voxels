@@ -113,6 +113,8 @@ in open space, grid footprint ~0.01 ms).
 
 ### Vectorized environments (parallel RL)
 
+Try it out quickly: `PYTHONPATH=scripts/bare_bones:build python scripts/worldgen/example_vecenv_rollout.py --show`
+
 RL collects more samples per wall second from *many parallel environments*, and this
 simulator can provide them — as **separate processes**, not threads. raylib allows exactly
 one window / OpenGL context per process, and the sim keeps its state in process globals

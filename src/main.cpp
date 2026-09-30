@@ -256,6 +256,53 @@ static std::string CurrentWorldName() {
 	return master_current_world_name();
 }
 
+// hue type -> palette color name, for dumping a world's color coding
+static const char *hue_name_of(HUE_TYPE type) {
+	switch (type) {
+		case white:  return "white";
+		case red:    return "red";
+		case orange: return "orange";
+		case yellow: return "yellow";
+		case green:  return "green";
+		case cyan:   return "cyan";
+		case blue:   return "blue";
+		case purple: return "purple";
+		case pink:   return "pink";
+		case brown:  return "brown";
+		default:     return "unknown";
+	}
+}
+
+// full definition of one registered world; name=None means the currently loaded world.
+static py::dict WorldInfo(py::object name) {
+	py::dict info;
+	World world;
+
+	if (name.is_none()) {
+		std::string current = master_current_world_name();
+		if (current.empty()) return info;	// nothing loaded yet (before Init)
+		if (!registry_world_by_name(current.c_str(), &world)) return info;
+	} else {
+		const std::string wanted = name.cast<std::string>();
+		if (!registry_world_by_name(wanted.c_str(), &world)) {
+			throw std::invalid_argument("unknown world '" + wanted + "' - known worlds: " +
+			                            registry_world_names());
+		}
+	}
+
+	info["name"] = registry_world_name_of(world);
+	info["map"] = world.MAP_IMAGE_PATH ? world.MAP_IMAGE_PATH : "";
+	info["atlas"] = world.TEXTURE_ATLAS_PATH ? world.TEXTURE_ATLAS_PATH : "";
+	info["ground"] = world.GROUND_TEXTURE_PATH ? world.GROUND_TEXTURE_PATH : "";
+	info["sky"] = world.SKY_TEXTURE_PATH ? world.SKY_TEXTURE_PATH : "";
+	info["atlas_cols"] = world.atlas_cols;
+	info["atlas_rows"] = world.atlas_rows;
+	py::list colors;
+	for (const HueClass &cls : world.hue_config.colors) colors.append(hue_name_of(cls.type));
+	info["colors"] = colors;
+	return info;
+}
+
 // every registered world by name - whatever the registry currently holds
 static void refresh_worlds(py::module_ &m) {
 	py::list worlds;
@@ -306,6 +353,13 @@ PYBIND11_MODULE(voxel_sim, m) {
 	m.def("ReloadRegistry", &ReloadRegistry, py::arg("path"),
 	      "clear the world registry and replace it with the file; refresh WORLDS so the tuple stays accurate");
 	m.def("CurrentWorld", &CurrentWorldName, "name of the world currently loaded");
+
+	// dump a whole registered world so scripts do not need a getter per field.
+	// name=None returns the currently loaded world (call after Init()).
+	m.def("WorldInfo", &WorldInfo, py::arg("name") = py::none(),
+	      "full definition of a registered world as a dict: name, map, atlas, ground, sky,\n"
+	      "atlas_cols, atlas_rows and the colors that world maps pixels to.  name=None gives\n"
+	      "the world currently loaded (call after Init()).");
 
 	// lowercase alias, so the module reads naturally next to gym-style code
 	m.attr("reset") = m.attr("Reset");
