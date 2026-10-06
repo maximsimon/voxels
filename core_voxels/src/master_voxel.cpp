@@ -1,4 +1,4 @@
-// THIS IS MAIN FILE CONTROLLING THE VOXELS SIMULATION
+// VOXLES: THIS IS MAIN FILE CONTROLLING THE VOXELS SIMULATION
 
 #include "raylib.h"
 #include "rlgl.h"
@@ -20,10 +20,7 @@
 #include "world_config.hpp"
 #include "world_loading.hpp"
 
-// Draw an arrow at the agent's position pointing along its look direction.
-// The body cube lives in vw->player_model and is built once in init_sim - it used to be
-// generated and uploaded to the GPU on every single frame, which leaked a mesh per frame.
-// IMPORTANT: never call this from inside the player_camera's own render pass.
+// draw an arrow at the agent's position pointing along its look direction; IMPORTANT: never call this from inside the player_camera's own render pass
 static void drawPlayer(VoxelWorld *vw, Color color) {
 	Camera3D camera = vw->player_camera;
 	Vector3 forward = Vector3Subtract(camera.target, camera.position);
@@ -65,8 +62,7 @@ static void drawPlayer(VoxelWorld *vw, Color color) {
 	DrawCylinderEx(shaft_end, tip,  head_r,  0.0f,    12, color);
 }
 
-// draw the voxel world itself - sky, ground and every chunk model.  Shared by the robot
-// POV pass and the third-person pass so the two views can never diverge.
+// draw the voxel world itself - sky, ground and every chunk model 
 static void drawWorld(VoxelWorld *vw) {
 	const Vector3 mazePosition = { 0.0f, 0.5f, 0.0f };
 
@@ -80,8 +76,6 @@ static void drawWorld(VoxelWorld *vw) {
 }
 
 // initilize simulation - allocate memory, create structs, define window size, etc.
-// Window size, frame-rate cap, camera resolution and window visibility all come from
-// sim_params (see sim_params.hpp) and must be set before this call.
 VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction) {
 
 	VoxelWorld *vw = new VoxelWorld();
@@ -104,14 +98,14 @@ VoxelWorld *init_sim(Vector3 player_pose, Vector3 player_direction) {
 
 	// setup player
 	Camera player_camera = { 0 };
-	player_camera.position = player_pose;    // Camera position
-	player_camera.target = {player_pose.x + player_direction.x, 0.5f, player_pose.z + player_direction.z};    // Camera looking at point
-	player_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-	player_camera.fovy = 45.0f;                                // Camera field-of-view Y
-	player_camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
+	player_camera.position = player_pose;
+	player_camera.target = {player_pose.x + player_direction.x, 0.5f, player_pose.z + player_direction.z};
+	player_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
+	player_camera.fovy = 45.0f;
+	player_camera.projection = CAMERA_PERSPECTIVE;
 	vw->player_camera = player_camera;
 
-	// load the world registry and pick the world from config before building it (registry= and world= keys)
+	// load the world registry and pick the world from config before building it
 	load_world_config("core_voxels/resources/worlds/worlds.config");
 	vw->current_world = CurrentWorld;
 
@@ -144,7 +138,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 
 	// handle all keys pressed
 	handleActionsAndKeys(vw, action, observation);	// movement based on keys stop movement on action until keys are released
-	updateOdometry(vw, action, observation);	// currently twist msg inside odometry in observation is directly taken from action
+	updateOdometry(vw, action, observation);	// currently odometry in observation is directly taken from action
 	if (sim_params.lidar_enabled) updateLidar(vw, observation);		// cast LiDAR rays through the voxel grid
 
 	// screenshot
@@ -152,9 +146,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		TakeScreenshot("screenshot.png");
 	}
 
-	// ---- robot front camera -------------------------------------------------
-	// The single most expensive thing a step does, and always on: the image is the point
-	// of the observation. Cost scales with camera_width * camera_height (sim_params).
+	// robot fron camera - the single most expensive thing a step does, and always on; cost scales with camera_width * camera_height (sim_params).
 	{
 		BeginTextureMode(vw->camera_view_tex);
 			ClearBackground(RAYWHITE);
@@ -165,10 +157,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 
 		Image pov_view_img = LoadImageFromTexture(vw->camera_view_tex.texture);
 
-		// Convert current robot POV view (front camera) from raylib Image to cv::Mat.
-		// The OpenGL framebuffer origin is bottom-left, so the rows come back flipped;
-		// cv::flip does that in the same pass that produces the output buffer, which
-		// saves the separate ImageFlipVertical scan and the extra deep copy.
+		// convert current robot POV view (front camera) from raylib Image to cv::Mat for passing to external code using the simulation
 		cv::Mat rgba(pov_view_img.height, pov_view_img.width, CV_8UC4, pov_view_img.data);
 		cv::Mat bgr;
 		cv::cvtColor(rgba, bgr, cv::COLOR_RGBA2BGR);
@@ -177,12 +166,9 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 		UnloadImage(pov_view_img);
 	}
 
-	// ---- third-person / god view --------------------------------------------
-	// BeginDrawing/EndDrawing always run: EndDrawing is what polls input and applies
-	// the frame-rate cap, so skipping it would freeze the window and the keyboard.
-	// Only the (expensive) second pass over the world is conditional.
+	// third-person camera (god view) - BeginDrawing/EndDrawing always runs: EndDrawing is what polls input and applies the frame-rate cap, so skipping it would freeze the window and the keyboard; only the (expensive) second pass over the world is conditional.
 	BeginDrawing();
-
+		// simulation is rendered for the user to sea
 		if (sim_params.render_gui) {
 			ClearBackground(RAYWHITE);
 
@@ -190,7 +176,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 
 				DrawModel(vw->sky_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the sky
 				DrawModel(vw->ground_model, (Vector3){0, 0, 0}, 1.0f, WHITE);		// draw the ground
-				// Rays first, then agent, so the player marker stays readable over scan lines.
+				// rays first, then agent, so the player marker stays readable over scan lines.
 				if (!(vw->player_mode && vw->player_view)) {
 					if (sim_params.lidar_enabled && sim_params.draw_lidar_rays) drawLidarRays(vw, observation, false);
 					drawPlayer(vw, RED);				// draw heading arrow (the player)
@@ -225,10 +211,9 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 				DrawText(vw->teleport_text.text, (int)vw->teleport_text.text_box.x + 5, (int)vw->teleport_text.text_box.y + 8, 25, GREEN);
 				DrawText(TextFormat("teleport: x z yaw_deg"), (int)vw->teleport_text.text_box.x + 5, vw->teleport_text.text_box.y + 40, 13, GREEN);
 			}
+
+		// simulation is NOT rendered for the user to sea (HEADLESS run)
 		} else if (sim_params.show_window) {
-			// GUI pass is off but the window is visible - blit the POV texture we already
-			// rendered instead of leaving a stale frame on screen. One textured quad, so
-			// it costs nothing next to a second pass over the world.
 			DrawTexturePro(
 				vw->camera_view_tex.texture,
 				(Rectangle){ 0, 0, (float)vw->camera_view_tex.texture.width, -(float)vw->camera_view_tex.texture.height },
@@ -240,8 +225,7 @@ void step_sim(VoxelWorld *vw, Action *action, Observation *observation) {
 	EndDrawing();
 }
 
-// tear everything down. Guarded on IsWindowReady() so calling it twice, or after the
-// window has already gone, cannot touch a dead GL context.
+// tear everything down - guarded on IsWindowReady() so calling it twice, or after the window has already gone, cannot touch a dead GL context
 void end_sim(VoxelWorld *vw) {
 	const bool gl_alive = IsWindowReady();
 

@@ -1,6 +1,6 @@
-// ray-casting LiDAR sensor using Amanatides & Woo DDA grid traversal
-// rays are cast through the maze_map (mainMap) grid where each cell is 1x1 world unit 
+// LIDAR SENSOR - ray-casting LiDAR sensor using Amanatides & Woo DDA grid traversal; rays are cast through the maze_map (mainMap) grid where each cell is 1x1 world unit 
 // IMPORTANT: currently each cell is counted as full or empty, smaller "voxels" are sensed by LiDAR as any 1x1x1	TODO figure out
+
 #include "lidar.hpp"
 #include "map.hpp"
 #include "config_core.hpp"
@@ -73,9 +73,7 @@ void updateLidar(VoxelWorld *vw, Observation *observation) {
 	Vector3 origin = vw->player_camera.position;
 	float heading = getPlayerAngle(vw->player_camera);		// in which direction the robot is facing and so to cast the 1st lidar ray
 
-	// ray count and range are runtime knobs (sim_params); NUM_LIDAR_RAYS stays the
-	// compile-time capacity of observation->lidar_scan. Unused slots are zeroed so a
-	// consumer reading the full array never sees stale ranges from a previous config.
+	// ray count and range are runtime knobs (sim_params); NUM_LIDAR_RAYS stays the compile-time capacity of observation->lidar_scan; unused slots are zeroed so a consumer reading the full array never sees stale ranges from a previous config
 	const int rays = simActiveLidarRays();
 	for (int i = 0; i < rays; i++) {
 		float angle = heading + (float)i * (2.0f * PI) / (float)rays;

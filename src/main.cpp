@@ -243,7 +243,7 @@ static py::dict Reset(py::object world, py::object position) {
 // queues a teleport request, applied at the next step.
 // x, z are floor-plane coords; yaw_deg is the heading angle in degrees from +x
 static void Teleport(float x, float z, float yaw_deg) {
-	master_ros_teleport(x, z, yaw_deg * (PI / 180.0f));
+	master_main_teleport(x, z, yaw_deg * (PI / 180.0f));
 }
 
 static void Close() {

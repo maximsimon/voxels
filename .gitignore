@@ -1,2 +1,7 @@
 examples/__pycache__/
 build/
+core_voxels/resources/generated/
+core_voxels/resources/map_images/
+core_voxels/resources/playback/
+core_voxels/resources/textures/
+__pycache__/

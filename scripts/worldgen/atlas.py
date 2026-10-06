@@ -1,37 +1,101 @@
-# 16-tile shared atlas builder
-# Hand-maintained manifest maps tile index -> (name, image_path).
-# Repeat/reuse textures to fill 4x4 grid; swap in real images later.
-# build_atlas() produces shared_atlas.png at the target grid size.
-# tile_z = index // cols, tile_x = index % cols matches fetchTextureCoords C++ grid math.
+# atlas.py - tile grids for world appearance.
+#
+# the C++ picks a tile by index and nothing else, so the atlas is just a palette of
+# sub-rectangles: index -> (label, source image). Each named set below is a different
+# arrangement of the same source photos, which is what makes two worlds that share an atlas
+# file size look different.
+#
+# capacity matters: a world needs one distinct tile per color, and the generated sets are 4x4
+# (16 slots) so palettes of up to 8 colors always fit. the hand-made 2x2 atlases in
+# resources/textures (atlas.png, city_atlas.png, texture_atlas.png, desert_texture_atlas.png)
+# only offer 4 slots and are therefore usable only by a <=4-color world.
 
 from pathlib import Path
 from PIL import Image
 
-# atlas tile manifest: index -> (name, path relative to this file's directory)
-ATLAS_TILES = {
-	0:  ("tree",          "../../core_voxels/resources/textures/tree.jpg"),
-	1:  ("brick",         "../../core_voxels/resources/textures/bark.jpg"),
-	2:  ("building",      "../../core_voxels/resources/textures/building.jpg"),
-	3:  ("bush",          "../../core_voxels/resources/textures/bush.png"),
-	4:  ("fence",         "../../core_voxels/resources/textures/fence.jpg"),
-	5:  ("puddle",        "../../core_voxels/resources/textures/puddle.png"),
-	6:  ("sand",          "../../core_voxels/resources/textures/bush.png"),
-	7:  ("rock",          "../../core_voxels/resources/textures/bark.jpg"),
-	8:  ("crate",         "../../core_voxels/resources/textures/the_grid_tile.png"),
-	9:  ("pillar",        "../../core_voxels/resources/textures/the_grid_tile.png"),
-	10: ("flower",        "../../core_voxels/resources/textures/the_grid_tile.png"),
-	11: ("mushroom",      "../../core_voxels/resources/textures/the_grid_tile.png"),
-	12: ("sign",          "../../core_voxels/resources/textures/the_grid_tile.png"),
-	13: ("post",          "../../core_voxels/resources/textures/the_grid_tile.png"),
-	14: ("barrel",        "../../core_voxels/resources/textures/the_grid_tile.png"),
-	15: ("bucket",        "../../core_voxels/resources/textures/the_grid_tile.png"),
+_TREE = "tree.jpg"
+_BARK = "bark.jpg"
+_BUILDING = "building.jpg"
+_BUSH = "bush.png"
+_FENCE = "fence.jpg"
+_PUDDLE = "puddle.png"
+_GRID = "the_grid_tile.png"
+_ASPHALT = "asphalt.png"
+
+_TEX_DIR = Path(__file__).resolve().parents[2] / "core_voxels" / "resources" / "textures"
+TILE_SIZE = 256
+
+# named 16-slot grids. every entry is a source photo; the label is only for debugging, the
+# registry addresses tiles by index.
+ATLAS_SETS: dict[str, tuple[str, ...]] = {
+	"park": (_TREE, _BUSH, _BARK, _GRID, _PUDDLE, _BUSH, _TREE, _FENCE,
+			 _BARK, _GRID, _TREE, _PUDDLE, _BUSH, _FENCE, _BARK, _GRID),
+	"stone": (_BARK, _ASPHALT, _GRID, _BUILDING, _BARK, _ASPHALT, _GRID, _FENCE,
+			  _ASPHALT, _BUILDING, _BARK, _GRID, _ASPHALT, _FENCE, _BARK, _GRID),
+	"wild": (_TREE, _BUSH, _PUDDLE, _TREE, _BARK, _GRID, _BUSH, _TREE,
+			 _PUDDLE, _FENCE, _TREE, _GRID, _BUSH, _BARK, _TREE, _PUDDLE),
+}
+DEFAULT_SET = "park"
+
+# kept for callers that want the index -> (label, path) form
+ATLAS_TILES = {i: (Path(p).stem, f"../../core_voxels/resources/textures/{p}")
+			   for i, p in enumerate(ATLAS_SETS[DEFAULT_SET])}
+
+
+def atlas_sets() -> list[str]:
+	return sorted(ATLAS_SETS)
+
+
+# which source photo suits each object. The registry can address a tile per object
+# (object_texture.<name>=i) as well as per color, and that is the honest mapping here: a color
+# is only a hue for the C++ matcher, so a red wall and a green wall of the same object would
+# otherwise differ in color but share one photo. Keyed by source file, so a set that lacks a
+# photo falls back to whatever it does have.
+OBJECT_SOURCES: dict[str, tuple[str, ...]] = {
+	"tree": (_TREE, _BARK),
+	"bush": (_BUSH, _TREE),
+	"rock": (_ASPHALT, _GRID),
+	"sand": (_ASPHALT, _GRID),
+	"pillar": (_BARK, _ASPHALT),
+	"fence": (_FENCE, _GRID),
+	"puddle": (_PUDDLE, _ASPHALT),
+	"crate": (_BARK, _BUILDING),
+	"brick": (_BUILDING, _GRID),
+	"building": (_BUILDING, _GRID),
 }
 
-_DATA_DIR = Path(__file__).parent
+
+def object_tiles(name: str = DEFAULT_SET) -> dict[str, int]:
+	"""Tile index per object for a named atlas set.
+
+	Every object gets a distinct slot where the set allows it, so two objects of the same
+	shape do not end up wearing the same photo. Only reached when a set is short of sources;
+	the generated 4x4 sets have 16 slots and there are 10 objects, so this is the normal case.
+	"""
+	sources = ATLAS_SETS[name]
+	out: dict[str, int] = {}
+	taken: set[int] = set()
+	for obj, prefs in OBJECT_SOURCES.items():
+		for pref in prefs:
+			if pref in sources and sources.index(pref) not in taken:
+				out[obj] = sources.index(pref)
+				taken.add(sources.index(pref))
+				break
+	# anything still unplaced takes the lowest free slot
+	for obj in OBJECT_SOURCES:
+		if obj in out:
+			continue
+		for i in range(len(sources)):
+			if i not in taken:
+				out[obj] = i
+				taken.add(i)
+				break
+	return out
 
 
-def _resolve(path: str) -> Path:
-	return (_DATA_DIR / path).resolve()
+def atlas_path(name: str = DEFAULT_SET, ext: str = "png") -> Path:
+	"""Where build_atlas_sets writes (and the registry reads) a named atlas."""
+	return _TEX_DIR / f"atlas_{name}.{ext}"
 
 
 def tile_uv(index: int, cols: int = 4, rows: int = 4):
@@ -45,48 +109,50 @@ def tile_uv(index: int, cols: int = 4, rows: int = 4):
 	return u_min, v_min, u_max, v_max
 
 
-def build_atlas(cols: int = 4, rows: int = 4, out: str | Path | None = None) -> dict[int, str]:
-	"""Build a `cols`x`rows` tile grid from the manifest, save as out, return {index: name}.
+def _square_tile(filename: str, size: int = TILE_SIZE) -> Image.Image:
+	"""Center-crop a source photo square and resize it to one atlas cell."""
+	img = Image.open(_TEX_DIR / filename).convert("RGBA")
+	w, h = img.size
+	side = min(w, h)
+	img = img.crop(((w - side) // 2, (h - side) // 2,
+	                (w - side) // 2 + side, (h - side) // 2 + side))
+	return img.resize((size, size), Image.LANCZOS)
 
-	Tiles are cropped to their center square then resized to tile_size.
-	Indices beyond len(ATLAS_TILES) repeat the last tile to fill the grid.
-	out defaults to core_voxels/resources/textures/shared_atlas.png relative to the repo root.
+
+def build_atlas(cols: int = 4, rows: int = 4, out: str | Path | None = None,
+                sources: tuple[str, ...] | None = None) -> dict[int, str]:
+	"""Lay a tile grid out as one PNG. Returns {index: source label}.
+
+	`sources` defaults to the DEFAULT_SET. Slots past the end of the manifest repeat its last
+	entry, so a smaller manifest still fills a larger grid.
 	"""
-	if out is None:
-		out = _DATA_DIR / "../../resources/textures/shared_atlas.png"
-	out = Path(out)
+	sources = sources or ATLAS_SETS[DEFAULT_SET]
+	out = Path(out) if out is not None else atlas_path(DEFAULT_SET)
 	out.parent.mkdir(parents=True, exist_ok=True)
 
 	capacity = cols * rows
-	# square-crop + resize every tile to tile_size
-	# tile_size is chosen so the full atlas is reasonably large; each tile gets 256px
-	TILE_SIZE = 256
-
-	last_img = None
+	atlas = Image.new("RGBA", (TILE_SIZE * cols, TILE_SIZE * rows), (0, 0, 0, 0))
+	labels: dict[int, str] = {}
 	for idx in range(capacity):
-		key = min(idx, max(ATLAS_TILES.keys()))
-		name, rel = ATLAS_TILES[key]
-		img = Image.open(_resolve(rel)).convert("RGBA")
-		last_img = img
-		# center crop to square
-		w, h = img.size
-		side = min(w, h)
-		left = (w - side) // 2
-		top = (h - side) // 2
-		img = img.crop((left, top, left + side, top + side))
-		img = img.resize((TILE_SIZE, TILE_SIZE), Image.LANCZOS)
-		# paste into the grid
-		z = idx // cols
-		x = idx % cols
-		if idx == 0:
-			atlas = Image.new("RGBA", (TILE_SIZE * cols, TILE_SIZE * rows), (0, 0, 0, 0))
-		atlas.paste(img, (x * TILE_SIZE, z * TILE_SIZE))
+		src = sources[min(idx, len(sources) - 1)]
+		atlas.paste(_square_tile(src), ((idx % cols) * TILE_SIZE, (idx // cols) * TILE_SIZE))
+		labels[idx] = Path(src).stem
 
 	atlas.save(str(out))
 	print(f"atlas: saved {out} ({cols}x{rows}, {TILE_SIZE}px/tile)")
+	return labels
 
-	# return the name map for registry writers
-	return {idx: ATLAS_TILES[min(idx, max(ATLAS_TILES.keys()))][0] for idx in range(capacity)}
+
+def build_atlas_sets(cols: int = 4, rows: int = 4,
+                     sets: list[str] | None = None) -> dict[str, Path]:
+	"""Build every named atlas set that is not already on disk. Returns {set: path}."""
+	paths = {}
+	for name in (sets or atlas_sets()):
+		path = atlas_path(name)
+		if not path.exists():
+			build_atlas(cols, rows, path, sources=ATLAS_SETS[name])
+		paths[name] = path
+	return paths
 
 
 def slice_atlas(path: str | Path, cols: int = 4, rows: int = 4) -> list[Image.Image]:

@@ -10,8 +10,7 @@
 #include "sim_params.hpp"
 #include <cmath>
 
-// Is the map cell containing world position (wx, wz) occupied?  Same cell convention as
-// the lidar's cellOccupied: world (x, z) maps to cell (floor(x), floor(z)).
+// Is the map cell containing world position (wx, wz) occupied?  same cell convention as the lidar's cellOccupied: world (x, z) maps to cell (floor(x), floor(z))
 static bool cellOccupiedAt(const mainMap &main_map, float wx, float wz) {
 	const int grid_x = (int)floorf(wx);
 	const int grid_z = (int)floorf(wz);
