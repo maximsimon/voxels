@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RL MAIN - the entry point of the reinforcement learning setup. It starts the VecEnv from scripts/bare_bones, hands the chosen policy, reward and algorithm to the trainer and runs the workflow to completion.
+RL MAIN - the entry point of the reinforcement learning setup. It starts the VecEnv from scripts/vector_env, hands the chosen policy, reward and algorithm to the trainer and runs the workflow to completion.
 Run it from the repository root with:
 
 	PYTHONPATH=build python3 scripts/rl/rl_main.py

@@ -1,5 +1,7 @@
 examples/__pycache__/
 build/
+install/
+log/
 core_voxels/resources/generated/
 core_voxels/resources/map_images/
 core_voxels/resources/playback/

@@ -1,31 +1,44 @@
-# Ros Voxels README
-## this branch is underconstruction - contains no ROS API, here is python API instead
+# Voxel World
 
-A lightweight, voxel-based robot simulator for **ROS 2** with [raylib](https://www.raylib.com/) rendering.
+**This branch (python_api_devel) is under construction. Some info listed below may consern other (ROS) branches only or be outdated!**
 
-Generate a block world from a 2D pixel image, drive a robot around it with keyboard or ROS commands, and get camera images + odometry + lidar scan as real-time ROS topics. Designed as a testbed for high-level navigation strategies.
+A lightweight, voxel-based robot simulator with [raylib](https://www.raylib.com/) rendering,
+built as a testbed for navigation strategies — mainly reinforcement learning driven from Python.
+
+Generate a block world from a 2D pixel image (hand-drawn or procedurally generated), drive a
+robot around it with the keyboard or a 6-float action vector, and get camera images, pose,
+velocities and a lidar scan back on every step.
+
+> **This branch (`python_api_devel`) exposes a Python API and contains no ROS code.**
+> The ROS 2 API lives on the `ros2_api` branch; `documentation/` was written for that branch
+> and is marked accordingly below.
 
 Extended documentation can be found in `documentation/`.
 
 [***Paper*** (or rather extended abstract)](https://mobile-robotics-hub.github.io/workshop2026/papers/LoWi2026_P11.pdf)
 
 ![Voxel World - God mode view](documentation/figures/god_view.png)
-![Voxel World - God mode view](documentation/figures/player_view.png)
+![Voxel World - Player mode view](documentation/figures/player_view.png)
 
 ---
 
-## pythonAPI BRANCH
+## Quick start
 
-This branch is for using the simulation for Reinforcment Learning - mainly from python, but cpp should also be possible.	\
-For use of Voxels simulation with ROS, see ros2_api.
-  
-1. To use this branches version, put your python code in examples/ \
-2. `cmake -S . -B build`
-3. build: `cmake --build build`
-3. run: `PYTHONPATH=build examples/python_drive.py`
-(or `./build/master_main` for purely cpp version)
+### Prerequisites: OpenCV, raylib, pybind11, numpy
 
-### Prerequisities: OpenCV, raylib, pybind11, numpy
+```bash
+# build the C++ core and the `voxel_sim` Python module
+cmake -S . -B build
+cmake --build build
+
+# drive the robot from Python (run from the repository root)
+python3 scripts/play.py
+
+# or run the standalone C++ binary — a window with the same controls
+./build/master_main
+```
+
+Every resource path is resolved relative to the repository root, so run everything from here.
 
 ---
 
@@ -34,7 +47,7 @@ For use of Voxels simulation with ROS, see ros2_api.
 ```python
 import numpy as np, voxel_sim
 
-voxel_sim.Configure(target_fps=0, render_gui=False)   # optional, see below
+voxel_sim.Configure(target_fps=0, show_window=False)  # optional, see below
 obs = voxel_sim.Init()                                # once per process
 while obs["running"]:
     obs = voxel_sim.Step(np.array([3, 0, 0, 0, 0.5, 0], dtype=np.float32))
@@ -51,7 +64,13 @@ voxel_sim.Close()
 | `Configure(**params)` | set the runtime parameters below |
 | `GetConfig()` | every parameter and its current value |
 | `CurrentWorld()` | name of the world currently loaded |
+| `WorldInfo(name)` | full definition of a registered world as a dict (`name`, `map`, `atlas`, `ground`, `sky`, `atlas_cols`/`atlas_rows`, `colors`); `name=None` gives the world currently loaded |
+| `ReloadRegistry(path)` | replace the world registry with another file and refresh `WORLDS` |
 | `Close()` | release the world and the window |
+
+`voxel_sim.WORLDS` is the tuple of registered world names, populated at import time from
+`core_voxels/resources/worlds/worlds.config`. `NUM_LIDAR_RAYS` and `MAX_LIDAR_RANGE` are the
+build-time lidar capacity and default range. `voxel_sim.reset` is a lowercase alias of `Reset`.
 
 Observation dict: `camera_front` (uint8 `[H,W,3]` BGR, or `None` when the camera is off),
 `position`, `orientation`, `yaw` (floor-plane heading from +x, radians), `linear_vel`,
@@ -111,25 +130,32 @@ much; shrinking the camera is where the time is. Collision checking is the only 
 lever with real weight, and only once the camera is small (mesh footprint costs ~1 ms/step
 in open space, grid footprint ~0.01 ms).
 
-### Vectorized environments (parallel RL)
+---
 
-Try it out quickly: `PYTHONPATH=scripts/bare_bones:build python scripts/worldgen/example_vecenv_rollout.py --show`
+## Vectorized environments (parallel RL)
+
+Try it out quickly:
+
+```bash
+python3 scripts/worldgen/example_vecenv_rollout.py --dataset wtest --timing
+python3 scripts/worldgen/example_vecenv_rollout.py --dataset wtest --mosaic   # watch
+```
 
 RL collects more samples per wall second from *many parallel environments*, and this
 simulator can provide them — as **separate processes**, not threads. raylib allows exactly
 one window / OpenGL context per process, and the sim keeps its state in process globals
 (`sim_params`, `CurrentWorld`, the `master_action`/`master_observation` buffers), so N
-instances means N processes. `examples/vec_env.py` wraps all of that in a gymnasium-style
-`VecEnv` and ships observations to Python as numpy arrays stacked along a leading
-`[N, ...]` dimension:
+instances means N processes. `scripts/vector_env/vec_env.py` wraps all of that in a
+gymnasium-style `VecEnv` and ships observations to Python as numpy arrays stacked along a
+leading `[N, ...]` dimension:
 
 ```python
 import numpy as np
 from vec_env import VecEnv
 
 env = VecEnv(n_envs=8)                       # 8 processes, each its own (hidden) window
-obs = env.reset("ConferenceWorld", [(0.0, 0.0, 90.0)] * 8)
-while running:
+obs = env.reset(["ConferenceWorld"] * 8, [(0.0, 0.0, 90.0)] * 8)
+while obs["running"].all():
     acts = np.zeros((8, 6), dtype=np.float32)  # one [vx,vy,vz, wx,wy,wz] row per env
     obs, reward, terminated, truncated, info = env.step(acts)
     # train on the batch: obs["camera_front"] is [8,H,W,3] uint8 BGR, obs["lidar_scan"] [8,180], ...
@@ -138,202 +164,136 @@ env.close()
 
 | call | what it does |
 | ---- | ------------ |
-| `VecEnv(n_envs, config=None, start_method="fork")` | start N workers, each `Configure`d headless then `Init()`ed; blocks until every window and world is up |
+| `VecEnv(n_envs, config=None, worlds=None, start_method="fork", show_mosaic=False)` | start N workers, each `Configure`d headless then `Init()`ed; blocks until every window and world is up |
 | `env.reset(worlds, positions)` | new episode in every env; `worlds`/`positions` apply to all or are listed per-env → stacked obs `[N, ...]` |
 | `env.step(actions)` | `actions` is `[N,6]` float32 → `(obs, reward, terminated, truncated, info)` |
 | `env.reset_at(i, world, pos)` | reset one env inside an episode (its obs is returned unstacked) |
+| `env.reset_many(indices, worlds, positions)` | reset several envs in **one pipelined call** — a world switch rebuilds the world, so doing them concurrently costs a single rebuild in wall time. This is how the RL trainer swaps worlds at episode boundaries. |
+| `env.load_worlds(source)` | read a dataset folder under `resources/generated/` and return its world-name tuple (one per dataset entry) |
+| `env.worlds` | the tuple of worlds this env is allowed to use |
+| `env.num_envs`, `env.action_shape` | `N` and `(6,)` |
 | `env.close()` / context manager | shut the workers down and release their windows/GL contexts |
 
 Details:
 
 - **Speed**: each process steps independently on its own core, so aggregate sample
   throughput scales towards N× a single env until cores or memory bandwidth (the camera
-  readback, ~3 ns/px, is shared DRAM bandwidth) saturate. `examples/python_vec_drive.py`
-  prints the speedup on your machine. The default worker config is the fast one from the
-  table above (hidden window, no third-person pass, 128x80 camera, grid collisions).
+  readback, ~3 ns/px, is shared DRAM bandwidth) saturate. The default worker config is the
+  fast one from the table above (hidden window, no third-person pass, 128x80 camera, grid
+  collisions).
 - **Construction rule**: create the `VecEnv` *before* any `voxel_sim.Init()` in the same
   process — forking (or spawning) a child under an existing raylib window would duplicate
-  that GL context into the workers. The examples keep `Init()` out of the calling process
-  entirely: vector run first, then the single-instance benchmark.
+  that GL context into the workers.
 - **Config**: pass a dict (applied to every env) or a list of N dicts to `VecEnv(n_envs,
   config=...)`, e.g. `config={"camera_width": 256, "camera_height": 160, "fixed_dt": 0.02}`.
   Click the same knobs as `voxel_sim.Configure()`.
 - **Uniformity**: camera resolution and `lidar_rays` must match across envs (stacking).
 - **Reward**: the sim computes no reward; set `env.reward_fn = lambda obs, acts: ...` and
   `step()` will call it, or compute rewards in your own loop.
+- **Mosaic**: `show_mosaic=True` (or the `h`/`s` keys) opens one tiled window showing every
+  worker's camera at once — `scripts/vector_env/wrapper.py` implements it.
 - This composes with GPU-side learning: the envs run on CPU in parallel while your policy
   trains on the GPU; observations are plain numpy, so they move to a GPU tensor trivially.
 
 ---
 
-## Examples
+## Scripts
 
-Run from the repository root; the simulator resolves its resources relative to it.
+Everything under `scripts/` runs from the repository root.
 
 | script | what it does |
 | ------ | ------------ |
-| `examples/python_drive.py` | minimal Init/Step/Close loop at the stock settings |
-| `examples/python_vec_drive.py` | runs N environments in parallel (VecEnv), drives them, prints the aggregate steps/s vs a single env |
-| `examples/vtr_map.py` | loads a VTR teach map (`examples/maps/`) — a self-contained MCAP/CDR reader, no ROS needed. Run it directly to print a summary of each map. |
-| `examples/python_informed_repeat.py` | drives a taught trajectory in minimum wall time |
-| `examples/repeat_sweep.sh` | runs both maps under a range of parameter values and prints a comparison table |
+| `scripts/play.py` | open a window and drive with the keyboard; records every pose visited to a trail CSV (`--world`, `--spawn-x/z`, `--outdir`) |
+| `scripts/visualize_trail.py` | read a trail CSV and scatter natural obstacles along the driven path — produces a map for RL obstacle-avoidance training |
+| `scripts/worldgen/` | procedural dataset generator: map images, texture atlas, registry, manifest. See `scripts/worldgen/README.md` |
+| `scripts/worldgen/generate_all.py` | `python3 -m scripts.worldgen.generate_all --dataset myds --count 24` writes `core_voxels/resources/generated/myds/` |
+| `scripts/worldgen/example_vecenv_rollout.py` | build every world of a dataset in parallel, spawn alive, report lidar and timings (`--timing`, `--mosaic`) |
+| `scripts/vector_env/vec_env.py` | the `VecEnv` class described above |
+| `scripts/rl/` | the RL training setup: config, trainer, buffer, policy, reward, algorithm. See `scripts/rl/README.md` |
+| `scripts/rl/rl_main.py` | `PYTHONPATH=build python3 scripts/rl/rl_main.py` — one training run |
+
+### World generation
 
 ```bash
-PYTHONPATH=build python3 examples/python_informed_repeat.py            # both maps
-PYTHONPATH=build python3 examples/python_informed_repeat.py --gui      # watch it
-PYTHONPATH=build python3 examples/python_informed_repeat.py --help     # all options
+# generate a dataset: N maps + atlas sets + a registry + a Python manifest
+python3 -m scripts.worldgen.generate_all --dataset myds --count 24
 
-./examples/repeat_sweep.sh                       # parameter comparison table over both maps
-VOXELS_DETAIL=1 ./examples/repeat_sweep.sh      # ...with each map broken out
-VOXELS_REPEATS=3 ./examples/repeat_sweep.sh     # best of N runs per row, for quieter numbers
-VOXELS_BUILD=<dir> ./examples/repeat_sweep.sh   # a build directory other than build/
-VOXELS_PYTHON=<exe> ./examples/repeat_sweep.sh  # a specific interpreter
+# check it in the real simulator: build every world, spawn, report lidar and timings
+python3 scripts/worldgen/example_vecenv_rollout.py --dataset myds --timing
 ```
 
-`repeat_sweep.sh` takes no arguments and can be run from any directory — it finds the repo
-root from its own location, locates the build directory itself, and picks the interpreter
-CMake was configured against (recorded in `CMakeCache.txt`), which is not necessarily the
-`python3` first on `PATH`. Its overrides are `VOXELS_`-prefixed deliberately: a bare `BUILD`
-is unusable because conda's compiler packages export `BUILD=x86_64-conda-linux-gnu` whenever
-an environment is activated.
+Point the RL setup at it by setting `world_folder` in `scripts/rl/rl_config.py` to
+`core_voxels/resources/generated/myds` — the folder is loaded directly, so no edit to
+`core_voxels/resources/worlds/worlds.config` is needed. Generated datasets are gitignored.
 
-`repeat_sweep.sh` fixes the agent camera at 512x320 for every row and renders nothing else -
-no third-person view, no mapped window - so the rows differ only in the parameter named. It
-prints the observation contents up front to show that each row still produces a full
-observation: camera image, pose, yaw, velocities and lidar.
-
-`examples/maps/` holds two visual-teach-and-repeat maps recorded against this simulator
-through the ROS 2 bridge: camera frames plus a bag of odometry and commanded actions. They
-were taught in the world `core_voxels/resources/worlds/worlds.config` selects, so the
-repeat script never switches worlds.
-
-The repeat is *informed*: it steers by the map's recorded poses rather than re-localizing
-visually. `--steps-per-meter` (default 5) sets the sampling density along the path and
-picks `fixed_dt` from the commanded speed to hit it; because the controller only ever slows
-down, that density is a floor. Both taught paths (115 m total) are followed to within
-9 cm mean cross-track error in about 0.26 s of wall time.
-
-**Note on the yaw convention**: a positive commanded yaw rate makes the reported `yaw`
-*decrease* by the matching amount — the sign is flipped relative to `yaw`/`position` and to
-REP-103. The magnitude is exact and the taught maps were recorded through the same
-convention, so it is left alone here; `YAW_RATE_SIGN` in `python_informed_repeat.py`
-isolates it.
-
----
-
-**NOTE**: info below is targeted for ros2_api branch and may be (probably is) incorrect for this python_api branch.
-
----
-
-## Quick Start
+### Reinforcement learning
 
 ```bash
-## Prerequisites: 
-
-### ROS 2 Jazzy, raylib, OpenCV
-sudo apt install libraylib-dev libopencv-dev
-
-#### add user to the input group for reading key presses to control robot
-sudo usermod -a -G input $USER
-now log out and back in, when you run `groups` you should see `input` listed
-
-###raylib
-either from __[(https://www.raylib.com/)]__ or by:
-sudo add-apt-repository ppa:texus/raylib
-sudo apt update
-sudo apt install libraylib5-dev
-
-## Build
-mkdir -p ~/voxel_world_ws/src
-cd ~/voxel_world_ws/src
-git clone <this-repo> ros_voxels
-cd ~/voxel_world_ws
-colcon build
-source install/setup.bash
-
-# Run (must be from workspace root for resource paths)
-./install/ros_voxels/lib/ros_voxels/master_main
+PYTHONPATH=build python3 scripts/rl/rl_main.py
 ```
 
-A window opens showing Voxels - the voxel world simulation. Fly with **Arrows**, **PgUp, PgDn** and **WASD**. Press **P** to enable player mode (**O** to disble it), then use **WASD** to move and **KL** to turn. Press **V** for first-person view (robot POV).
-
-
-
----
-
-## Features
-
-- **Procedural voxel world** generated from a 2D pixel image (.png, .jpg, ...)
-- **Monocular camera** — `sensor_msgs/Image` at 50 Hz (BGR8, 1600×850)
-- **Ground-truth odometry** — `nav_msgs/Odometry` + TF (`odom` → `base_link`)
-- **planar LiDAR laser scan** — `sensor_msgs/LaserScan`
-- **Velocity control** — `cmd_vel_subscriber` (`TwistStamped`)
-- **Teleport** — `/initialpose` for resetting robot position
-- **Keyboard teleop** — raw `/dev/input/` reads for low-latency control
-- **1st and 3rd person view** — god mode (free-fly) + player mode (first-person)
-
----
-
-## ROS 2 Interface
-
-| Topic | Type | Direction |
-|-------|------|-----------|
-| `/camera_front_publisher` | `sensor_msgs/Image` | Published |
-| `/odometry_publisher` | `nav_msgs/Odometry` | Published |
-| `/lidar_scan` | `sensor_msgs/LaserScan` | Published |
-| `/cmd_vel_publisher` | `geometry_msgs/TwistStamped` | Published |
-| `/cmd_vel_subscriber` | `geometry_msgs/TwistStamped` | Subscribed |
-| `/initialpose` | `geometry_msgs/PoseWithCovarianceStamped` | Subscribed |
-
-**TF**: `odom` → `base_link` (broadcast at 50 Hz)
+`scripts/rl/README.md` explains the whole setup file by file. The short version: the policy,
+the reward function and the learning algorithm are three pluggable classes selected by one
+line each in `rl_main.py`, and every number lives in `rl_config.py`. **The learner is
+currently a placeholder** — it collects rollouts, computes returns and logs batch statistics
+without updating any parameters. The observation boundary (`obs_features.py`) already splits
+each observation into a `uint8` pixel branch and a float32 state branch, so wiring in a
+convolutional policy and a real algorithm (PPO) is the remaining work.
 
 ---
 
 ## Controls
+
+The window accepts these keys (disabled while `keyboard_enabled=False`):
 
 | Key | Mode | Action |
 |-----|------|--------|
 | P | Any | Enable player mode |
 | O | Any | Disable player mode |
 | V | Any | Toggle first-person view |
-| WASD | Player | Move robot |
-| KL | Player | Rotate robot |
+| Arrows | Player | Move robot (Up/Down forward-back, Left/Right strafe) |
+| A / D | Player | Rotate robot left / right |
 | Arrows | God | Move camera |
 | WASD | God | Rotate camera |
 | PgUp/PgDn | God | Move up/down |
 | T | Any | Teleport input ("x z yaw_deg") |
+| R | Any | Reload the current world definition live |
 | Space | Any | Screenshot |
 | Q or Esc | Any | Quit |
 
+Actions are treated as proper REP-103 velocities (m/s and rad/s) and scaled by `fixed_dt`
+before being integrated — see `core_voxels/src/support_for_master.cpp:34-62`.
+
 ---
 
-## Repository Structure
+## Repository structure
 
 ```
-ros_voxels/
-├── CMakeLists.txt              # ROS 2 package build
-├── package.xml                 # ROS 2 manifest
-├── core_voxels/                # Simulation engine (no ROS deps)
-│   ├── include/                #   Headers
-│   ├── src/                    #   Implementation (10 source files)
-│   └── resources/              #   Map images + textures
-├── ros_voxels/                 # ROS 2 glue library
-│   ├── include/
-│   └── src/
-├── master_main/                # Main entry point (executable)
-│   ├── include/
-│   └── src/
-└── documentation/                       # Full documentation suite
-    ├── architecture.md
-    ├── software_design.md
-    ├── simulation_model.md
-    ├── api_reference.md
-    └── README.md (this file)
+voxels/
+├── CMakeLists.txt              # builds core_voxels, master_main_core, voxel_sim, master_main
+├── include/                    # input-device config (config.hpp)
+├── src/
+│   ├── main.cpp                # the pybind11 `voxel_sim` module
+│   └── cli_main.cpp            # standalone `master_main` executable
+├── core_voxels/                # simulation engine (no Python/ROS deps)
+│   ├── include/                #   headers (sim_params.hpp, config_core.hpp, ...)
+│   ├── src/                    #   world building, rendering, lidar, collisions, input
+│   └── resources/              #   worlds/, textures/, generated/ (datasets, gitignored)
+├── master_main/                # shared C++ driver used by both the module and the CLI
+├── scripts/
+│   ├── play.py                 # keyboard drive + trail recording
+│   ├── visualize_trail.py      # obstacles along a recorded trail
+│   ├── vector_env/             # VecEnv: N simulators as processes, gymnasium-style
+│   ├── worldgen/               # procedural dataset generation (see its README)
+│   └── rl/                     # RL training setup (see its README)
+├── documentation/              # written for the ros2_api branch
+└── build/                      # cmake output (voxel_sim.so, master_main)
 ```
 
 ---
 
 ## Documentation
+
 Find detailed documentation in `documentation/`:
 
 | Document              | Content                                                        |
@@ -345,15 +305,21 @@ Find detailed documentation in `documentation/`:
 | `simulation_model.md` | World model, physics, sensor models, coordinate frames         |
 | `api_reference.md`    | Full ROS 2 interface, library API reference                    |
 
+> These files describe the `ros2_api` branch. The ROS topic tables and package layout do not
+> apply here; the C++ simulation model sections are still accurate.
+
 ---
 
 ## Requirements
 
-- **ROS 2** Humble / Iron / Jazzy (tested on Jazzy)
-- **C++14** compiler
+- **C++17** compiler
 - **raylib** (tested on ≥ 4.5)
 - **OpenCV** (tested on ≥ 4.2)
+- **Python 3** with `pybind11`, `numpy`; plus `opencv-python` and `Pillow` for the
+  world-generation and visualization scripts
 - **X11**, OpenGL (for raylib rendering)
+
+No ROS installation is needed on this branch.
 
 ---
 
